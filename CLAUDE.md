@@ -62,6 +62,12 @@ Keine personenbezogenen Daten im System. Cloud-Hosting (Vercel + Supabase) ist u
 - `tasks/lessons.md` — Gelernte Lektionen und Regeln
 - PRD v0.3 und DEV_GUIDE v1.0 sind die maßgeblichen Spezifikationsdokumente
 
+## Design-Referenz (Stitch)
+- DESIGN.md im Projekt-Root enthält das Design-System (Farben, Typografie, Spacing)
+- design/ Ordner enthält HTML-Exports der UI-Screens aus Google Stitch
+- Frontend-Implementierung orientiert sich an diesen Vorgaben
+- Farbpalette, Komponentenstil und Layout aus DESIGN.md übernehmen
+
 ## Session-Routine
 1. Bei Sessionstart: CLAUDE.md, tasks/todo.md und tasks/lessons.md lesen
 2. Kurze Zusammenfassung des Stands geben

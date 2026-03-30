@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+
+<html class="light" lang="de"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-secondary-container": "#00731e",
+              "on-primary-fixed-variant": "#004a75",
+              "primary-container": "#106ba3",
+              "secondary-fixed": "#94f990",
+              "inverse-surface": "#2e3132",
+              "surface-bright": "#f8f9fa",
+              "on-tertiary": "#ffffff",
+              "surface-container-lowest": "#ffffff",
+              "secondary-fixed-dim": "#78dc77",
+              "on-secondary-fixed-variant": "#005313",
+              "on-primary": "#ffffff",
+              "surface-dim": "#d9dadb",
+              "on-background": "#191c1d",
+              "outline-variant": "#c0c7d1",
+              "error-container": "#ffdad6",
+              "surface-tint": "#006399",
+              "on-primary-container": "#d2e7ff",
+              "tertiary-container": "#c52427",
+              "on-tertiary-container": "#ffddda",
+              "inverse-primary": "#95ccff",
+              "on-error-container": "#93000a",
+              "background": "#f8f9fa",
+              "error": "#ba1a1a",
+              "surface-variant": "#e1e3e4",
+              "on-tertiary-fixed-variant": "#930010",
+              "surface-container-low": "#f3f4f5",
+              "inverse-on-surface": "#f0f1f2",
+              "tertiary-fixed": "#ffdad6",
+              "surface-container-high": "#e7e8e9",
+              "primary": "#005280",
+              "on-surface-variant": "#40474f",
+              "on-secondary": "#ffffff",
+              "surface-container": "#edeeef",
+              "primary-fixed-dim": "#95ccff",
+              "surface": "#f8f9fa",
+              "on-error": "#ffffff",
+              "secondary-container": "#91f78e",
+              "on-primary-fixed": "#001d32",
+              "secondary": "#006e1c",
+              "tertiary-fixed-dim": "#ffb3ac",
+              "surface-container-highest": "#e1e3e4",
+              "on-tertiary-fixed": "#410003",
+              "on-surface": "#191c1d",
+              "on-secondary-fixed": "#002204",
+              "primary-fixed": "#cde5ff",
+              "tertiary": "#a10012",
+              "outline": "#717881"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-header {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-bottom: 2px solid #005280 !important;
+        }
+        .tap-highlight-transparent {
+            -webkit-tap-highlight-color: transparent;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-surface font-body text-on-surface antialiased">
+<!-- TopAppBar -->
+<header class="bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-xl docked full-width top-0 sticky z-50">
+<div class="flex justify-between items-center w-full px-6 py-4 max-w-full">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-blue-700 dark:text-blue-400">clinical_notes</span>
+<h1 class="text-blue-800 dark:text-blue-300 font-extrabold text-xl font-manrope tracking-tight">FEES Optimizer</h1>
+</div>
+<span class="text-slate-500 dark:text-slate-400 font-manrope font-bold text-sm">Schritt 4 von 4</span>
+</div>
+<div class="bg-slate-200/50 dark:bg-slate-800/50 h-[1px] w-full"></div>
+</header>
+<main class="max-w-xl mx-auto px-5 pt-6 pb-32 space-y-8">
+<!-- Patient Header Card -->
+<section class="bg-surface-container-low rounded-full px-6 py-4 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">person</span>
+</div>
+<div>
+<p class="text-[10px] font-bold text-on-surface-variant tracking-widest uppercase">Patient/in</p>
+<h2 class="font-headline font-bold text-lg text-on-surface">[Patient/in]</h2>
+</div>
+</div>
+<div class="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full text-xs font-bold">
+                ID: #88291
+            </div>
+</section>
+<!-- BODS Score Section -->
+<section class="space-y-4">
+<div class="flex items-center justify-between">
+<h3 class="font-headline font-extrabold text-xl tracking-tight text-primary">BODS-Score</h3>
+<button class="flex items-center gap-1 text-primary text-sm font-semibold active:scale-95 transition-all">
+<span class="material-symbols-outlined text-lg">edit</span>
+                    Anpassen
+                </button>
+</div>
+<div class="grid grid-cols-3 gap-3">
+<div class="bg-surface-container-lowest p-4 rounded-xl flex flex-col items-center justify-center">
+<span class="text-[10px] font-bold text-outline uppercase">Teil I</span>
+<span class="text-2xl font-black text-on-surface">3</span>
+</div>
+<div class="bg-surface-container-lowest p-4 rounded-xl flex flex-col items-center justify-center">
+<span class="text-[10px] font-bold text-outline uppercase">Teil II</span>
+<span class="text-2xl font-black text-on-surface">2</span>
+</div>
+<div class="bg-primary text-on-primary p-4 rounded-xl flex flex-col items-center justify-center shadow-lg shadow-primary/20">
+<span class="text-[10px] font-bold opacity-80 uppercase tracking-tighter">Gesamt</span>
+<span class="text-2xl font-black">5</span>
+</div>
+</div>
+</section>
+<!-- Assessment Section -->
+<section class="space-y-6">
+<div class="space-y-3">
+<label class="font-headline font-bold text-sm text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-lg">description</span>
+                    Zusammenfassende Beurteilung
+                </label>
+<div class="relative bg-surface-container-highest p-1 rounded-xl group">
+<textarea class="w-full bg-transparent border-none p-3 text-sm text-on-surface placeholder:text-outline font-body leading-relaxed min-h-[120px]" placeholder="Klinischer Gesamteindruck und Befundinterpretation..."></textarea>
+<div class="absolute bottom-0 left-3 right-3 h-[2px] bg-outline-variant group-focus-within:bg-primary transition-colors"></div>
+</div>
+</div>
+<div class="space-y-3">
+<label class="font-headline font-bold text-sm text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-lg">psychology</span>
+                    Pathophysiologie
+                </label>
+<div class="relative bg-surface-container-highest p-1 rounded-xl group">
+<textarea class="w-full bg-transparent border-none p-3 text-sm text-on-surface placeholder:text-outline font-body leading-relaxed min-h-[100px]" placeholder="Ursachen der Schluckstörung (z.B. reduzierte Larynxelevation)..."></textarea>
+<div class="absolute bottom-0 left-3 right-3 h-[2px] bg-outline-variant group-focus-within:bg-primary transition-colors"></div>
+</div>
+</div>
+</section>
+<!-- Diet Recommendation -->
+<section class="space-y-4">
+<h3 class="font-headline font-extrabold text-xl tracking-tight text-primary">Kostformempfehlung</h3>
+<div class="grid gap-4">
+<div class="bg-surface-container-low p-4 rounded-2xl space-y-4">
+<div class="grid grid-cols-2 gap-3">
+<div class="space-y-1.5">
+<label class="text-[10px] font-bold text-outline uppercase tracking-wider ml-1">DYS Stufe</label>
+<select class="w-full bg-surface-container-lowest border-none rounded-lg text-sm px-3 py-2.5 font-medium shadow-sm">
+<option>DYS 1</option>
+<option>DYS 2</option>
+<option>DYS 3</option>
+<option>DYS 4</option>
+</select>
+</div>
+<div class="space-y-1.5">
+<label class="text-[10px] font-bold text-outline uppercase tracking-wider ml-1">IDDSI Level</label>
+<select class="w-full bg-surface-container-lowest border-none rounded-lg text-sm px-3 py-2.5 font-medium shadow-sm">
+<option>Level 3 (Liquidized)</option>
+<option>Level 4 (Pureed)</option>
+<option>Level 5 (Minced)</option>
+<option>Level 6 (Soft)</option>
+</select>
+</div>
+</div>
+<div class="space-y-1.5">
+<label class="text-[10px] font-bold text-outline uppercase tracking-wider ml-1">Getränke</label>
+<select class="w-full bg-surface-container-lowest border-none rounded-lg text-sm px-3 py-2.5 font-medium shadow-sm">
+<option>Dünnflüssig (IDDSI 0)</option>
+<option>Leicht angedickt (IDDSI 1)</option>
+<option>Mittel angedickt (IDDSI 2)</option>
+<option>Stark angedickt (IDDSI 3)</option>
+</select>
+</div>
+</div>
+</div>
+</section>
+<!-- Therapy Recommendations -->
+<section class="space-y-4">
+<h3 class="font-headline font-extrabold text-xl tracking-tight text-primary">Therapieempfehlungen</h3>
+<div class="grid grid-cols-2 gap-3"><!-- Masako -->
+<label class="flex items-center gap-3 bg-surface-container-low p-4 rounded-xl cursor-pointer active:scale-[0.98] transition-all min-h-[64px]">
+<div class="relative flex items-center justify-center">
+<input class="peer appearance-none w-6 h-6 border-2 border-primary rounded-md checked:bg-primary transition-all" type="checkbox"/>
+<span class="material-symbols-outlined absolute text-white scale-0 peer-checked:scale-100 transition-transform text-lg" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+<span class="text-sm font-semibold text-on-surface">Masako</span>
+</label>
+<!-- Shaker -->
+<label class="flex items-center gap-3 bg-surface-container-low p-4 rounded-xl cursor-pointer active:scale-[0.98] transition-all min-h-[64px]">
+<div class="relative flex items-center justify-center">
+<input class="peer appearance-none w-6 h-6 border-2 border-primary rounded-md checked:bg-primary transition-all" type="checkbox"/>
+<span class="material-symbols-outlined absolute text-white scale-0 peer-checked:scale-100 transition-transform text-lg" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+<span class="text-sm font-semibold text-on-surface">Shaker</span>
+</label>
+<!-- Mendelsohn -->
+<label class="flex items-center gap-3 bg-surface-container-low p-4 rounded-xl cursor-pointer active:scale-[0.98] transition-all min-h-[64px]">
+<div class="relative flex items-center justify-center">
+<input class="peer appearance-none w-6 h-6 border-2 border-primary rounded-md checked:bg-primary transition-all" type="checkbox"/>
+<span class="material-symbols-outlined absolute text-white scale-0 peer-checked:scale-100 transition-transform text-lg" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+<span class="text-sm font-semibold text-on-surface">Mendelsohn</span>
+</label>
+<!-- Supraglottisch -->
+<label class="flex items-center gap-3 bg-surface-container-low p-4 rounded-xl cursor-pointer active:scale-[0.98] transition-all min-h-[64px]">
+<div class="relative flex items-center justify-center">
+<input class="peer appearance-none w-6 h-6 border-2 border-primary rounded-md checked:bg-primary transition-all" type="checkbox"/>
+<span class="material-symbols-outlined absolute text-white scale-0 peer-checked:scale-100 transition-transform text-lg" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+<span class="text-sm font-semibold text-on-surface leading-tight">Supraglottisch</span>
+</label>
+<!-- PNF -->
+<label class="flex items-center gap-3 bg-surface-container-low p-4 rounded-xl cursor-pointer active:scale-[0.98] transition-all min-h-[64px]">
+<div class="relative flex items-center justify-center">
+<input class="peer appearance-none w-6 h-6 border-2 border-primary rounded-md checked:bg-primary transition-all" type="checkbox"/>
+<span class="material-symbols-outlined absolute text-white scale-0 peer-checked:scale-100 transition-transform text-lg" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+<span class="text-sm font-semibold text-on-surface">PNF</span>
+</label>
+<!-- Spannungsaufbau Logemann -->
+<label class="flex items-center gap-3 bg-surface-container-low p-4 rounded-xl cursor-pointer active:scale-[0.98] transition-all min-h-[64px]">
+<div class="relative flex items-center justify-center">
+<input class="peer appearance-none w-6 h-6 border-2 border-primary rounded-md checked:bg-primary transition-all" type="checkbox"/>
+<span class="material-symbols-outlined absolute text-white scale-0 peer-checked:scale-100 transition-transform text-lg" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+<span class="text-sm font-semibold text-on-surface leading-tight">Spannungsaufbau Logemann</span>
+</label>
+<!-- F.O.T.T. -->
+<label class="flex items-center gap-3 bg-surface-container-low p-4 rounded-xl cursor-pointer active:scale-[0.98] transition-all min-h-[64px]">
+<div class="relative flex items-center justify-center">
+<input class="peer appearance-none w-6 h-6 border-2 border-primary rounded-md checked:bg-primary transition-all" type="checkbox"/>
+<span class="material-symbols-outlined absolute text-white scale-0 peer-checked:scale-100 transition-transform text-lg" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+<span class="text-sm font-semibold text-on-surface">F.O.T.T.</span>
+</label>
+<!-- Intraorale Stimulation -->
+<label class="flex items-center gap-3 bg-surface-container-low p-4 rounded-xl cursor-pointer active:scale-[0.98] transition-all min-h-[64px]">
+<div class="relative flex items-center justify-center">
+<input class="peer appearance-none w-6 h-6 border-2 border-primary rounded-md checked:bg-primary transition-all" type="checkbox"/>
+<span class="material-symbols-outlined absolute text-white scale-0 peer-checked:scale-100 transition-transform text-lg" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+<span class="text-sm font-semibold text-on-surface leading-tight">Intraorale Stimulation</span>
+</label>
+<!-- Essensbegleitung -->
+<label class="flex items-center gap-3 bg-surface-container-low p-4 rounded-xl cursor-pointer active:scale-[0.98] transition-all min-h-[64px]">
+<div class="relative flex items-center justify-center">
+<input class="peer appearance-none w-6 h-6 border-2 border-primary rounded-md checked:bg-primary transition-all" type="checkbox"/>
+<span class="material-symbols-outlined absolute text-white scale-0 peer-checked:scale-100 transition-transform text-lg" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+<span class="text-sm font-semibold text-on-surface">Essensbegleitung</span>
+</label>
+<!-- Zungenkraftübungen -->
+<label class="flex items-center gap-3 bg-surface-container-low p-4 rounded-xl cursor-pointer active:scale-[0.98] transition-all min-h-[64px]">
+<div class="relative flex items-center justify-center">
+<input class="peer appearance-none w-6 h-6 border-2 border-primary rounded-md checked:bg-primary transition-all" type="checkbox"/>
+<span class="material-symbols-outlined absolute text-white scale-0 peer-checked:scale-100 transition-transform text-lg" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+<span class="text-sm font-semibold text-on-surface leading-tight">Zungenkraftübungen</span>
+</label>
+<!-- Pharynxkontraktion -->
+<label class="flex items-center gap-3 bg-surface-container-low p-4 rounded-xl cursor-pointer active:scale-[0.98] transition-all min-h-[64px]">
+<div class="relative flex items-center justify-center">
+<input class="peer appearance-none w-6 h-6 border-2 border-primary rounded-md checked:bg-primary transition-all" type="checkbox"/>
+<span class="material-symbols-outlined absolute text-white scale-0 peer-checked:scale-100 transition-transform text-lg" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+<span class="text-sm font-semibold text-on-surface leading-tight">Pharynxkontraktion</span>
+</label>
+<!-- Suprahyoidale Muskulatur -->
+<label class="flex items-center gap-3 bg-surface-container-low p-4 rounded-xl cursor-pointer active:scale-[0.98] transition-all min-h-[64px]">
+<div class="relative flex items-center justify-center">
+<input class="peer appearance-none w-6 h-6 border-2 border-primary rounded-md checked:bg-primary transition-all" type="checkbox"/>
+<span class="material-symbols-outlined absolute text-white scale-0 peer-checked:scale-100 transition-transform text-lg" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+<span class="text-sm font-semibold text-on-surface leading-tight">Suprahyoidale Muskulatur</span>
+</label>
+<!-- Mundschluss -->
+<label class="flex items-center gap-3 bg-surface-container-low p-4 rounded-xl cursor-pointer active:scale-[0.98] transition-all min-h-[64px]">
+<div class="relative flex items-center justify-center">
+<input class="peer appearance-none w-6 h-6 border-2 border-primary rounded-md checked:bg-primary transition-all" type="checkbox"/>
+<span class="material-symbols-outlined absolute text-white scale-0 peer-checked:scale-100 transition-transform text-lg" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+<span class="text-sm font-semibold text-on-surface">Mundschluss</span>
+</label>
+<!-- Zungenbasisretraktion -->
+<label class="flex items-center gap-3 bg-surface-container-low p-4 rounded-xl cursor-pointer active:scale-[0.98] transition-all min-h-[64px]">
+<div class="relative flex items-center justify-center">
+<input class="peer appearance-none w-6 h-6 border-2 border-primary rounded-md checked:bg-primary transition-all" type="checkbox"/>
+<span class="material-symbols-outlined absolute text-white scale-0 peer-checked:scale-100 transition-transform text-lg" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+<span class="text-sm font-semibold text-on-surface leading-tight">Zungenbasisretraktion</span>
+</label></div>
+</section>
+<!-- Final Action -->
+<section class="pt-6 space-y-4">
+<button class="w-full bg-gradient-to-r from-primary to-primary-container text-white font-headline font-extrabold py-5 rounded-2xl shadow-xl shadow-primary/30 flex items-center justify-center gap-3 active:scale-95 transition-all">
+<span class="material-symbols-outlined">file_download</span>
+                FINALER EXPORT (DOCX)
+            </button>
+<div class="flex items-start gap-3 bg-blue-50/50 p-4 rounded-xl border border-blue-100/50">
+<span class="material-symbols-outlined text-primary text-xl">info</span>
+<p class="text-xs text-on-surface-variant leading-relaxed">
+                    Patientenname wird nach dem Export im DOCX ergänzt. Sensible Daten werden lokal verarbeitet.
+                </p>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-2 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md rounded-t-2xl border-t border-slate-100 dark:border-slate-800 shadow-[0_-4px_20px_0_rgba(0,0,0,0.05)]">
+<!-- Stammdaten -->
+<a class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 px-3 py-2 min-h-[44px] min-w-[44px] hover:text-blue-600 dark:hover:text-blue-300 transition-all active:opacity-80" href="#">
+<span class="material-symbols-outlined">assignment</span>
+<span class="font-manrope font-medium text-[11px] tracking-wide">STAMMDATEN</span>
+</a>
+<!-- Befund -->
+<a class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 px-3 py-2 min-h-[44px] min-w-[44px] hover:text-blue-600 dark:hover:text-blue-300 transition-all active:opacity-80" href="#">
+<span class="material-symbols-outlined">medical_services</span>
+<span class="font-manrope font-medium text-[11px] tracking-wide">BEFUND</span>
+</a>
+<!-- Schlucktest -->
+<a class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 px-3 py-2 min-h-[44px] min-w-[44px] hover:text-blue-600 dark:hover:text-blue-300 transition-all active:opacity-80" href="#">
+<span class="material-symbols-outlined">liquor</span>
+<span class="font-manrope font-medium text-[11px] tracking-wide">SCHLUCKTEST</span>
+</a>
+<!-- Export (Active) -->
+<a class="flex flex-col items-center justify-center bg-blue-50 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200 rounded-xl px-3 py-2 min-h-[44px] min-w-[44px] transition-all active:opacity-80" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">description</span>
+<span class="font-manrope font-bold text-[11px] tracking-wide">EXPORT</span>
+</a>
+</nav>
+</body></html>
