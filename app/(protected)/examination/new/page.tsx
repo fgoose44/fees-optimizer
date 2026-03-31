@@ -80,7 +80,7 @@ export default function NewExaminationPage() {
 
     // patientName nur im Browser behalten — wird beim DOCX-Download übergeben
     const params = new URLSearchParams({ patientName: form.patientName });
-    router.push(`/examination/${data.id}?${params.toString()}`);
+    router.push(`/examination/${data.id}/befund?${params.toString()}`);
   }
 
   return (
