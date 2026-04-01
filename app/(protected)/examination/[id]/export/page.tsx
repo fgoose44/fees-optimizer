@@ -158,7 +158,8 @@ export default function ExportPage() {
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw new Error(body.error ?? "Unbekannter Fehler");
+        const detail = body.detail ? ` (${body.detail})` : "";
+        throw new Error((body.error ?? "Unbekannter Fehler") + detail);
       }
       const data = await res.json();
       setState((prev) => ({

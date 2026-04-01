@@ -49,10 +49,15 @@ export async function POST(req: NextRequest) {
       messages: [{ role: "user", content: prompt }],
     });
     raw = (message.content[0] as { type: string; text: string }).text;
-  } catch (err) {
-    console.error("Anthropic API error:", err);
+  } catch (err: unknown) {
+    const e = err as { status?: number; message?: string; error?: { type?: string } };
+    console.error("Anthropic API error:", e.status, e.message, e.error);
+    // Gibt den echten Fehlergrund zurück (nur in 5xx-Antworten, nicht im UI sichtbar für Patienten)
     return NextResponse.json(
-      { error: "KI-Generierung fehlgeschlagen. Bitte erneut versuchen." },
+      {
+        error: "KI-Generierung fehlgeschlagen. Bitte erneut versuchen.",
+        detail: `status=${e.status ?? "??"} type=${e.error?.type ?? "??"} msg=${e.message ?? "??"}`,
+      },
       { status: 502 }
     );
   }
