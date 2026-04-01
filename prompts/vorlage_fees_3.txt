@@ -1,0 +1,59 @@
+Funktionelle endoskopische (Kontroll-) Untersuchung des Schluckaktes
+
+Patient:
+
+Status: Verlaufskontrolle vom 24.10.2025
+
+RASS (Richmond Agitation Sedation Scale): 0 wach und ruhig
+
+Angewandtes Verfahren: Untersuchung des Pat. im Rollstuhl. Problemloses Einführen des Endoskopes über nasal re, transstomatal.
+
+Inspektion/Nativbefund transstomatal
+Schleimhäute Trachea: gerötet, kaum endotracheales Sekret/Speichlaspirat sichtbar
+Strukturveränderungen: keine
+Reflexe: spontaner Hustenstoß nicht auslösbar
+TK: Nicht ganz mittig im Lumen, Läsion an Tracheawand sichtbar (Absaugen/Husten), Innenkanüle mit leicht blutigem, borkigem Sekret verlegt
+
+Inspektion/Nativbefund
+nasopharyngeale Strukturen: feucht, normal durchblutet, keine erkennbaren Läsionen, unauffällig
+Schleimhäute: geschwollen, deutliche seröse Speichelretentionen (Coating)
+Velum: asymmetrisch
+Zungenbasis: Retentionen von Speichel (Coating), hypertroph
+Epiglottis: Omegaepiglottis, geschwollen
+Mesopharynx Hypopharynx: massiv verengt, deutliches Speichelcoating betont linksseitig asymmetrisch, normal durchblutet, Retentionen von Speichel, keine erkennbaren Läsionen
+Larynx: Larynxödem links, Aryknorpel und Stimmlippen massiv ödematös asymmetrisch, Stimmlippen schwer einsehbar
+Reflexe: spontaner Hustenstoß/Räuspern nicht auslösbar, spontaner Schluckversuch von Speichel pathologisch (<1 min)
+
+Phonationskontrolle: Nicht beurteilbar
+
+Direkte Schluckuntersuchung
+Schlucken von Speichel: insuffizienter Schluckakt, verlangsamt, leichte Penetration von Speichel, keine Aspiration sichtbar, PAS 3
+
+Schlucken von glatter, breiförmiger Kost (Aqua): verlangsamter Schluckakt, inkomplettes White out, mit Retentionen in den Valleculae betont links und auf der Epiglottis, mehrfaches Nachschlucken sichtbar, Aqua vermischt sich mit den serösen Speichelretentionen, nicht vollständig entfernbar, keine Anzeichen für Penetration oder Aspiration, PAS 0
+
+Schlucken von nektarartig angedickten und unangedickten Flüssigkeiten: nicht getestet
+Schlucken von weichen Konsistenzen (Weißbrot ohne Rinde): nicht getestet
+
+Sensibilität: betont linksseitig mittelgradig eingeschränkt
+
+Befund/Zusammenfassende Beurteilung:
+Die Überprüfung der Schluckfunktionen zeigte nach dem Bogenhausener Dysphagiescore (BODS) eine schwere Dysphagie (BODS I + II = 11)
+
+Es zeigt sich ein deutliches Speichelcoating entlang des gesamten Pharynx bis hin zur Epiglottis betont linksseitig. Die Strukturen sind aufgrund der Tumorbestrahlung im Bereich des weichen Gaumens zeigen sich ausgeprägte hypertrophe und ödematöse Strukturen im Mesopharynx. Der Larynx ist insbesondere linksseitig deutlich ödematös wodurch eine relevante Verengung der oberen Atemwege besteht. Beim Verwenden der Verschlusskappe tritt ein inspiratorischer Stridor auf. Aufgrund der Schleimhautveränderungen und der bestehenden Schwellung besteht zudem ein erhöhtes Risiko beim Verzehr fester Kost.
+
+Die direkte Schluckuntersuchung zeigte einen insuffizienten und verlangsamten Schluckakt mit deutlichem Speichel Coating und teilweise Penetration von Speichel ohne effektives Clearing (PAS 3). Bei glatter, breiförmiger Kost kam es zu einer verlängerten oralen Phase, inkomplettem White-out, sowie Retentionen in Valleculae betont linksseitig, jedoch ohne Penetration oder Aspiration (PAS 0). Die Sensibilität ist beidseits mittelgradig eingeschränkt.
+
+Pathophysiologie:
+Komplexe Dysphagie und Trachealkanülensituation bei Zustand nach radiochemotherapeutischer Behandlung und begleitender Schleimhautödeme mit eingeschränkter Atemstromumlenkung. Die Atemstromumlenkung über die oberen Atemwege bleibt funktionell unzureichend und somit keine Voraussetzung für eine Dekanülierung.
+
+Kostformempfehlung: Ernährung aktuell über PEG-Anlage, im therapeutischen Setting Schluckversuche mit DYS I und unangedickten Getränken
+
+Empfehlung Trachealkanüle: Zur Sicherstellung der Inspiration ist eine dauerhaft ungeblockte Trachealkanüle aktuell dringend notwendig.
+
+Empfehlung Therapie:
+- Eine Verbesserung der Atemfunktionen/Hustenstoß/Glottisschluss (Spannungsaufbau nach Logemann)
+- Fortführung der logopädischen Therapie mit Schwerpunkt auf Sekretmanagement
+- Interdisziplinäre Abstimmung (HNO) zur weiteren Einschätzung der Dekanulierungsfähigkeit
+- Regelmäßige Reevaluation der Schluckfunktion (FEES) zur Einschätzung des Oralisierungspotentials
+- Enterale Ernährung über PEG fortführen; orale Kostgabe nur im therapeutischen Rahmen unter endoskopischer Kontrolle vertretbar
+- Engmaschige Überwachung des Sekretstatus und der Atemstromlenkung insbesondere bei Änderungen im Kanülensystem
