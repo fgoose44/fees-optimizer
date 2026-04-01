@@ -28,3 +28,13 @@ patientName fließt nur über URL-Query-Parameter durch alle Schritte. Nie in Su
 
 ## Material Symbols in Next.js
 Google Material Symbols werden über `globals.css` als `@import url(...)` eingebunden, nicht als next/font (kein Variable Font-Support für Icon-Fonts). Die CSS-Variable `font-variation-settings` für `FILL` direkt per inline style setzen wenn nötig.
+
+## ESLint: eslint-disable für nicht konfigurierte Regeln
+Wenn man `// eslint-disable-next-line @typescript-eslint/no-explicit-any` schreibt, aber `@typescript-eslint` nicht als Plugin in `.eslintrc.json` registriert ist, bricht der Next.js-Build mit "Definition for rule ... was not found." ab.
+Lösung: Entweder `/* eslint-disable */` (file-level, ohne Regelname) nutzen, oder den Kommentar ganz weglassen (wenn die Regel nicht aktiv ist, gibt es auch keinen Lint-Fehler).
+
+## Vorlage-Dateien für Claude-Prompt
+Die 5 Vorlage-FEES-Berichte in `prompts/` werden server-seitig zur Laufzeit via `fs.readFileSync` geladen und in den System-Prompt eingebaut. Das funktioniert zuverlässig in Next.js API Routes (Node.js Runtime), NICHT in Edge Runtime.
+
+## Phase 3 DB-SQL-Spalten — Deployment-Reihenfolge
+Neue DB-Spalten müssen VOR dem ersten Produktionsaufruf der neuen Export-Seite in Supabase ausgeführt werden. Ohne die neuen Spalten schlagen alle PATCH-Aufrufe lautlos fehl oder werfen Fehler.

@@ -44,9 +44,7 @@ export default function NewExaminationPage() {
     setError(null);
 
     const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
       setError("Nicht angemeldet.");
@@ -54,7 +52,6 @@ export default function NewExaminationPage() {
       return;
     }
 
-    // patientName wird NICHT gesendet — nur klinische Daten
     const { error: dbError, data } = await supabase
       .from("examinations")
       .insert({
@@ -78,20 +75,34 @@ export default function NewExaminationPage() {
       return;
     }
 
-    // patientName nur im Browser behalten — wird beim DOCX-Download übergeben
     const params = new URLSearchParams({ patientName: form.patientName });
     router.push(`/examination/${data.id}/befund?${params.toString()}`);
   }
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-xl font-semibold text-gray-800">
-        Neue Untersuchung
-      </h1>
+    <div className="space-y-6 pb-8">
+      {/* Seiten-Header */}
+      <div className="space-y-1">
+        <div className="flex gap-1 mb-3">
+          {[0, 1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className={`h-1 flex-1 rounded-full ${i === 0 ? "bg-primary" : "bg-outline-variant"}`}
+            />
+          ))}
+        </div>
+        <h2 className="text-2xl font-headline font-extrabold text-primary tracking-tight">
+          Neue Untersuchung
+        </h2>
+        <p className="text-on-surface-variant text-sm">
+          Stammdaten und klinische Angaben
+        </p>
+      </div>
 
-      <form onSubmit={handleSubmit} className="space-y-5">
-        {/* Patientenname — nur lokal */}
-        <Field label="Patient/in (nur lokal, wird nicht gespeichert)">
+      <form onSubmit={handleSubmit} className="space-y-4">
+
+        {/* Patientenname — lokal */}
+        <Field label="Patient/in (nur lokal — wird nicht gespeichert)">
           <input
             type="text"
             value={form.patientName}
@@ -99,7 +110,8 @@ export default function NewExaminationPage() {
             placeholder="Name der Patient/in"
             className={inputClass}
           />
-          <p className="text-xs text-amber-600 mt-1">
+          <p className="text-xs text-amber-700 mt-1 flex items-center gap-1">
+            <span className="material-symbols-outlined text-sm">lock</span>
             Wird nicht in der Datenbank gespeichert.
           </p>
         </Field>
@@ -117,7 +129,7 @@ export default function NewExaminationPage() {
 
         {/* Status */}
         <Field label="Status">
-          <div className="flex rounded-lg overflow-hidden border border-gray-300">
+          <div className="flex rounded-xl overflow-hidden bg-surface-container-high p-1 gap-1">
             {(
               [
                 ["erstdiagnostik", "Erstdiagnostik"],
@@ -128,10 +140,10 @@ export default function NewExaminationPage() {
                 key={value}
                 type="button"
                 onClick={() => set("status", value)}
-                className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all min-h-[44px] ${
                   form.status === value
-                    ? "bg-blue-600 text-white"
-                    : "bg-white text-gray-600 hover:bg-gray-50"
+                    ? "bg-primary text-on-primary font-bold shadow-sm"
+                    : "text-on-surface-variant hover:bg-surface-container-highest"
                 }`}
               >
                 {label}
@@ -141,7 +153,7 @@ export default function NewExaminationPage() {
         </Field>
 
         {/* RASS */}
-        <Field label="RASS-Score">
+        <Field label="RASS-Score (Richmond Agitation Sedation Scale)">
           <select
             value={form.rassScore}
             onChange={(e) => set("rassScore", Number(e.target.value))}
@@ -167,7 +179,7 @@ export default function NewExaminationPage() {
 
         {/* Trachealkanüle */}
         <Field label="Trachealkanüle vorhanden">
-          <div className="flex rounded-lg overflow-hidden border border-gray-300">
+          <div className="flex rounded-xl overflow-hidden bg-surface-container-high p-1 gap-1">
             {(
               [
                 [false, "Nein"],
@@ -178,10 +190,12 @@ export default function NewExaminationPage() {
                 key={String(value)}
                 type="button"
                 onClick={() => set("hasTracheostomy", value)}
-                className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all min-h-[44px] ${
                   form.hasTracheostomy === value
-                    ? "bg-blue-600 text-white"
-                    : "bg-white text-gray-600 hover:bg-gray-50"
+                    ? value
+                      ? "bg-tertiary text-on-tertiary font-bold shadow-sm"
+                      : "bg-secondary text-on-secondary font-bold shadow-sm"
+                    : "text-on-surface-variant hover:bg-surface-container-highest"
                 }`}
               >
                 {label}
@@ -206,6 +220,7 @@ export default function NewExaminationPage() {
             type="text"
             value={form.medicalDiagnosis}
             onChange={(e) => set("medicalDiagnosis", e.target.value)}
+            placeholder="z.B. Z.n. Schlaganfall, Larynxkarzinom…"
             className={inputClass}
           />
         </Field>
@@ -216,6 +231,7 @@ export default function NewExaminationPage() {
             type="text"
             value={form.dysphagia_question}
             onChange={(e) => set("dysphagia_question", e.target.value)}
+            placeholder="z.B. Aspirationsgefahr bei Flüssigkeiten?"
             className={inputClass}
           />
         </Field>
@@ -226,12 +242,14 @@ export default function NewExaminationPage() {
             value={form.medicalHistory}
             onChange={(e) => set("medicalHistory", e.target.value)}
             rows={4}
+            placeholder="Relevante Vorerkrankungen, Medikamente, bisherige Therapie…"
             className={inputClass + " resize-none"}
           />
         </Field>
 
         {error && (
-          <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">
+          <p className="text-sm text-tertiary bg-tertiary-fixed/40 rounded-xl px-4 py-3 flex items-center gap-2">
+            <span className="material-symbols-outlined text-lg">error</span>
             {error}
           </p>
         )}
@@ -239,9 +257,10 @@ export default function NewExaminationPage() {
         <button
           type="submit"
           disabled={saving}
-          className="w-full bg-blue-600 text-white rounded-xl py-3 font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          className="w-full bg-gradient-to-r from-primary to-primary-container text-on-primary rounded-2xl py-4 font-headline font-bold text-base shadow-lg shadow-primary/20 flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-50"
         >
-          {saving ? "Speichern …" : "Speichern & weiter"}
+          {saving ? "Speichern…" : "Speichern & Weiter"}
+          {!saving && <span className="material-symbols-outlined">arrow_forward</span>}
         </button>
       </form>
     </div>
@@ -250,18 +269,10 @@ export default function NewExaminationPage() {
 
 // ---- Hilfskomponenten ----
 
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">
-        {label}
-      </label>
+    <div className="space-y-1.5">
+      <label className="block text-sm font-medium text-on-surface-variant">{label}</label>
       {children}
     </div>
   );
@@ -287,13 +298,13 @@ function SuggestionInput({
         placeholder={placeholder}
         className={inputClass}
       />
-      <div className="flex flex-wrap gap-1">
+      <div className="flex flex-wrap gap-1.5">
         {suggestions.map((s) => (
           <button
             key={s}
             type="button"
             onClick={() => onChange(s)}
-            className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full px-2 py-1 transition-colors"
+            className="text-xs bg-surface-container text-on-surface-variant rounded-full px-3 py-1.5 min-h-[32px] hover:bg-surface-container-high transition-colors"
           >
             {s}
           </button>
@@ -304,4 +315,4 @@ function SuggestionInput({
 }
 
 const inputClass =
-  "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white";
+  "w-full bg-surface-container-highest border-b-2 border-outline-variant focus:border-primary focus:outline-none px-3 py-2.5 text-sm rounded-t-lg text-on-surface placeholder:text-outline/60 transition-colors";

@@ -2,25 +2,25 @@ import { logout } from "@/app/actions/auth";
 
 export default function Header() {
   return (
-    <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
-      <div className="flex items-center gap-2">
-        {/* Logo-Platzhalter */}
-        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-          <span className="text-white text-xs font-bold">F</span>
+    <header className="sticky top-0 z-50 bg-surface-container-lowest/80 backdrop-blur-xl border-b border-outline-variant/20">
+      <div className="flex items-center justify-between px-4 py-3 max-w-2xl mx-auto">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-sm">
+            <span className="material-symbols-outlined text-on-primary text-base">clinical_notes</span>
+          </div>
+          <span className="font-headline font-bold text-primary text-sm tracking-tight">
+            FEES Dokumentation
+          </span>
         </div>
-        <span className="font-semibold text-gray-800 text-sm">
-          FEES Dokumentation
-        </span>
+        <form action={logout}>
+          <button
+            type="submit"
+            className="text-sm text-on-surface-variant hover:text-primary transition-colors font-medium min-h-[44px] px-2"
+          >
+            Abmelden
+          </button>
+        </form>
       </div>
-
-      <form action={logout}>
-        <button
-          type="submit"
-          className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
-        >
-          Abmelden
-        </button>
-      </form>
     </header>
   );
 }

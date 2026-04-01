@@ -1,56 +1,48 @@
 # TODO
 
 ## Phase 1 — Setup + Patientenstammdaten + Basis-DOCX ✅
-
-### Schritt 1: Next.js Grundgerüst ✅
-- [x] Next.js 15 mit TS + Tailwind + App Router
-- [x] Supabase-Pakete installiert
-- [x] `.env.local` befüllt, `.env.local.example` als Vorlage
-- [x] Supabase Client-Hilfsdateien
-- [x] Auth-Flow: Login-Seite `/login` + Logout + Middleware-Schutz
-- [x] Grundlayout: Header (Logo-Platzhalter + Logout), Smartphone-first
-
-### Schritt 2: Patientenstammdaten-Formular ✅
-- [x] Alle 10 Felder (`/examination/new`)
-- [x] Patientenname: nur `useState`, kein Persistieren
-- [x] RASS-Dropdown: -5 bis +4 mit Richmond-Labels
-- [x] TK-Toggle: `has_tracheostomy`
-- [x] Speichern → POST an Supabase
-
-### Schritt 3: DB-Schema Phase 1 ✅
-- [x] Tabelle `examinations` mit RLS
-- [x] Kein Patientenname in der DB
-
-### Schritt 4: Basis-DOCX-Export ✅
-- [x] `docx` (docx-js) installiert
-- [x] API Route `POST /api/export/docx`
-- [x] DOCX: Titel, [Patient/in]-Platzhalter, Kopfdaten als Stichpunkte
-
----
-
 ## Phase 2 — Nativbefund + Schlucktests + Scoring ✅
-
-### Implementierung abgeschlossen (2026-03-31)
-- [x] Tailwind Design-System (Farben, Fonts, borderRadius aus DESIGN.md)
-- [x] DB-Schema: `native_findings`, `swallow_tests`, 5 neue Spalten in `examinations`
-- [x] Typen: `NativbefundData`, `ConsistencyData`, `ConsistencyMap`, `SchlucktestSummary`
-- [x] Routing-Umbau: new → befund → schlucktest → export
-- [x] `components/ExaminationNav.tsx` (Bottom NavBar, 4 Steps)
-- [x] `lib/bods.ts` (BODS I + II Auto-Vorschlag)
-- [x] `app/(protected)/examination/[id]/befund/page.tsx` — Nativbefund mit allen 7 Strukturen, Reflexen, Phonationskontrolle, Langmore, BODS I
-- [x] `app/(protected)/examination/[id]/schlucktest/page.tsx` — 7 Konsistenz-Tabs, alle 6 Sektionen pro Konsistenz, Gesamtbeurteilung, Sensibilität, BODS II, IDDSI
-- [x] `app/(protected)/examination/[id]/export/page.tsx` — ExaminationNav ergänzt
-- [x] Build ✅ (keine TypeScript-Fehler)
+## Phase 3 — KI-Beurteilung + vollständiger DOCX-Export + Design ✅
 
 ---
 
-## Phase 3 — Nächste Schritte
-- [ ] KI-Beurteilung via Claude API (Beurteilungstext aus Befunddaten generieren)
-- [ ] Vollständiger DOCX-Export (Nativbefund + Schlucktests + Scoring in DOCX)
-- [ ] BODS-Logik Feinjustierung mit klinischem Feedback (als TODO markiert in lib/bods.ts)
-- [ ] Untersuchungs-Liste / Dashboard
-- [ ] Stammdaten-Seite für bereits gespeicherte Untersuchungen editierbar machen
-- [ ] Export-Seite Design-Update (auf Design-System angleichen)
+## Phase 3 — Abgeschlossen (2026-04-01)
+
+### Erledigte Tasks
+- [x] ANTHROPIC_API_KEY in .env.local eingetragen
+- [x] @anthropic-ai/sdk installiert
+- [x] DB-Schema: neue Spalten in `examinations` — **SQL noch nicht ausgeführt! Muss in Supabase SQL Editor laufen**
+  ```sql
+  ALTER TABLE examinations
+    ADD COLUMN assessment_text    text DEFAULT '',
+    ADD COLUMN pathophysiology_text text DEFAULT '',
+    ADD COLUMN dys_level          text DEFAULT '',
+    ADD COLUMN beverage_iddsi     integer,
+    ADD COLUMN therapy_recommendations text[] DEFAULT '{}',
+    ADD COLUMN therapy_notes      text DEFAULT '',
+    ADD COLUMN tracheostomy_recommendation text DEFAULT '';
+  ```
+- [x] 5 Vorlage-Dateien in prompts/ angelegt (fees style reference)
+- [x] lib/fees-prompt.ts: Prompt-Builder mit Stil-Referenz
+- [x] API Route /api/generate-assessment (Claude Sonnet, JSON-Rückgabe)
+- [x] Export-Seite komplett neu (screen-4 Design, BODS, KI-Button, Therapieempfehlungen)
+- [x] Vollständiger DOCX-Export (14 Abschnitte, keine Tabellen)
+- [x] Design-System auf Stammdaten-Seite angewendet
+- [x] Header-Komponente auf Design-System aktualisiert
+- [x] Build-Check: ✅ sauber
+
+### ⚠️ Noch zu erledigen (manuell)
+1. **Supabase SQL ausführen** (oben, Phase 3 DB-Schema)
+2. **Vercel: ANTHROPIC_API_KEY als Environment Variable** hinzufügen (Production + Preview)
 
 ---
-_Zuletzt aktualisiert: 2026-03-31_
+
+## Phase 4 — Backlog
+- [ ] Untersuchungs-Liste / Dashboard (alle gespeicherten Untersuchungen eines Users)
+- [ ] Stammdaten editierbar für gespeicherte Untersuchungen
+- [ ] BODS-Logik Feinjustierung mit klinischem Feedback (Clara)
+- [ ] Fehlerbehandlung verbessern (z.B. wenn DB-Spalten fehlen weil SQL noch nicht ausgeführt)
+- [ ] Loading-State auf Befund + Schlucktest-Seiten
+
+---
+_Zuletzt aktualisiert: 2026-04-01_
