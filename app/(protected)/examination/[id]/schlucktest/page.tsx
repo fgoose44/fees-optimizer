@@ -180,6 +180,8 @@ function RetentionRow({
 // Main Component
 // ============================================================
 
+type View = "selection" | "testing";
+
 export default function SchlucktestPage() {
   const params = useParams();
   const searchParams = useSearchParams();
@@ -187,12 +189,41 @@ export default function SchlucktestPage() {
   const id = params.id as string;
   const patientName = searchParams.get("patientName") ?? "";
 
+  // Welche Konsistenzen wurden ausgewählt
+  const [selected, setSelected] = useState<Consistency[]>([]);
+  const [view, setView] = useState<View>("selection");
+  const [loadingSelection, setLoadingSelection] = useState(true);
+
   const [activeTab, setActiveTab] = useState<Consistency>("speichel");
   const [consistencies, setConsistencies] = useState<ConsistencyMap>(buildInitialConsistencies);
   const [summary, setSummary] = useState<SchlucktestSummary>(initialSummary);
   const [bodsOverride, setBodsOverride] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Beim Laden: bestehende Auswahl aus DB holen
+  useEffect(() => {
+    async function loadExisting() {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("swallow_tests")
+        .select("consistency, not_tested")
+        .eq("examination_id", id);
+
+      if (data && data.length > 0) {
+        const tested = data
+          .filter((t) => !t.not_tested)
+          .map((t) => t.consistency as Consistency);
+        if (tested.length > 0) {
+          setSelected(tested);
+          setActiveTab(tested[0]);
+          setView("testing");
+        }
+      }
+      setLoadingSelection(false);
+    }
+    loadExisting();
+  }, [id]);
 
   // BODS II auto-suggestion
   const suggestedBodsII = suggestBodsII(consistencies);
@@ -202,6 +233,23 @@ export default function SchlucktestPage() {
     }
   }, [suggestedBodsII, bodsOverride]);
 
+  function toggleSelected(key: Consistency) {
+    setSelected((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+    );
+  }
+
+  function startTesting() {
+    if (selected.length === 0) return;
+    // Reihenfolge gemäß CONSISTENCIES-Reihenfolge
+    const ordered = CONSISTENCIES.map((c) => c.key).filter((k) =>
+      selected.includes(k)
+    ) as Consistency[];
+    setSelected(ordered);
+    setActiveTab(ordered[0]);
+    setView("testing");
+  }
+
   // Updater für aktuelle Konsistenz
   function updateCurrent(patch: Partial<ConsistencyData>) {
     setConsistencies((prev) => ({
@@ -210,7 +258,10 @@ export default function SchlucktestPage() {
     }));
   }
 
-  function toggleArray(field: keyof Pick<ConsistencyData, "praedeglutitiv" | "schluckakt" | "clearing" | "kompensation">, value: string) {
+  function toggleArray(
+    field: keyof Pick<ConsistencyData, "praedeglutitiv" | "schluckakt" | "clearing" | "kompensation">,
+    value: string
+  ) {
     const arr = consistencies[activeTab][field] as string[];
     const updated = arr.includes(value)
       ? arr.filter((v) => v !== value)
@@ -238,26 +289,27 @@ export default function SchlucktestPage() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setError("Nicht angemeldet."); setSaving(false); return; }
 
-    // Alle Konsistenzen als Rows
+    // Alle 7 Konsistenzen als Rows — not_tested=true für nicht ausgewählte
     const rows = CONSISTENCIES.map(({ key }) => {
+      const isSelected = selected.includes(key);
       const c = consistencies[key];
       return {
         examination_id: id,
         user_id: user.id,
         consistency: key,
-        not_tested: c.not_tested,
-        praedeglutitiv: c.praedeglutitiv,
-        schluckakt: c.schluckakt,
-        retention_valleculae_l: c.retention_valleculae_l,
-        retention_valleculae_r: c.retention_valleculae_r,
-        retention_sinus_l: c.retention_sinus_l,
-        retention_sinus_r: c.retention_sinus_r,
-        retention_pharynx: c.retention_pharynx,
-        pen_asp: c.pen_asp,
-        pas_score: c.pas_score,
-        clearing: c.clearing,
-        kompensation: c.kompensation,
-        kompensation_notes: c.kompensation_notes,
+        not_tested: !isSelected,
+        praedeglutitiv: isSelected ? c.praedeglutitiv : [],
+        schluckakt: isSelected ? c.schluckakt : [],
+        retention_valleculae_l: isSelected ? c.retention_valleculae_l : "",
+        retention_valleculae_r: isSelected ? c.retention_valleculae_r : "",
+        retention_sinus_l: isSelected ? c.retention_sinus_l : "",
+        retention_sinus_r: isSelected ? c.retention_sinus_r : "",
+        retention_pharynx: isSelected ? c.retention_pharynx : "",
+        pen_asp: isSelected ? c.pen_asp : "",
+        pas_score: isSelected ? c.pas_score : null,
+        clearing: isSelected ? c.clearing : [],
+        kompensation: isSelected ? c.kompensation : [],
+        kompensation_notes: isSelected ? c.kompensation_notes : "",
         updated_at: new Date().toISOString(),
       };
     });
@@ -272,7 +324,6 @@ export default function SchlucktestPage() {
       return;
     }
 
-    // Gesamtwerte in examinations speichern
     const { error: exError } = await supabase
       .from("examinations")
       .update({
@@ -285,7 +336,7 @@ export default function SchlucktestPage() {
       .eq("id", id);
 
     if (exError) {
-      setError("Fehler beim Speichern der Gesamtbeurteilung: " + exError.message);
+      setError("Fehler beim Speichern: " + exError.message);
       setSaving(false);
       return;
     }
@@ -294,8 +345,111 @@ export default function SchlucktestPage() {
     router.push(`/examination/${id}/export${qs}`);
   }
 
-  // Anzahl getesteter Konsistenzen
-  const testedCount = CONSISTENCIES.filter(({ key }) => !consistencies[key].not_tested).length;
+  if (loadingSelection) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <span className="text-on-surface-variant text-sm">Lade …</span>
+      </div>
+    );
+  }
+
+  // ============================================================
+  // ANSICHT 1: Konsistenz-Auswahl
+  // ============================================================
+
+  if (view === "selection") {
+    return (
+      <div className="pb-32">
+        {/* Header */}
+        <div className="sticky top-0 z-40 bg-surface-container-lowest/80 backdrop-blur-xl border-b border-outline-variant/20">
+          <div className="flex justify-between items-center px-4 py-3 max-w-2xl mx-auto">
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary text-xl">clinical_notes</span>
+              <span className="font-headline font-extrabold text-primary text-base">FEES Optimizer</span>
+            </div>
+            <span className="text-on-surface-variant text-sm font-medium">Schritt 3 von 4</span>
+          </div>
+          <div className="flex gap-1 px-4 pb-2 max-w-2xl mx-auto">
+            {[0, 1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className={`h-1 flex-1 rounded-full transition-colors ${i < 3 ? "bg-primary" : "bg-outline-variant"}`}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div className="max-w-2xl mx-auto px-4 pt-6 space-y-6">
+          <div>
+            <h2 className="text-xl font-headline font-extrabold text-on-surface tracking-tight">
+              Welche Konsistenzen wurden getestet?
+            </h2>
+            <p className="text-on-surface-variant text-sm mt-1">
+              Nur ausgewählte Konsistenzen werden dokumentiert und im Bericht aufgeführt.
+            </p>
+          </div>
+
+          <div className="bg-surface-container-low rounded-2xl p-4 space-y-2">
+            {CONSISTENCIES.map(({ key, label }) => {
+              const isSelected = selected.includes(key);
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => toggleSelected(key)}
+                  className={`w-full flex items-center justify-between px-4 py-3.5 rounded-xl text-sm font-medium transition-all active:scale-[0.98] ${
+                    isSelected
+                      ? "bg-primary text-on-primary shadow-sm shadow-primary/20"
+                      : "bg-surface-container-lowest text-on-surface border border-outline-variant/30 hover:bg-surface-container"
+                  }`}
+                >
+                  <span>{label}</span>
+                  {isSelected ? (
+                    <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: "'FILL' 1" }}>
+                      check_circle
+                    </span>
+                  ) : (
+                    <span className="material-symbols-outlined text-base text-outline-variant">
+                      radio_button_unchecked
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {selected.length > 0 && (
+            <p className="text-sm text-on-surface-variant text-center">
+              <span className="font-semibold text-primary">{selected.length}</span> von 7 Konsistenzen ausgewählt
+            </p>
+          )}
+
+          <button
+            type="button"
+            onClick={startTesting}
+            disabled={selected.length === 0}
+            className="w-full py-4 bg-gradient-to-r from-primary to-primary-container text-on-primary rounded-2xl font-headline font-bold text-base shadow-lg shadow-primary/20 flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            Weiter zur Dokumentation
+            <span className="material-symbols-outlined">arrow_forward</span>
+          </button>
+        </div>
+
+        <ExaminationNav
+          examinationId={id}
+          patientName={patientName}
+          activeStep="schlucktest"
+        />
+      </div>
+    );
+  }
+
+  // ============================================================
+  // ANSICHT 2: Befundeingabe pro Konsistenz
+  // ============================================================
+
+  // Nur ausgewählte Konsistenzen in korrekter Reihenfolge
+  const selectedOrdered = CONSISTENCIES.filter((c) => selected.includes(c.key));
 
   return (
     <div className="pb-32">
@@ -306,7 +460,16 @@ export default function SchlucktestPage() {
             <span className="material-symbols-outlined text-primary text-xl">clinical_notes</span>
             <span className="font-headline font-extrabold text-primary text-base">FEES Optimizer</span>
           </div>
-          <span className="text-on-surface-variant text-sm font-medium">Schritt 3 von 4</span>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setView("selection")}
+              className="text-xs text-primary underline font-medium"
+            >
+              Auswahl ändern
+            </button>
+            <span className="text-on-surface-variant text-sm font-medium">Schritt 3 von 4</span>
+          </div>
         </div>
         {/* Progress bar */}
         <div className="flex gap-1 px-4 pb-2 max-w-2xl mx-auto">
@@ -317,40 +480,35 @@ export default function SchlucktestPage() {
             />
           ))}
         </div>
-        {/* Konsistenz-Tabs */}
+        {/* Konsistenz-Tabs — nur ausgewählte */}
         <div className="flex overflow-x-auto no-scrollbar gap-2 px-4 pb-3 pt-1">
-          {CONSISTENCIES.map(({ key, label }) => {
-            const isNotTested = consistencies[key].not_tested;
-            return (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setActiveTab(key)}
-                className={`flex-none px-4 py-2 rounded-full text-sm font-semibold transition-all whitespace-nowrap min-h-[36px] ${
-                  activeTab === key
-                    ? "bg-primary text-on-primary shadow-md shadow-primary/20 font-bold"
-                    : isNotTested
-                    ? "bg-surface-container-high text-outline line-through text-xs"
-                    : "bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest"
-                }`}
-              >
-                {label}
-              </button>
-            );
-          })}
+          {selectedOrdered.map(({ key, label }) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setActiveTab(key)}
+              className={`flex-none px-4 py-2 rounded-full text-sm font-semibold transition-all whitespace-nowrap min-h-[36px] ${
+                activeTab === key
+                  ? "bg-primary text-on-primary shadow-md shadow-primary/20 font-bold"
+                  : "bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
         </div>
       </div>
 
       <div className="max-w-2xl mx-auto px-4 pt-4 space-y-4">
-        {/* Titel + Patient */}
+        {/* Titel */}
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-xl font-headline font-extrabold text-on-surface tracking-tight">
               Schlucktest
             </h2>
             <p className="text-on-surface-variant text-sm">
-              {CONSISTENCIES.find((c) => c.key === activeTab)?.label} ·{" "}
-              <span className="text-on-surface-variant">{testedCount} von 7 getestet</span>
+              {selectedOrdered.find((c) => c.key === activeTab)?.label} ·{" "}
+              <span>{selected.length} Konsistenzen ausgewählt</span>
             </p>
           </div>
           {patientName && (
@@ -363,201 +521,177 @@ export default function SchlucktestPage() {
           )}
         </div>
 
-        {/* "Nicht getestet" Toggle */}
-        <div className="flex items-center justify-between bg-surface-container-low rounded-xl px-4 py-3">
-          <span className="text-sm font-medium text-on-surface">
-            {CONSISTENCIES.find((c) => c.key === activeTab)?.label} — nicht getestet
-          </span>
-          <button
-            type="button"
-            onClick={() => updateCurrent({ not_tested: !current.not_tested })}
-            className={`relative w-12 h-6 rounded-full transition-colors ${
-              current.not_tested ? "bg-tertiary" : "bg-outline-variant"
-            }`}
-          >
-            <span
-              className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
-                current.not_tested ? "translate-x-6" : "translate-x-0"
-              }`}
+        {/* ---- PRÄDEGLUTITIV ---- */}
+        <section className="bg-surface-container-low rounded-2xl p-4 border-l-4 border-primary">
+          <h3 className="text-[11px] font-bold text-primary mb-3 tracking-widest uppercase">
+            Prädeglutitiv
+          </h3>
+          <div className="flex flex-wrap gap-2">
+            {PRAEDEGLUTITIV_OPTIONS.map(({ key, label }) => (
+              <ChipButton
+                key={key}
+                active={current.praedeglutitiv.includes(key)}
+                onClick={() => toggleArray("praedeglutitiv", key)}
+                variant={key === "kein_leaking" ? "wnl" : "path"}
+              >
+                {label}
+              </ChipButton>
+            ))}
+          </div>
+        </section>
+
+        {/* ---- SCHLUCKAKT ---- */}
+        <section className="bg-surface-container-low rounded-2xl p-4 border-l-4 border-secondary">
+          <h3 className="text-[11px] font-bold text-secondary mb-3 tracking-widest uppercase">
+            Schluckakt
+          </h3>
+          <div className="flex flex-wrap gap-2">
+            {SCHLUCKAKT_OPTIONS.map(({ key, label }) => (
+              <ChipButton
+                key={key}
+                active={current.schluckakt.includes(key)}
+                onClick={() => toggleArray("schluckakt", key)}
+                variant={key === "effizient" ? "wnl" : "path"}
+              >
+                {label}
+              </ChipButton>
+            ))}
+          </div>
+        </section>
+
+        {/* ---- POSTDEGLUTITIV ---- */}
+        <section className="bg-surface-container-low rounded-2xl p-4 border-l-4 border-outline-variant">
+          <h3 className="text-[11px] font-bold text-on-surface-variant mb-3 tracking-widest uppercase">
+            Postdeglutitiv — Retentionen
+          </h3>
+          <div className="bg-surface-container-lowest rounded-xl p-3 space-y-1">
+            <RetentionRow
+              label="Valleculae L"
+              value={current.retention_valleculae_l}
+              onChange={(v) => updateCurrent({ retention_valleculae_l: v })}
             />
-          </button>
-        </div>
+            <RetentionRow
+              label="Valleculae R"
+              value={current.retention_valleculae_r}
+              onChange={(v) => updateCurrent({ retention_valleculae_r: v })}
+            />
+            <RetentionRow
+              label="Sinus pir. L"
+              value={current.retention_sinus_l}
+              onChange={(v) => updateCurrent({ retention_sinus_l: v })}
+            />
+            <RetentionRow
+              label="Sinus pir. R"
+              value={current.retention_sinus_r}
+              onChange={(v) => updateCurrent({ retention_sinus_r: v })}
+            />
+            <RetentionRow
+              label="Pharynxwand"
+              value={current.retention_pharynx}
+              onChange={(v) => updateCurrent({ retention_pharynx: v })}
+            />
+          </div>
+        </section>
 
-        {!current.not_tested && (
-          <>
-            {/* ---- PRÄDEGLUTITIV ---- */}
-            <section className="bg-surface-container-low rounded-2xl p-4 border-l-4 border-primary">
-              <h3 className="text-[11px] font-bold text-primary mb-3 tracking-widest uppercase">
-                Prädeglutitiv
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {PRAEDEGLUTITIV_OPTIONS.map(({ key, label }) => (
-                  <ChipButton
-                    key={key}
-                    active={current.praedeglutitiv.includes(key)}
-                    onClick={() => toggleArray("praedeglutitiv", key)}
-                    variant={key === "kein_leaking" ? "wnl" : "path"}
-                  >
-                    {label}
-                  </ChipButton>
+        {/* ---- PENETRATION / ASPIRATION ---- */}
+        <section className="bg-tertiary-fixed/20 rounded-2xl p-4 border-l-4 border-tertiary">
+          <h3 className="text-[11px] font-bold text-tertiary mb-3 tracking-widest uppercase">
+            Penetration / Aspiration
+          </h3>
+          <div className="flex flex-wrap gap-2 mb-4">
+            {["keine", "penetration", "aspiration"].map((opt) => (
+              <button
+                key={opt}
+                type="button"
+                onClick={() => updateCurrent({ pen_asp: current.pen_asp === opt ? "" : opt })}
+                className={`px-4 py-2 min-h-[44px] rounded-lg text-sm font-medium transition-all active:scale-95 capitalize ${
+                  current.pen_asp === opt
+                    ? opt === "keine"
+                      ? "bg-secondary text-on-secondary font-bold"
+                      : "bg-tertiary text-on-tertiary font-bold"
+                    : "bg-surface-container-lowest border border-outline-variant/40 text-on-surface-variant"
+                }`}
+              >
+                {opt.charAt(0).toUpperCase() + opt.slice(1)}
+              </button>
+            ))}
+          </div>
+          {(current.pen_asp === "penetration" || current.pen_asp === "aspiration") && (
+            <div>
+              <label className="block text-[11px] font-bold text-tertiary uppercase tracking-wider mb-1">
+                PAS-Score (Rosenbek)
+              </label>
+              <select
+                value={current.pas_score ?? ""}
+                onChange={(e) =>
+                  updateCurrent({ pas_score: e.target.value ? Number(e.target.value) : null })
+                }
+                className="w-full bg-surface-container-lowest border border-outline-variant/40 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-tertiary/20"
+              >
+                <option value="">— PAS-Score wählen —</option>
+                {PAS_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
                 ))}
-              </div>
-            </section>
+              </select>
+            </div>
+          )}
+        </section>
 
-            {/* ---- SCHLUCKAKT ---- */}
-            <section className="bg-surface-container-low rounded-2xl p-4 border-l-4 border-secondary">
-              <h3 className="text-[11px] font-bold text-secondary mb-3 tracking-widest uppercase">
-                Schluckakt
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {SCHLUCKAKT_OPTIONS.map(({ key, label }) => (
-                  <ChipButton
-                    key={key}
-                    active={current.schluckakt.includes(key)}
-                    onClick={() => toggleArray("schluckakt", key)}
-                    variant={key === "effizient" ? "wnl" : "path"}
-                  >
-                    {label}
-                  </ChipButton>
-                ))}
-              </div>
-            </section>
+        {/* ---- CLEARING ---- */}
+        <section className="bg-surface-container-low rounded-2xl p-4 border-l-4 border-primary-fixed-dim">
+          <h3 className="text-[11px] font-bold text-primary mb-3 tracking-widest uppercase">
+            Clearing
+          </h3>
+          <div className="flex flex-wrap gap-2">
+            {CLEARING_OPTIONS.map(({ key, label }) => (
+              <ChipButton
+                key={key}
+                active={current.clearing.includes(key)}
+                onClick={() => toggleArray("clearing", key)}
+                variant={key === "vollständig" ? "wnl" : key === "nicht_möglich" ? "path" : "neutral"}
+              >
+                {label}
+              </ChipButton>
+            ))}
+          </div>
+        </section>
 
-            {/* ---- POSTDEGLUTITIV ---- */}
-            <section className="bg-surface-container-low rounded-2xl p-4 border-l-4 border-outline-variant">
-              <h3 className="text-[11px] font-bold text-on-surface-variant mb-3 tracking-widest uppercase">
-                Postdeglutitiv — Retentionen
-              </h3>
-              <div className="bg-surface-container-lowest rounded-xl p-3 space-y-1">
-                <RetentionRow
-                  label="Valleculae L"
-                  value={current.retention_valleculae_l}
-                  onChange={(v) => updateCurrent({ retention_valleculae_l: v })}
-                />
-                <RetentionRow
-                  label="Valleculae R"
-                  value={current.retention_valleculae_r}
-                  onChange={(v) => updateCurrent({ retention_valleculae_r: v })}
-                />
-                <RetentionRow
-                  label="Sinus pir. L"
-                  value={current.retention_sinus_l}
-                  onChange={(v) => updateCurrent({ retention_sinus_l: v })}
-                />
-                <RetentionRow
-                  label="Sinus pir. R"
-                  value={current.retention_sinus_r}
-                  onChange={(v) => updateCurrent({ retention_sinus_r: v })}
-                />
-                <RetentionRow
-                  label="Pharynxwand"
-                  value={current.retention_pharynx}
-                  onChange={(v) => updateCurrent({ retention_pharynx: v })}
-                />
-              </div>
-            </section>
+        {/* ---- KOMPENSATIONSSTRATEGIEN ---- */}
+        <section className="bg-surface-container-low rounded-2xl p-4 border-l-4 border-primary">
+          <h3 className="text-[11px] font-bold text-primary mb-3 tracking-widest uppercase">
+            Kompensationsstrategien
+          </h3>
+          <div className="flex flex-wrap gap-2 mb-3">
+            {KOMPENSATION_OPTIONS.map(({ key, label }) => (
+              <ChipButton
+                key={key}
+                active={current.kompensation.includes(key)}
+                onClick={() => toggleArray("kompensation", key)}
+              >
+                {label}
+              </ChipButton>
+            ))}
+          </div>
+          {current.kompensation.includes("sonstige") && (
+            <textarea
+              value={current.kompensation_notes}
+              onChange={(e) => updateCurrent({ kompensation_notes: e.target.value })}
+              placeholder="Spezifische Strategie oder Freitext …"
+              rows={2}
+              className="w-full bg-surface-container-lowest border border-outline-variant/40 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
+            />
+          )}
+        </section>
 
-            {/* ---- PENETRATION / ASPIRATION ---- */}
-            <section className="bg-tertiary-fixed/20 rounded-2xl p-4 border-l-4 border-tertiary">
-              <h3 className="text-[11px] font-bold text-tertiary mb-3 tracking-widest uppercase">
-                Penetration / Aspiration
-              </h3>
-              <div className="flex flex-wrap gap-2 mb-4">
-                {["keine", "penetration", "aspiration"].map((opt) => (
-                  <button
-                    key={opt}
-                    type="button"
-                    onClick={() => updateCurrent({ pen_asp: current.pen_asp === opt ? "" : opt })}
-                    className={`px-4 py-2 min-h-[44px] rounded-lg text-sm font-medium transition-all active:scale-95 capitalize ${
-                      current.pen_asp === opt
-                        ? opt === "keine"
-                          ? "bg-secondary text-on-secondary font-bold"
-                          : "bg-tertiary text-on-tertiary font-bold"
-                        : "bg-surface-container-lowest border border-outline-variant/40 text-on-surface-variant"
-                    }`}
-                  >
-                    {opt.charAt(0).toUpperCase() + opt.slice(1)}
-                  </button>
-                ))}
-              </div>
-              {(current.pen_asp === "penetration" || current.pen_asp === "aspiration") && (
-                <div>
-                  <label className="block text-[11px] font-bold text-tertiary uppercase tracking-wider mb-1">
-                    PAS-Score (Rosenbek)
-                  </label>
-                  <select
-                    value={current.pas_score ?? ""}
-                    onChange={(e) =>
-                      updateCurrent({ pas_score: e.target.value ? Number(e.target.value) : null })
-                    }
-                    className="w-full bg-surface-container-lowest border border-outline-variant/40 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-tertiary/20"
-                  >
-                    <option value="">— PAS-Score wählen —</option>
-                    {PAS_OPTIONS.map((o) => (
-                      <option key={o.value} value={o.value}>
-                        {o.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-            </section>
-
-            {/* ---- CLEARING ---- */}
-            <section className="bg-surface-container-low rounded-2xl p-4 border-l-4 border-primary-fixed-dim">
-              <h3 className="text-[11px] font-bold text-primary mb-3 tracking-widest uppercase">
-                Clearing
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {CLEARING_OPTIONS.map(({ key, label }) => (
-                  <ChipButton
-                    key={key}
-                    active={current.clearing.includes(key)}
-                    onClick={() => toggleArray("clearing", key)}
-                    variant={key === "vollständig" ? "wnl" : key === "nicht_möglich" ? "path" : "neutral"}
-                  >
-                    {label}
-                  </ChipButton>
-                ))}
-              </div>
-            </section>
-
-            {/* ---- KOMPENSATIONSSTRATEGIEN ---- */}
-            <section className="bg-surface-container-low rounded-2xl p-4 border-l-4 border-primary">
-              <h3 className="text-[11px] font-bold text-primary mb-3 tracking-widest uppercase">
-                Kompensationsstrategien
-              </h3>
-              <div className="flex flex-wrap gap-2 mb-3">
-                {KOMPENSATION_OPTIONS.map(({ key, label }) => (
-                  <ChipButton
-                    key={key}
-                    active={current.kompensation.includes(key)}
-                    onClick={() => toggleArray("kompensation", key)}
-                  >
-                    {label}
-                  </ChipButton>
-                ))}
-              </div>
-              {current.kompensation.includes("sonstige") && (
-                <textarea
-                  value={current.kompensation_notes}
-                  onChange={(e) => updateCurrent({ kompensation_notes: e.target.value })}
-                  placeholder="Spezifische Strategie oder Freitext …"
-                  rows={2}
-                  className="w-full bg-surface-container-lowest border border-outline-variant/40 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
-                />
-              )}
-            </section>
-          </>
-        )}
-
-        {/* ---- GESAMTBEURTEILUNG (nur sichtbar wenn nicht alle übersprungen) ---- */}
+        {/* ---- GESAMTBEURTEILUNG ---- */}
         <section className="bg-surface-container-high rounded-2xl p-5 space-y-5">
           <h3 className="font-headline font-bold text-lg text-on-surface">
             Gesamtbeurteilung
           </h3>
 
-          {/* Gesamtbeurteilung Schluckakt */}
+          {/* Befundzusammenfassung */}
           <div>
             <p className="text-xs font-bold text-on-surface-variant mb-2 uppercase tracking-widest">
               Befundzusammenfassung
@@ -595,7 +729,12 @@ export default function SchlucktestPage() {
                 <button
                   key={key}
                   type="button"
-                  onClick={() => setSummary((p) => ({ ...p, overall_sensitivity: p.overall_sensitivity === key ? "" : key }))}
+                  onClick={() =>
+                    setSummary((p) => ({
+                      ...p,
+                      overall_sensitivity: p.overall_sensitivity === key ? "" : key,
+                    }))
+                  }
                   className={`px-3 py-2 min-h-[44px] rounded-lg text-sm font-medium transition-all active:scale-95 ${
                     summary.overall_sensitivity === key
                       ? key === "unauffällig"
@@ -608,24 +747,30 @@ export default function SchlucktestPage() {
                 </button>
               ))}
             </div>
-            {summary.overall_sensitivity && summary.overall_sensitivity !== "unauffällig" && (
-              <div className="flex gap-2 mt-1">
-                {(["L", "R", "beidseitig"] as SideFinding[]).map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    onClick={() => setSummary((p) => ({ ...p, sensitivity_side: p.sensitivity_side === s ? "" : s }))}
-                    className={`px-4 py-2 min-h-[44px] rounded-lg text-sm font-medium transition-all ${
-                      summary.sensitivity_side === s
-                        ? "bg-primary text-on-primary font-bold"
-                        : "bg-surface-container-lowest border border-outline-variant/40 text-on-surface-variant"
-                    }`}
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-            )}
+            {summary.overall_sensitivity &&
+              summary.overall_sensitivity !== "unauffällig" && (
+                <div className="flex gap-2 mt-1">
+                  {(["L", "R", "beidseitig"] as SideFinding[]).map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() =>
+                        setSummary((p) => ({
+                          ...p,
+                          sensitivity_side: p.sensitivity_side === s ? "" : s,
+                        }))
+                      }
+                      className={`px-4 py-2 min-h-[44px] rounded-lg text-sm font-medium transition-all ${
+                        summary.sensitivity_side === s
+                          ? "bg-primary text-on-primary font-bold"
+                          : "bg-surface-container-lowest border border-outline-variant/40 text-on-surface-variant"
+                      }`}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              )}
           </div>
 
           {/* BODS II */}
@@ -650,23 +795,30 @@ export default function SchlucktestPage() {
                   className="w-full accent-primary"
                 />
                 <div className="flex justify-between text-[10px] text-outline mt-0.5 px-0.5">
-                  {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => <span key={n}>{n}</span>)}
+                  {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+                    <span key={n}>{n}</span>
+                  ))}
                 </div>
               </div>
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-extrabold text-lg ${
-                (summary.bods_nutrition ?? suggestedBodsII) <= 2
-                  ? "bg-secondary-container text-secondary"
-                  : (summary.bods_nutrition ?? suggestedBodsII) <= 5
-                  ? "bg-primary-fixed text-primary"
-                  : "bg-tertiary-fixed text-tertiary"
-              }`}>
+              <div
+                className={`w-10 h-10 rounded-xl flex items-center justify-center font-extrabold text-lg ${
+                  (summary.bods_nutrition ?? suggestedBodsII) <= 2
+                    ? "bg-secondary-container text-secondary"
+                    : (summary.bods_nutrition ?? suggestedBodsII) <= 5
+                    ? "bg-primary-fixed text-primary"
+                    : "bg-tertiary-fixed text-tertiary"
+                }`}
+              >
                 {summary.bods_nutrition ?? suggestedBodsII}
               </div>
             </div>
             {bodsOverride ? (
               <button
                 type="button"
-                onClick={() => { setBodsOverride(false); setSummary((p) => ({ ...p, bods_nutrition: suggestedBodsII })); }}
+                onClick={() => {
+                  setBodsOverride(false);
+                  setSummary((p) => ({ ...p, bods_nutrition: suggestedBodsII }));
+                }}
                 className="text-xs text-primary underline mt-1"
               >
                 Vorschlag wiederherstellen ({suggestedBodsII})
@@ -685,12 +837,19 @@ export default function SchlucktestPage() {
             </label>
             <select
               value={summary.iddsi_level ?? ""}
-              onChange={(e) => setSummary((p) => ({ ...p, iddsi_level: e.target.value !== "" ? Number(e.target.value) : null }))}
+              onChange={(e) =>
+                setSummary((p) => ({
+                  ...p,
+                  iddsi_level: e.target.value !== "" ? Number(e.target.value) : null,
+                }))
+              }
               className="w-full bg-surface-container-lowest border border-outline-variant/40 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
             >
               <option value="">— IDDSI-Level wählen —</option>
               {IDDSI_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
               ))}
             </select>
           </div>

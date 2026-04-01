@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import ExaminationNav from "@/components/ExaminationNav";
 
@@ -92,6 +93,7 @@ export default function ExportPage() {
   const [state, setState] = useState<ExportState>(initialState);
   const [generating, setGenerating] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [downloaded, setDownloaded] = useState(false);
   const [saving, setSaving] = useState(false);
   const [genError, setGenError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -232,6 +234,7 @@ export default function ExportPage() {
     a.click();
     URL.revokeObjectURL(url);
     setDownloading(false);
+    setDownloaded(true);
   }
 
   const bodsTotal =
@@ -579,6 +582,28 @@ export default function ExportPage() {
             <span className="material-symbols-outlined text-xl">file_download</span>
             {downloading ? "Erstelle DOCX…" : "Finaler Export (DOCX)"}
           </button>
+
+          {downloaded && (
+            <div className="bg-secondary-container rounded-xl p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-secondary text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                <p className="text-sm font-semibold text-on-secondary-container">
+                  Bericht wurde heruntergeladen.
+                </p>
+              </div>
+              <p className="text-xs text-on-surface-variant leading-relaxed">
+                Sie können den Bericht auch später über das Dashboard erneut herunterladen.
+              </p>
+              <Link
+                href="/dashboard"
+                className="flex items-center justify-center gap-2 w-full py-3 border border-secondary/40 text-secondary rounded-xl text-sm font-semibold active:scale-[0.98] transition-all"
+              >
+                <span className="material-symbols-outlined text-base">arrow_back</span>
+                Zurück zum Dashboard
+              </Link>
+            </div>
+          )}
+
           <div className="flex items-start gap-3 bg-primary-fixed/30 p-4 rounded-xl">
             <span className="material-symbols-outlined text-primary text-xl shrink-0">info</span>
             <p className="text-xs text-on-surface-variant leading-relaxed">

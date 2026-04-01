@@ -3,46 +3,26 @@
 ## Phase 1 — Setup + Patientenstammdaten + Basis-DOCX ✅
 ## Phase 2 — Nativbefund + Schlucktests + Scoring ✅
 ## Phase 3 — KI-Beurteilung + vollständiger DOCX-Export + Design ✅
+## Phase 4 — Pre-Clara-Test Bugfixes + UX ✅
 
 ---
 
-## Phase 3 — Abgeschlossen (2026-04-01)
+## Phase 4 — Abgeschlossen (2026-04-01)
 
-### Erledigte Tasks
-- [x] ANTHROPIC_API_KEY in .env.local eingetragen
-- [x] @anthropic-ai/sdk installiert
-- [x] DB-Schema: neue Spalten in `examinations` — **SQL noch nicht ausgeführt! Muss in Supabase SQL Editor laufen**
-  ```sql
-  ALTER TABLE examinations
-    ADD COLUMN assessment_text    text DEFAULT '',
-    ADD COLUMN pathophysiology_text text DEFAULT '',
-    ADD COLUMN dys_level          text DEFAULT '',
-    ADD COLUMN beverage_iddsi     integer,
-    ADD COLUMN therapy_recommendations text[] DEFAULT '{}',
-    ADD COLUMN therapy_notes      text DEFAULT '',
-    ADD COLUMN tracheostomy_recommendation text DEFAULT '';
-  ```
-- [x] 5 Vorlage-Dateien in prompts/ angelegt (fees style reference)
-- [x] lib/fees-prompt.ts: Prompt-Builder mit Stil-Referenz
-- [x] API Route /api/generate-assessment (Claude Sonnet, JSON-Rückgabe)
-- [x] Export-Seite komplett neu (screen-4 Design, BODS, KI-Button, Therapieempfehlungen)
-- [x] Vollständiger DOCX-Export (14 Abschnitte, keine Tabellen)
-- [x] Design-System auf Stammdaten-Seite angewendet
-- [x] Header-Komponente auf Design-System aktualisiert
-- [x] Build-Check: ✅ sauber
-
-### ⚠️ Noch zu erledigen (manuell)
-1. **Supabase SQL ausführen** (oben, Phase 3 DB-Schema)
-2. **Vercel: ANTHROPIC_API_KEY als Environment Variable** hinzufügen (Production + Preview)
+- [x] A. DOCX-Formatierung: Arial 11/12/14pt, Seitenränder 2,5cm/2cm, 6pt Absatzabstand, nur getestete Konsistenzen, Abschlussformel
+- [x] B. Schlucktest-UX: Konsistenz-Auswahl-Panel vor Tabs, "Auswahl ändern" Link, Wiederladen bestehender Auswahl aus DB
+- [x] C. Dashboard: Startseite nach Login, Liste aller Untersuchungen, Fortsetzen/DOCX/Löschen Aktionen, Status-Badge
+- [x] D. Export-Seite: Download-Bestätigung + "Zurück zum Dashboard" nach erfolgreichem DOCX-Download
+- [x] / → /dashboard Redirect (alter page.tsx ersetzt)
 
 ---
 
-## Phase 4 — Backlog
-- [ ] Untersuchungs-Liste / Dashboard (alle gespeicherten Untersuchungen eines Users)
+## Phase 5 — Backlog (nach Clara-Test)
 - [ ] Stammdaten editierbar für gespeicherte Untersuchungen
 - [ ] BODS-Logik Feinjustierung mit klinischem Feedback (Clara)
-- [ ] Fehlerbehandlung verbessern (z.B. wenn DB-Spalten fehlen weil SQL noch nicht ausgeführt)
-- [ ] Loading-State auf Befund + Schlucktest-Seiten
+- [ ] Bestehende Schlucktest-Daten beim Zurückbearbeiten aus DB laden (ConsistencyData)
+- [ ] Loading-States auf Befund-Seite
+- [ ] Passwort-Änderung für User
 
 ---
 _Zuletzt aktualisiert: 2026-04-01_
