@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import ExaminationNav from "@/components/ExaminationNav";
+import PatientBanner from "@/components/PatientBanner";
+import StickyFooter from "@/components/StickyFooter";
 import { suggestBodsI } from "@/lib/bods";
 import type { NativbefundData, StructureFinding, SideFinding } from "@/lib/types";
 
@@ -158,7 +160,6 @@ export default function BefundPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // BODS I auto-suggestion (aktualisiert wenn langmore/reflexe sich ändern)
   const suggestedBods = suggestBodsI(data);
   useEffect(() => {
     if (!bodsOverride) {
@@ -166,7 +167,6 @@ export default function BefundPage() {
     }
   }, [suggestedBods, bodsOverride]);
 
-  // Struktur-Updater
   const updateStructure = useCallback(
     (key: StructureKey, patch: Partial<StructureFinding>) => {
       setData((prev) => ({
@@ -189,7 +189,6 @@ export default function BefundPage() {
     updateStructure(key, { side: data[key].side === side ? "" : side });
   }
 
-  // Speichern
   async function handleSave() {
     setSaving(true);
     setError(null);
@@ -244,334 +243,301 @@ export default function BefundPage() {
     router.push(`/examination/${id}/schlucktest${qs}`);
   }
 
-  // Fortschritt: wie viele Strukturen haben mindestens 1 Auswahl?
   const filledCount = STRUCTURES.filter((s) => data[s.key].selected.length > 0).length;
 
+  const WNL_OPTS = ["unauffällig", "symmetrisch", "feucht", "normal durchblutet", "keine Läsionen", "anatomisch korrekt"];
+
   return (
-    <div className="pb-32">
-      {/* Header */}
-      <div className="sticky top-0 z-40 bg-surface-container-lowest/80 backdrop-blur-xl border-b border-outline-variant/20">
-        <div className="flex justify-between items-center px-4 py-3 max-w-2xl mx-auto">
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary text-xl">clinical_notes</span>
-            <span className="font-headline font-extrabold text-primary text-base">FEES Optimizer</span>
-          </div>
-          <span className="text-on-surface-variant text-sm font-medium">Schritt 2 von 4</span>
-        </div>
-        {/* Progress bar */}
-        <div className="flex gap-1 px-4 pb-2 max-w-2xl mx-auto">
-          {[0, 1, 2, 3].map((i) => (
+    <div className="px-4 pt-6 pb-32 space-y-6">
+      {/* Patient-Banner */}
+      <PatientBanner
+        patientName={patientName}
+        stepLabel="Befund"
+        badgeClass="bg-secondary-container text-on-secondary-container"
+      />
+
+      {/* Seiten-Header */}
+      <header className="space-y-1">
+        <h2 className="text-[20px] font-headline font-extrabold text-primary tracking-tight">
+          Nativbefund
+        </h2>
+        <p className="text-on-surface-variant text-[14px] font-medium">
+          Anatomische Strukturen und Reflexe · {filledCount}/{STRUCTURES.length} dokumentiert
+        </p>
+      </header>
+
+      {/* ---- Anatomische Strukturen ---- */}
+      <div className="space-y-4">
+        {STRUCTURES.map((struct) => {
+          const finding = data[struct.key];
+          const isPathological =
+            struct.key === "valleculae"
+              ? finding.selected.some((s) => ["dezent", "deutlich", "massiv"].includes(s))
+              : finding.selected.some((s) => !WNL_OPTS.includes(s));
+
+          return (
             <div
-              key={i}
-              className={`h-1 flex-1 rounded-full transition-colors ${i < 2 ? "bg-primary" : "bg-outline-variant"}`}
-            />
-          ))}
-        </div>
-      </div>
-
-      <div className="max-w-2xl mx-auto px-4 pt-6 space-y-6">
-        {/* Titel */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-headline font-extrabold text-primary tracking-tight">
-              Nativbefund
-            </h2>
-            <p className="text-on-surface-variant text-sm mt-0.5">
-              Anatomische Strukturen und Reflexe
-            </p>
-          </div>
-          {patientName && (
-            <div className="px-3 py-1 bg-secondary-container rounded-full flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-secondary" />
-              <span className="text-[11px] font-bold text-on-secondary-container truncate max-w-[100px]">
-                {patientName}
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Fortschrittsanzeige */}
-        <div className="text-xs text-on-surface-variant">
-          {filledCount} von {STRUCTURES.length} Strukturen dokumentiert
-        </div>
-
-        {/* ---- Anatomische Strukturen ---- */}
-        <div className="space-y-4">
-          {STRUCTURES.map((struct) => {
-            const finding = data[struct.key];
-            const isPathological =
-              struct.key === "valleculae"
-                ? finding.selected.some((s) => ["dezent", "deutlich", "massiv"].includes(s))
-                : finding.selected.some((s) => !["unauffällig", "symmetrisch", "feucht", "normal durchblutet", "keine Läsionen", "anatomisch korrekt"].includes(s));
-
-            return (
-              <div
-                key={struct.key}
-                className={`bg-surface-container-lowest rounded-xl p-4 border-l-4 ${
-                  isPathological ? "border-tertiary" : "border-secondary"
-                }`}
-              >
-                {/* Strukturkopf */}
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-headline font-bold text-on-surface flex items-center gap-1.5 text-sm">
-                    <span className={`material-symbols-outlined text-[18px] ${isPathological ? "text-tertiary" : "text-secondary"}`}>
-                      {struct.icon}
-                    </span>
-                    {struct.label}
-                  </h3>
-                  {struct.hasSide && (
-                    <div className="flex bg-surface-container-high rounded-lg p-0.5 gap-0.5">
-                      {(["L", "R", "beidseitig"] as SideFinding[]).map((s) => (
-                        <button
-                          key={s}
-                          type="button"
-                          onClick={() => setSide(struct.key, s)}
-                          className={`px-2.5 py-1 text-xs font-bold rounded-md min-h-[32px] transition-colors ${
-                            finding.side === s
-                              ? "bg-primary text-on-primary shadow-sm"
-                              : "text-on-surface-variant"
-                          }`}
-                        >
-                          {s}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Chips */}
-                <div className="flex flex-wrap gap-2 mb-3">
-                  {struct.options.map((opt) => {
-                    const active = finding.selected.includes(opt);
-                    const isWnl = ["unauffällig", "symmetrisch", "feucht", "normal durchblutet", "keine Läsionen", "anatomisch korrekt"].includes(opt);
-                    return (
+              key={struct.key}
+              className={`bg-white p-5 rounded-card border-l-4 ${
+                isPathological ? "border-tertiary" : "border-secondary"
+              }`}
+            >
+              {/* Strukturkopf */}
+              <div className="flex items-center justify-between mb-4">
+                <h3 className={`text-xs font-bold uppercase tracking-widest font-label ${
+                  isPathological ? "text-tertiary" : "text-secondary"
+                }`}>
+                  {struct.label}
+                </h3>
+                {struct.hasSide && (
+                  <div className="flex bg-surface-container-high rounded-lg p-0.5 gap-0.5">
+                    {(["L", "R", "beidseitig"] as SideFinding[]).map((s) => (
                       <button
-                        key={opt}
+                        key={s}
                         type="button"
-                        onClick={() => toggleChip(struct.key, opt)}
-                        className={`px-3 py-2 min-h-[44px] rounded-full text-sm font-medium transition-all active:scale-95 ${
-                          active
-                            ? isWnl
-                              ? "bg-secondary text-on-secondary font-bold"
-                              : "bg-tertiary text-on-tertiary font-bold"
-                            : "border border-outline-variant text-on-surface-variant bg-surface hover:bg-surface-container-low"
+                        onClick={() => setSide(struct.key, s)}
+                        className={`px-2.5 py-1 text-xs font-bold rounded-md min-h-[32px] transition-colors ${
+                          finding.side === s
+                            ? "bg-primary text-on-primary shadow-sm"
+                            : "text-on-surface-variant"
                         }`}
                       >
-                        {opt}
+                        {s}
                       </button>
-                    );
-                  })}
-                </div>
-
-                {/* Freitext */}
-                <input
-                  type="text"
-                  value={finding.notes}
-                  onChange={(e) => updateStructure(struct.key, { notes: e.target.value })}
-                  placeholder={struct.notesPlaceholder}
-                  className="w-full bg-surface-container-highest border-b-2 border-primary/30 focus:border-primary focus:outline-none px-3 py-2 text-sm rounded-t-lg placeholder:text-outline/60 transition-colors"
-                />
+                    ))}
+                  </div>
+                )}
               </div>
-            );
-          })}
-        </div>
 
-        {/* ---- Reflexe ---- */}
-        <div className="bg-surface-container-lowest rounded-xl p-4 border-l-4 border-primary">
-          <h3 className="font-headline font-bold text-on-surface flex items-center gap-1.5 mb-4 text-sm">
-            <span className="material-symbols-outlined text-primary text-[18px]">bolt</span>
-            REFLEXE
-          </h3>
-          <div className="grid grid-cols-2 gap-3">
-            {/* Hustenstoß */}
-            <div className="bg-surface rounded-xl p-3 space-y-2">
-              <p className="text-[10px] font-bold uppercase text-outline tracking-widest">
-                Hustenstoß spontan
-              </p>
-              {["auslösbar", "insuffizient", "nicht auslösbar"].map((opt) => (
-                <button
-                  key={opt}
-                  type="button"
-                  onClick={() => setData((p) => ({ ...p, cough_reflex: p.cough_reflex === opt ? "" : opt }))}
-                  className={`w-full py-2 rounded-full text-[11px] font-medium min-h-[36px] transition-all active:scale-95 ${
-                    data.cough_reflex === opt
-                      ? opt === "auslösbar"
-                        ? "bg-secondary text-on-secondary font-bold"
-                        : "bg-tertiary text-on-tertiary font-bold"
-                      : "border border-outline-variant text-on-surface-variant"
-                  }`}
-                >
-                  {opt}
-                </button>
-              ))}
-            </div>
-            {/* Schluckversuch */}
-            <div className="bg-surface rounded-xl p-3 space-y-2">
-              <p className="text-[10px] font-bold uppercase text-outline tracking-widest">
-                Schluckversuch spontan
-              </p>
-              {["möglich", "verzögert", "nicht möglich"].map((opt) => (
-                <button
-                  key={opt}
-                  type="button"
-                  onClick={() => setData((p) => ({ ...p, swallow_reflex: p.swallow_reflex === opt ? "" : opt }))}
-                  className={`w-full py-2 rounded-full text-[11px] font-medium min-h-[36px] transition-all active:scale-95 ${
-                    data.swallow_reflex === opt
-                      ? opt === "möglich"
-                        ? "bg-secondary text-on-secondary font-bold"
-                        : "bg-tertiary text-on-tertiary font-bold"
-                      : "border border-outline-variant text-on-surface-variant"
-                  }`}
-                >
-                  {opt}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* ---- Phonationskontrolle (optional) ---- */}
-        <details className="bg-surface-container-low rounded-xl overflow-hidden group">
-          <summary className="p-4 flex items-center justify-between cursor-pointer list-none select-none min-h-[52px]">
-            <span className="font-headline font-bold text-sm text-on-surface">
-              Phonationskontrolle (optional)
-            </span>
-            <span className="material-symbols-outlined transition-transform group-open:rotate-180 text-on-surface-variant">
-              expand_more
-            </span>
-          </summary>
-          <div className="px-4 pb-4 space-y-3">
-            {PHONATION_FIELDS.map((field) => (
-              <div key={field.key}>
-                <label className="block text-xs font-bold text-on-surface-variant mb-1">
-                  {field.label}
-                </label>
-                <select
-                  value={data[field.key]}
-                  onChange={(e) => setData((p) => ({ ...p, [field.key]: e.target.value }))}
-                  className="w-full bg-surface-container-lowest border border-outline-variant/40 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 text-on-surface"
-                >
-                  <option value="">— nicht bewertet —</option>
-                  {field.options.map((opt) => (
-                    <option key={opt} value={opt}>{opt}</option>
-                  ))}
-                </select>
+              {/* Chips */}
+              <div className="flex flex-wrap gap-2 mb-4">
+                {struct.options.map((opt) => {
+                  const active = finding.selected.includes(opt);
+                  const isWnl = WNL_OPTS.includes(opt);
+                  return (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => toggleChip(struct.key, opt)}
+                      className={`px-4 py-3 min-h-[44px] rounded-lg text-xs font-bold transition-all active:scale-95 ${
+                        active
+                          ? isWnl
+                            ? "bg-secondary-container text-on-secondary-container border border-secondary/20"
+                            : "bg-tertiary text-on-tertiary"
+                          : "bg-surface-container-lowest text-on-surface-variant border border-outline-variant/30"
+                      }`}
+                    >
+                      {opt}
+                    </button>
+                  );
+                })}
               </div>
-            ))}
-          </div>
-        </details>
 
-        {/* ---- Langmore-Graduierung ---- */}
-        <div className="bg-primary/5 rounded-2xl p-5 space-y-4 border border-primary/10">
-          <h3 className="font-headline font-bold text-primary flex items-center gap-2 text-sm">
-            <span className="material-symbols-outlined text-[18px]">leaderboard</span>
-            Langmore-Graduierung
-          </h3>
-          <div className="flex justify-between bg-surface-container-lowest p-2 rounded-xl gap-2">
-            {[0, 1, 2, 3].map((grade) => (
+              {/* Freitext */}
+              <input
+                type="text"
+                value={finding.notes}
+                onChange={(e) => updateStructure(struct.key, { notes: e.target.value })}
+                placeholder={struct.notesPlaceholder}
+                className="w-full bg-surface-container-highest border-b-2 border-outline-variant/50 focus:border-primary focus:outline-none px-3 py-2 text-sm rounded-t-lg placeholder:text-outline/60 transition-colors"
+              />
+            </div>
+          );
+        })}
+      </div>
+
+      {/* ---- Reflexe ---- */}
+      <div className="bg-white p-5 rounded-card border-l-4 border-primary">
+        <h3 className="text-xs font-bold text-primary mb-4 tracking-widest uppercase font-label">
+          REFLEXE
+        </h3>
+        <div className="grid grid-cols-2 gap-3">
+          {/* Hustenstoß */}
+          <div className="bg-surface-container-low p-3 rounded-xl space-y-2">
+            <p className="text-[10px] font-bold uppercase text-outline tracking-widest">
+              Hustenstoß spontan
+            </p>
+            {["auslösbar", "insuffizient", "nicht auslösbar"].map((opt) => (
               <button
-                key={grade}
+                key={opt}
                 type="button"
-                onClick={() =>
-                  setData((p) => ({ ...p, langmore_score: p.langmore_score === grade ? null : grade }))
-                }
-                className={`flex-1 h-12 rounded-xl font-extrabold text-lg transition-all active:scale-95 ${
-                  data.langmore_score === grade
-                    ? grade === 0
-                      ? "bg-secondary text-on-secondary shadow-md"
-                      : grade <= 1
-                      ? "bg-primary text-on-primary shadow-md"
-                      : "bg-tertiary text-on-tertiary shadow-md"
-                    : "text-on-surface-variant hover:bg-surface-container-high"
+                onClick={() => setData((p) => ({ ...p, cough_reflex: p.cough_reflex === opt ? "" : opt }))}
+                className={`w-full py-2.5 rounded-lg text-[11px] font-bold min-h-[40px] transition-all active:scale-95 ${
+                  data.cough_reflex === opt
+                    ? opt === "auslösbar"
+                      ? "bg-secondary text-on-secondary"
+                      : "bg-tertiary text-on-tertiary"
+                    : "bg-surface-container-lowest border border-outline-variant/30 text-on-surface-variant"
                 }`}
               >
-                {grade}
+                {opt}
               </button>
             ))}
           </div>
-          {data.langmore_score !== null && (
-            <p className="text-xs text-on-surface-variant text-center px-2">
-              Grad {data.langmore_score}: {LANGMORE_LABELS[data.langmore_score]}
+          {/* Schluckversuch */}
+          <div className="bg-surface-container-low p-3 rounded-xl space-y-2">
+            <p className="text-[10px] font-bold uppercase text-outline tracking-widest">
+              Schluckversuch spontan
             </p>
-          )}
-        </div>
-
-        {/* ---- BODS I ---- */}
-        <div className="bg-surface-container-low rounded-xl p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="font-headline font-bold text-on-surface text-sm">
-              BODS I — Speichelbewältigung
-            </h3>
-            <span className="text-xs text-on-surface-variant">1 = normal · 8 = schwer</span>
+            {["möglich", "verzögert", "nicht möglich"].map((opt) => (
+              <button
+                key={opt}
+                type="button"
+                onClick={() => setData((p) => ({ ...p, swallow_reflex: p.swallow_reflex === opt ? "" : opt }))}
+                className={`w-full py-2.5 rounded-lg text-[11px] font-bold min-h-[40px] transition-all active:scale-95 ${
+                  data.swallow_reflex === opt
+                    ? opt === "möglich"
+                      ? "bg-secondary text-on-secondary"
+                      : "bg-tertiary text-on-tertiary"
+                    : "bg-surface-container-lowest border border-outline-variant/30 text-on-surface-variant"
+                }`}
+              >
+                {opt}
+              </button>
+            ))}
           </div>
-          <div className="flex items-center gap-3">
-            <div className="flex-1">
-              <input
-                type="range"
-                min={1}
-                max={8}
-                value={data.bods_saliva ?? suggestedBods}
-                onChange={(e) => {
-                  setBodsOverride(true);
-                  setData((p) => ({ ...p, bods_saliva: Number(e.target.value) }));
-                }}
-                className="w-full accent-primary"
-              />
-              <div className="flex justify-between text-[10px] text-outline mt-0.5 px-0.5">
-                {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
-                  <span key={n}>{n}</span>
-                ))}
-              </div>
-            </div>
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-extrabold text-lg ${
-              (data.bods_saliva ?? suggestedBods) <= 2
-                ? "bg-secondary-container text-secondary"
-                : (data.bods_saliva ?? suggestedBods) <= 5
-                ? "bg-primary-fixed text-primary"
-                : "bg-tertiary-fixed text-tertiary"
-            }`}>
-              {data.bods_saliva ?? suggestedBods}
-            </div>
-          </div>
-          {bodsOverride && (
-            <button
-              type="button"
-              onClick={() => { setBodsOverride(false); setData((p) => ({ ...p, bods_saliva: suggestedBods })); }}
-              className="text-xs text-primary underline"
-            >
-              Vorschlag wiederherstellen ({suggestedBods})
-            </button>
-          )}
-          {!bodsOverride && (
-            <p className="text-[11px] text-on-surface-variant">
-              Auto-Vorschlag aus Langmore + Reflexen. Slider verschieben zum Überschreiben.
-            </p>
-          )}
         </div>
-
-        {/* Fehler */}
-        {error && (
-          <p className="text-sm text-tertiary bg-tertiary-fixed/50 rounded-lg px-3 py-2">
-            {error}
-          </p>
-        )}
-
-        {/* Speichern */}
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={saving}
-          className="w-full py-4 bg-gradient-to-r from-primary to-primary-container text-on-primary rounded-2xl font-headline font-bold text-base shadow-lg shadow-primary/20 flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-50"
-        >
-          {saving ? "Speichern …" : "Speichern & Weiter"}
-          {!saving && <span className="material-symbols-outlined">arrow_forward</span>}
-        </button>
       </div>
 
+      {/* ---- Phonationskontrolle (optional) ---- */}
+      <details className="bg-surface-container-low rounded-card overflow-hidden group">
+        <summary className="p-4 flex items-center justify-between cursor-pointer list-none select-none min-h-[52px]">
+          <span className="font-headline font-bold text-sm text-on-surface">
+            Phonationskontrolle (optional)
+          </span>
+          <span className="material-symbols-outlined transition-transform group-open:rotate-180 text-on-surface-variant">
+            expand_more
+          </span>
+        </summary>
+        <div className="px-4 pb-4 space-y-3">
+          {PHONATION_FIELDS.map((field) => (
+            <div key={field.key}>
+              <label className="block text-xs font-bold text-on-surface-variant mb-1">
+                {field.label}
+              </label>
+              <select
+                value={data[field.key]}
+                onChange={(e) => setData((p) => ({ ...p, [field.key]: e.target.value }))}
+                className="w-full bg-surface-container-lowest border border-outline-variant/40 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 text-on-surface"
+              >
+                <option value="">— nicht bewertet —</option>
+                {field.options.map((opt) => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+            </div>
+          ))}
+        </div>
+      </details>
+
+      {/* ---- Langmore-Graduierung ---- */}
+      <div className="bg-surface-container-low rounded-card p-5 space-y-4">
+        <h3 className="text-xs font-bold text-primary tracking-widest uppercase font-label">
+          LANGMORE-GRADUIERUNG
+        </h3>
+        <div className="flex justify-between bg-surface-container-lowest p-2 rounded-xl gap-2">
+          {[0, 1, 2, 3].map((grade) => (
+            <button
+              key={grade}
+              type="button"
+              onClick={() =>
+                setData((p) => ({ ...p, langmore_score: p.langmore_score === grade ? null : grade }))
+              }
+              className={`flex-1 h-12 rounded-xl font-extrabold text-lg transition-all active:scale-95 ${
+                data.langmore_score === grade
+                  ? grade === 0
+                    ? "bg-secondary text-on-secondary shadow-md"
+                    : grade <= 1
+                    ? "bg-primary text-on-primary shadow-md"
+                    : "bg-tertiary text-on-tertiary shadow-md"
+                  : "text-on-surface-variant hover:bg-surface-container-high"
+              }`}
+            >
+              {grade}
+            </button>
+          ))}
+        </div>
+        {data.langmore_score !== null && (
+          <p className="text-xs text-on-surface-variant text-center px-2">
+            Grad {data.langmore_score}: {LANGMORE_LABELS[data.langmore_score]}
+          </p>
+        )}
+      </div>
+
+      {/* ---- BODS I ---- */}
+      <div className="bg-surface-container-low rounded-card p-5 space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-xs font-bold text-primary tracking-widest uppercase font-label">
+            BODS I — SPEICHELBEWÄLTIGUNG
+          </h3>
+          <span className="text-xs text-on-surface-variant">1 = normal · 8 = schwer</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="flex-1">
+            <input
+              type="range"
+              min={1}
+              max={8}
+              value={data.bods_saliva ?? suggestedBods}
+              onChange={(e) => {
+                setBodsOverride(true);
+                setData((p) => ({ ...p, bods_saliva: Number(e.target.value) }));
+              }}
+              className="w-full accent-primary"
+            />
+            <div className="flex justify-between text-[10px] text-outline mt-0.5 px-0.5">
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+                <span key={n}>{n}</span>
+              ))}
+            </div>
+          </div>
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-extrabold text-lg ${
+            (data.bods_saliva ?? suggestedBods) <= 2
+              ? "bg-secondary-container text-secondary"
+              : (data.bods_saliva ?? suggestedBods) <= 5
+              ? "bg-primary-fixed text-primary"
+              : "bg-tertiary-fixed text-tertiary"
+          }`}>
+            {data.bods_saliva ?? suggestedBods}
+          </div>
+        </div>
+        {bodsOverride && (
+          <button
+            type="button"
+            onClick={() => { setBodsOverride(false); setData((p) => ({ ...p, bods_saliva: suggestedBods })); }}
+            className="text-xs text-primary underline"
+          >
+            Vorschlag wiederherstellen ({suggestedBods})
+          </button>
+        )}
+        {!bodsOverride && (
+          <p className="text-[11px] text-on-surface-variant">
+            Auto-Vorschlag aus Langmore + Reflexen. Slider verschieben zum Überschreiben.
+          </p>
+        )}
+      </div>
+
+      {/* Fehler */}
+      {error && (
+        <p className="text-sm text-tertiary bg-tertiary-fixed/50 rounded-xl px-4 py-3 flex items-center gap-2">
+          <span className="material-symbols-outlined text-lg">error</span>
+          {error}
+        </p>
+      )}
+
+      {/* ExaminationNav (Mobile) */}
       <ExaminationNav
         examinationId={id}
         patientName={patientName}
         activeStep="befund"
+      />
+
+      {/* Sticky Footer */}
+      <StickyFooter
+        backHref={`/dashboard`}
+        submitLabel="Speichern & Weiter"
+        loading={saving}
+        onSubmit={handleSave}
       />
     </div>
   );

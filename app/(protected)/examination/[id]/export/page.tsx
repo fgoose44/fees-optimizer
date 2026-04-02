@@ -5,6 +5,8 @@ import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import ExaminationNav from "@/components/ExaminationNav";
+import PatientBanner from "@/components/PatientBanner";
+import StickyFooter from "@/components/StickyFooter";
 
 // ---- Konstanten ----
 
@@ -251,373 +253,357 @@ export default function ExportPage() {
   }
 
   return (
-    <div className="pb-32">
-      {/* Header */}
-      <div className="sticky top-0 z-40 bg-surface-container-lowest/80 backdrop-blur-xl border-b border-outline-variant/20">
-        <div className="flex justify-between items-center px-4 py-3 max-w-2xl mx-auto">
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary text-xl">clinical_notes</span>
-            <span className="font-headline font-extrabold text-primary text-base">FEES Optimizer</span>
+    <div className="px-4 pt-6 pb-32 space-y-6">
+      {/* Patient-Banner mit editierbarem Namen */}
+      <div className="bg-surface-container-low p-3 rounded-card flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-11 h-11 rounded-xl bg-primary-fixed flex items-center justify-center flex-shrink-0">
+            <span
+              className="material-symbols-outlined text-primary"
+              style={{ fontVariationSettings: "'FILL' 1" }}
+            >
+              person
+            </span>
           </div>
-          <span className="text-on-surface-variant text-sm font-medium">Schritt 4 von 4</span>
+          <div>
+            <p className="text-[10px] uppercase tracking-widest text-outline font-bold leading-none mb-1">
+              UNTERSUCHUNG FÜR
+            </p>
+            <input
+              type="text"
+              value={patientName}
+              onChange={(e) => setPatientName(e.target.value)}
+              placeholder="[Patient/in] — nur für DOCX"
+              className="font-headline font-bold text-on-surface bg-transparent focus:outline-none text-base w-48"
+            />
+          </div>
         </div>
-        <div className="flex gap-1 px-4 pb-2 max-w-2xl mx-auto">
-          {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="h-1 flex-1 rounded-full bg-primary" />
-          ))}
+        <div className="px-4 py-1.5 rounded-full flex items-center gap-1.5 min-h-[32px] bg-secondary-container text-on-secondary-container">
+          <span className="w-2 h-2 rounded-full bg-current opacity-60" />
+          <span className="text-[11px] font-bold uppercase tracking-wide">Export</span>
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 pt-6 space-y-6">
-
-        {/* Patient + Status */}
-        <div className="flex items-center justify-between bg-surface-container-low rounded-full px-5 py-3">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center">
-              <span className="material-symbols-outlined text-primary text-xl">person</span>
-            </div>
-            <div>
-              <p className="text-[10px] uppercase tracking-widest text-outline font-bold">Patient/in</p>
-              <input
-                type="text"
-                value={patientName}
-                onChange={(e) => setPatientName(e.target.value)}
-                placeholder="[Patient/in] — nur für DOCX"
-                className="font-headline font-bold text-on-surface bg-transparent focus:outline-none text-sm w-48"
-              />
-            </div>
+      {/* ---- BODS Score ---- */}
+      <section className="space-y-3">
+        <h3 className="text-[20px] font-headline font-extrabold text-primary tracking-tight">
+          BODS-Score
+        </h3>
+        <div className="grid grid-cols-3 gap-3">
+          {/* BODS I */}
+          <div className="bg-surface-container-lowest rounded-card p-4 flex flex-col items-center">
+            <span className="text-[10px] font-bold text-outline uppercase mb-1">Teil I</span>
+            <input
+              type="number"
+              min={1} max={8}
+              value={state.bodsI ?? ""}
+              onChange={(e) => set("bodsI", e.target.value ? Number(e.target.value) : null)}
+              className="text-2xl font-black text-on-surface bg-transparent text-center w-12 focus:outline-none"
+              placeholder="—"
+            />
+            <span className="text-[9px] text-outline mt-1">Speichel</span>
           </div>
-          <div className="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full text-xs font-bold">
-            Export
+          {/* BODS II */}
+          <div className="bg-surface-container-lowest rounded-card p-4 flex flex-col items-center">
+            <span className="text-[10px] font-bold text-outline uppercase mb-1">Teil II</span>
+            <input
+              type="number"
+              min={1} max={8}
+              value={state.bodsII ?? ""}
+              onChange={(e) => set("bodsII", e.target.value ? Number(e.target.value) : null)}
+              className="text-2xl font-black text-on-surface bg-transparent text-center w-12 focus:outline-none"
+              placeholder="—"
+            />
+            <span className="text-[9px] text-outline mt-1">Ernährung</span>
+          </div>
+          {/* Gesamt */}
+          <div className={`rounded-card p-4 flex flex-col items-center shadow-lg ${
+            bodsTotal !== null
+              ? bodsTotal <= 4 ? "bg-secondary text-on-secondary shadow-secondary/20"
+              : bodsTotal <= 8 ? "bg-primary text-on-primary shadow-primary/20"
+              : "bg-tertiary text-on-tertiary shadow-tertiary/20"
+              : "bg-surface-container text-on-surface-variant"
+          }`}>
+            <span className="text-[10px] font-bold opacity-80 uppercase mb-1">Gesamt</span>
+            <span className="text-2xl font-black">{bodsTotal ?? "—"}</span>
+            <span className="text-[9px] opacity-70 mt-1">
+              {bodsTotal !== null
+                ? bodsTotal <= 4 ? "leicht"
+                : bodsTotal <= 8 ? "mittel"
+                : "schwer"
+                : ""}
+            </span>
           </div>
         </div>
+      </section>
 
-        {/* ---- BODS Score ---- */}
-        <section className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="font-headline font-extrabold text-xl text-primary tracking-tight">
-              BODS-Score
-            </h3>
-          </div>
-          <div className="grid grid-cols-3 gap-3">
-            {/* BODS I */}
-            <div className="bg-surface-container-lowest rounded-xl p-4 flex flex-col items-center">
-              <span className="text-[10px] font-bold text-outline uppercase mb-1">Teil I</span>
-              <input
-                type="number"
-                min={1} max={8}
-                value={state.bodsI ?? ""}
-                onChange={(e) => set("bodsI", e.target.value ? Number(e.target.value) : null)}
-                className="text-2xl font-black text-on-surface bg-transparent text-center w-12 focus:outline-none"
-                placeholder="—"
-              />
-              <span className="text-[9px] text-outline mt-1">Speichel</span>
-            </div>
-            {/* BODS II */}
-            <div className="bg-surface-container-lowest rounded-xl p-4 flex flex-col items-center">
-              <span className="text-[10px] font-bold text-outline uppercase mb-1">Teil II</span>
-              <input
-                type="number"
-                min={1} max={8}
-                value={state.bodsII ?? ""}
-                onChange={(e) => set("bodsII", e.target.value ? Number(e.target.value) : null)}
-                className="text-2xl font-black text-on-surface bg-transparent text-center w-12 focus:outline-none"
-                placeholder="—"
-              />
-              <span className="text-[9px] text-outline mt-1">Ernährung</span>
-            </div>
-            {/* Gesamt */}
-            <div className={`rounded-xl p-4 flex flex-col items-center shadow-lg ${
-              bodsTotal !== null
-                ? bodsTotal <= 4 ? "bg-secondary text-on-secondary shadow-secondary/20"
-                : bodsTotal <= 8 ? "bg-primary text-on-primary shadow-primary/20"
-                : "bg-tertiary text-on-tertiary shadow-tertiary/20"
-                : "bg-surface-container text-on-surface-variant"
-            }`}>
-              <span className="text-[10px] font-bold opacity-80 uppercase mb-1">Gesamt</span>
-              <span className="text-2xl font-black">{bodsTotal ?? "—"}</span>
-              <span className="text-[9px] opacity-70 mt-1">
-                {bodsTotal !== null
-                  ? bodsTotal <= 4 ? "leicht"
-                  : bodsTotal <= 8 ? "mittel"
-                  : "schwer"
-                  : ""}
-              </span>
-            </div>
-          </div>
-        </section>
-
-        {/* ---- KI generieren ---- */}
-        <button
-          type="button"
-          onClick={handleGenerate}
-          disabled={generating}
-          className="w-full py-3.5 border-2 border-primary text-primary rounded-2xl font-headline font-bold text-sm flex items-center justify-center gap-2 hover:bg-primary/5 active:scale-[0.98] transition-all disabled:opacity-50"
-        >
-          {generating ? (
-            <>
-              <span className="material-symbols-outlined animate-spin text-lg">progress_activity</span>
-              KI generiert Beurteilung…
-            </>
-          ) : (
-            <>
-              <span className="material-symbols-outlined text-lg">auto_awesome</span>
-              KI-Beurteilung generieren
-            </>
-          )}
-        </button>
-
-        {genError && (
-          <p className="text-sm text-tertiary bg-tertiary-fixed/40 rounded-xl px-4 py-3 flex items-center gap-2">
-            <span className="material-symbols-outlined text-lg">error</span>
-            {genError}
-          </p>
+      {/* ---- KI generieren ---- */}
+      <button
+        type="button"
+        onClick={handleGenerate}
+        disabled={generating}
+        className="w-full py-3.5 border-2 border-primary text-primary rounded-card font-headline font-bold text-sm flex items-center justify-center gap-2 hover:bg-primary/5 active:scale-[0.98] transition-all disabled:opacity-50"
+      >
+        {generating ? (
+          <>
+            <span className="material-symbols-outlined animate-spin text-lg">progress_activity</span>
+            KI generiert Beurteilung…
+          </>
+        ) : (
+          <>
+            <span className="material-symbols-outlined text-lg">auto_awesome</span>
+            KI-Beurteilung generieren
+          </>
         )}
+      </button>
 
-        {/* ---- Zusammenfassende Beurteilung ---- */}
-        <section className="space-y-2">
-          <label className="font-headline font-bold text-sm text-on-surface flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary text-lg">description</span>
-            Zusammenfassende Beurteilung
-          </label>
-          <div className="relative bg-surface-container-highest rounded-xl group">
-            <textarea
-              value={state.beurteilung}
-              onChange={(e) => set("beurteilung", e.target.value)}
-              onBlur={handleSave}
-              rows={6}
-              placeholder="KI-generierter Text erscheint hier nach dem Klick auf 'KI-Beurteilung generieren' — oder direkt eingeben…"
-              className="w-full bg-transparent p-4 text-sm text-on-surface placeholder:text-outline/60 leading-relaxed focus:outline-none resize-none"
-            />
-            <div className="absolute bottom-0 left-3 right-3 h-[2px] bg-outline-variant group-focus-within:bg-primary transition-colors rounded-full" />
-          </div>
-        </section>
+      {genError && (
+        <p className="text-sm text-tertiary bg-tertiary-fixed/40 rounded-xl px-4 py-3 flex items-center gap-2">
+          <span className="material-symbols-outlined text-lg">error</span>
+          {genError}
+        </p>
+      )}
 
-        {/* ---- Pathophysiologie ---- */}
-        <section className="space-y-2">
-          <label className="font-headline font-bold text-sm text-on-surface flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary text-lg">psychology</span>
-            Pathophysiologie
-          </label>
-          <div className="relative bg-surface-container-highest rounded-xl group">
-            <textarea
-              value={state.pathophysiologie}
-              onChange={(e) => set("pathophysiologie", e.target.value)}
-              onBlur={handleSave}
-              rows={4}
-              placeholder="Pathophysiologische Erklärung (optional — nur wenn klinisch relevant)…"
-              className="w-full bg-transparent p-4 text-sm text-on-surface placeholder:text-outline/60 leading-relaxed focus:outline-none resize-none"
-            />
-            <div className="absolute bottom-0 left-3 right-3 h-[2px] bg-outline-variant group-focus-within:bg-primary transition-colors rounded-full" />
-          </div>
-        </section>
+      {/* ---- Zusammenfassende Beurteilung ---- */}
+      <section className="space-y-2">
+        <label className="font-headline font-bold text-sm text-on-surface flex items-center gap-2">
+          <span className="material-symbols-outlined text-primary text-lg">description</span>
+          Zusammenfassende Beurteilung
+        </label>
+        <div className="relative bg-surface-container-highest rounded-card group">
+          <textarea
+            value={state.beurteilung}
+            onChange={(e) => set("beurteilung", e.target.value)}
+            onBlur={handleSave}
+            rows={6}
+            placeholder="KI-generierter Text erscheint hier nach dem Klick auf 'KI-Beurteilung generieren' — oder direkt eingeben…"
+            className="w-full bg-transparent p-4 text-sm text-on-surface placeholder:text-outline/60 leading-relaxed focus:outline-none resize-none"
+          />
+          <div className="absolute bottom-0 left-3 right-3 h-[2px] bg-outline-variant group-focus-within:bg-primary transition-colors rounded-full" />
+        </div>
+      </section>
 
-        {/* ---- Kostformempfehlung ---- */}
-        <section className="space-y-3">
-          <h3 className="font-headline font-extrabold text-xl text-primary tracking-tight">
-            Kostformempfehlung
-          </h3>
-          <div className="bg-surface-container-low rounded-2xl p-4 space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-outline uppercase tracking-wider block">
-                  DYS-Stufe
-                </label>
-                <select
-                  value={state.dysLevel}
-                  onChange={(e) => { set("dysLevel", e.target.value); }}
-                  onBlur={handleSave}
-                  className="w-full bg-surface-container-lowest border-none rounded-lg text-sm px-3 py-2.5 font-medium focus:outline-none focus:ring-2 focus:ring-primary/20"
-                >
-                  <option value="">— wählen —</option>
-                  {DYS_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-outline uppercase tracking-wider block">
-                  IDDSI Kost
-                </label>
-                <select
-                  value={state.iddsiLevel ?? ""}
-                  onChange={(e) => { set("iddsiLevel", e.target.value !== "" ? Number(e.target.value) : null); }}
-                  onBlur={handleSave}
-                  className="w-full bg-surface-container-lowest border-none rounded-lg text-sm px-3 py-2.5 font-medium focus:outline-none focus:ring-2 focus:ring-primary/20"
-                >
-                  <option value="">— wählen —</option>
-                  {IDDSI_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
+      {/* ---- Pathophysiologie ---- */}
+      <section className="space-y-2">
+        <label className="font-headline font-bold text-sm text-on-surface flex items-center gap-2">
+          <span className="material-symbols-outlined text-primary text-lg">psychology</span>
+          Pathophysiologie
+        </label>
+        <div className="relative bg-surface-container-highest rounded-card group">
+          <textarea
+            value={state.pathophysiologie}
+            onChange={(e) => set("pathophysiologie", e.target.value)}
+            onBlur={handleSave}
+            rows={4}
+            placeholder="Pathophysiologische Erklärung (optional — nur wenn klinisch relevant)…"
+            className="w-full bg-transparent p-4 text-sm text-on-surface placeholder:text-outline/60 leading-relaxed focus:outline-none resize-none"
+          />
+          <div className="absolute bottom-0 left-3 right-3 h-[2px] bg-outline-variant group-focus-within:bg-primary transition-colors rounded-full" />
+        </div>
+      </section>
+
+      {/* ---- Kostformempfehlung ---- */}
+      <section className="space-y-3">
+        <h3 className="text-[20px] font-headline font-extrabold text-primary tracking-tight">
+          Kostformempfehlung
+        </h3>
+        <div className="bg-surface-container-low rounded-card p-4 space-y-3">
+          <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <label className="text-[10px] font-bold text-outline uppercase tracking-wider block">
-                Getränke
+                DYS-Stufe
               </label>
               <select
-                value={state.beverageIddsi ?? ""}
-                onChange={(e) => { set("beverageIddsi", e.target.value !== "" ? Number(e.target.value) : null); }}
+                value={state.dysLevel}
+                onChange={(e) => { set("dysLevel", e.target.value); }}
                 onBlur={handleSave}
                 className="w-full bg-surface-container-lowest border-none rounded-lg text-sm px-3 py-2.5 font-medium focus:outline-none focus:ring-2 focus:ring-primary/20"
               >
                 <option value="">— wählen —</option>
-                {BEVERAGE_OPTIONS.map((o) => (
+                {DYS_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-outline uppercase tracking-wider block">
+                IDDSI Kost
+              </label>
+              <select
+                value={state.iddsiLevel ?? ""}
+                onChange={(e) => { set("iddsiLevel", e.target.value !== "" ? Number(e.target.value) : null); }}
+                onBlur={handleSave}
+                className="w-full bg-surface-container-lowest border-none rounded-lg text-sm px-3 py-2.5 font-medium focus:outline-none focus:ring-2 focus:ring-primary/20"
+              >
+                <option value="">— wählen —</option>
+                {IDDSI_OPTIONS.map((o) => (
                   <option key={o.value} value={o.value}>{o.label}</option>
                 ))}
               </select>
             </div>
           </div>
-        </section>
-
-        {/* ---- TK-Empfehlung (nur bei Trachealkanüle) ---- */}
-        {state.hasTracheostomy && (
-          <section className="space-y-3">
-            <h3 className="font-headline font-bold text-base text-on-surface flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary text-lg">air</span>
-              Empfehlung Trachealkanüle
-            </h3>
-            <div className="flex flex-wrap gap-2 mb-2">
-              {TK_SUGGESTIONS.map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => {
-                    const current = state.tracheostomyRec;
-                    const has = current.includes(s);
-                    set("tracheostomyRec", has ? current.replace(s, "").replace(/\n\n/g, "\n").trim() : current ? current + "\n" + s : s);
-                  }}
-                  className={`px-3 py-2 min-h-[44px] rounded-lg text-xs font-medium transition-all ${
-                    state.tracheostomyRec.includes(s)
-                      ? "bg-primary text-on-primary font-bold"
-                      : "bg-surface-container-lowest border border-outline-variant/40 text-on-surface-variant"
-                  }`}
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
-            <textarea
-              value={state.tracheostomyRec}
-              onChange={(e) => set("tracheostomyRec", e.target.value)}
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-bold text-outline uppercase tracking-wider block">
+              Getränke
+            </label>
+            <select
+              value={state.beverageIddsi ?? ""}
+              onChange={(e) => { set("beverageIddsi", e.target.value !== "" ? Number(e.target.value) : null); }}
               onBlur={handleSave}
-              rows={3}
-              placeholder="Freitext TK-Empfehlung…"
-              className="w-full bg-surface-container-highest rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
-            />
-          </section>
-        )}
+              className="w-full bg-surface-container-lowest border-none rounded-lg text-sm px-3 py-2.5 font-medium focus:outline-none focus:ring-2 focus:ring-primary/20"
+            >
+              <option value="">— wählen —</option>
+              {BEVERAGE_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </section>
 
-        {/* ---- Therapieempfehlungen ---- */}
+      {/* ---- TK-Empfehlung (nur bei Trachealkanüle) ---- */}
+      {state.hasTracheostomy && (
         <section className="space-y-3">
-          <h3 className="font-headline font-extrabold text-xl text-primary tracking-tight">
-            Therapieempfehlungen
+          <h3 className="font-headline font-bold text-base text-on-surface flex items-center gap-2">
+            <span className="material-symbols-outlined text-primary text-lg">air</span>
+            Empfehlung Trachealkanüle
           </h3>
-          <div className="grid grid-cols-2 gap-2">
-            {THERAPY_OPTIONS.map((opt) => {
-              const active = state.therapySelected.includes(opt);
-              return (
-                <label
-                  key={opt}
-                  className={`flex items-center gap-3 p-4 rounded-xl cursor-pointer active:scale-[0.98] transition-all min-h-[56px] ${
-                    active ? "bg-primary/10 border border-primary/30" : "bg-surface-container-low"
-                  }`}
-                >
-                  <div className="relative flex items-center justify-center shrink-0">
-                    <input
-                      type="checkbox"
-                      checked={active}
-                      onChange={() => toggleTherapy(opt)}
-                      className="peer appearance-none w-5 h-5 border-2 border-primary rounded-md checked:bg-primary transition-all"
-                    />
-                    <span
-                      className="material-symbols-outlined absolute text-white scale-0 peer-checked:scale-100 transition-transform text-base"
-                      style={{ fontVariationSettings: "'FILL' 1" }}
-                    >
-                      check
-                    </span>
-                  </div>
-                  <span className="text-sm font-medium text-on-surface leading-tight">{opt}</span>
-                </label>
-              );
-            })}
+          <div className="flex flex-wrap gap-2 mb-2">
+            {TK_SUGGESTIONS.map((s) => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => {
+                  const current = state.tracheostomyRec;
+                  const has = current.includes(s);
+                  set("tracheostomyRec", has ? current.replace(s, "").replace(/\n\n/g, "\n").trim() : current ? current + "\n" + s : s);
+                }}
+                className={`px-3 py-2 min-h-[44px] rounded-lg text-xs font-medium transition-all ${
+                  state.tracheostomyRec.includes(s)
+                    ? "bg-primary text-on-primary font-bold"
+                    : "bg-surface-container-lowest border border-outline-variant/40 text-on-surface-variant"
+                }`}
+              >
+                {s}
+              </button>
+            ))}
           </div>
           <textarea
-            value={state.therapyNotes}
-            onChange={(e) => set("therapyNotes", e.target.value)}
+            value={state.tracheostomyRec}
+            onChange={(e) => set("tracheostomyRec", e.target.value)}
             onBlur={handleSave}
-            rows={2}
-            placeholder="Weitere Therapieempfehlungen (Freitext)…"
-            className="w-full bg-surface-container-highest rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
+            rows={3}
+            placeholder="Freitext TK-Empfehlung…"
+            className="w-full bg-surface-container-highest rounded-card px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
           />
         </section>
+      )}
 
-        {/* Fehler */}
-        {saveError && (
-          <p className="text-sm text-tertiary bg-tertiary-fixed/40 rounded-xl px-4 py-3">
-            {saveError}
-          </p>
-        )}
-
-        {/* ---- Zwischenspeichern ---- */}
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={saving}
-          className="w-full py-3 border border-outline-variant text-on-surface-variant rounded-xl text-sm font-medium flex items-center justify-center gap-2 hover:bg-surface-container-low transition-colors disabled:opacity-50"
-        >
-          <span className="material-symbols-outlined text-lg">save</span>
-          {saving ? "Speichern…" : "Zwischenspeichern"}
-        </button>
-
-        {/* ---- Finaler DOCX Export ---- */}
-        <section className="pt-2 space-y-3">
-          <button
-            type="button"
-            onClick={handleDownload}
-            disabled={downloading}
-            className="w-full py-5 bg-gradient-to-r from-primary to-primary-container text-on-primary rounded-2xl font-headline font-extrabold text-base shadow-xl shadow-primary/20 flex items-center justify-center gap-3 active:scale-[0.98] transition-all disabled:opacity-50"
-          >
-            <span className="material-symbols-outlined text-xl">file_download</span>
-            {downloading ? "Erstelle DOCX…" : "Finaler Export (DOCX)"}
-          </button>
-
-          {downloaded && (
-            <div className="bg-secondary-container rounded-xl p-4 space-y-3">
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-secondary text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-                <p className="text-sm font-semibold text-on-secondary-container">
-                  Bericht wurde heruntergeladen.
-                </p>
-              </div>
-              <p className="text-xs text-on-surface-variant leading-relaxed">
-                Sie können den Bericht auch später über das Dashboard erneut herunterladen.
-              </p>
-              <Link
-                href="/dashboard"
-                className="flex items-center justify-center gap-2 w-full py-3 border border-secondary/40 text-secondary rounded-xl text-sm font-semibold active:scale-[0.98] transition-all"
+      {/* ---- Therapieempfehlungen ---- */}
+      <section className="space-y-3">
+        <h3 className="text-[20px] font-headline font-extrabold text-primary tracking-tight">
+          Therapieempfehlungen
+        </h3>
+        <div className="grid grid-cols-2 gap-2">
+          {THERAPY_OPTIONS.map((opt) => {
+            const active = state.therapySelected.includes(opt);
+            return (
+              <label
+                key={opt}
+                className={`flex items-center gap-3 p-4 rounded-card cursor-pointer active:scale-[0.98] transition-all min-h-[56px] ${
+                  active ? "bg-primary/10 border border-primary/30" : "bg-surface-container-low"
+                }`}
               >
-                <span className="material-symbols-outlined text-base">arrow_back</span>
-                Zurück zum Dashboard
-              </Link>
-            </div>
-          )}
+                <div className="relative flex items-center justify-center shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={active}
+                    onChange={() => toggleTherapy(opt)}
+                    className="peer appearance-none w-5 h-5 border-2 border-primary rounded-md checked:bg-primary transition-all"
+                  />
+                  <span
+                    className="material-symbols-outlined absolute text-white scale-0 peer-checked:scale-100 transition-transform text-base"
+                    style={{ fontVariationSettings: "'FILL' 1" }}
+                  >
+                    check
+                  </span>
+                </div>
+                <span className="text-sm font-medium text-on-surface leading-tight">{opt}</span>
+              </label>
+            );
+          })}
+        </div>
+        <textarea
+          value={state.therapyNotes}
+          onChange={(e) => set("therapyNotes", e.target.value)}
+          onBlur={handleSave}
+          rows={2}
+          placeholder="Weitere Therapieempfehlungen (Freitext)…"
+          className="w-full bg-surface-container-highest rounded-card px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
+        />
+      </section>
 
-          <div className="flex items-start gap-3 bg-primary-fixed/30 p-4 rounded-xl">
-            <span className="material-symbols-outlined text-primary text-xl shrink-0">info</span>
-            <p className="text-xs text-on-surface-variant leading-relaxed">
-              Patientenname wird nach dem Export im DOCX ergänzt. Sensible Daten werden lokal verarbeitet.
-              Der Name oben im Feld wird <strong>nur</strong> für das DOCX verwendet — nicht gespeichert.
+      {/* Fehler */}
+      {saveError && (
+        <p className="text-sm text-tertiary bg-tertiary-fixed/40 rounded-xl px-4 py-3 flex items-center gap-2">
+          <span className="material-symbols-outlined text-lg">error</span>
+          {saveError}
+        </p>
+      )}
+
+      {/* ---- Zwischenspeichern ---- */}
+      <button
+        type="button"
+        onClick={handleSave}
+        disabled={saving}
+        className="w-full py-3 border border-outline-variant text-on-surface-variant rounded-xl text-sm font-medium flex items-center justify-center gap-2 hover:bg-surface-container-low transition-colors disabled:opacity-50"
+      >
+        <span className="material-symbols-outlined text-lg">save</span>
+        {saving ? "Speichern…" : "Zwischenspeichern"}
+      </button>
+
+      {/* ---- Erfolgs-Hinweis nach Download ---- */}
+      {downloaded && (
+        <div className="bg-secondary-container rounded-card p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-secondary text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+            <p className="text-sm font-semibold text-on-secondary-container">
+              Bericht wurde heruntergeladen.
             </p>
           </div>
-        </section>
+          <p className="text-xs text-on-surface-variant leading-relaxed">
+            Sie können den Bericht auch später über das Dashboard erneut herunterladen.
+          </p>
+          <Link
+            href="/dashboard"
+            className="flex items-center justify-center gap-2 w-full py-3 border border-secondary/40 text-secondary rounded-xl text-sm font-semibold active:scale-[0.98] transition-all"
+          >
+            <span className="material-symbols-outlined text-base">arrow_back</span>
+            Zurück zum Dashboard
+          </Link>
+        </div>
+      )}
+
+      {/* Info-Hinweis */}
+      <div className="flex items-start gap-3 bg-primary-fixed/30 p-4 rounded-card">
+        <span className="material-symbols-outlined text-primary text-xl shrink-0">info</span>
+        <p className="text-xs text-on-surface-variant leading-relaxed">
+          Patientenname wird nach dem Export im DOCX ergänzt. Sensible Daten werden lokal verarbeitet.
+          Der Name oben im Feld wird <strong>nur</strong> für das DOCX verwendet — nicht gespeichert.
+        </p>
       </div>
 
       <ExaminationNav
         examinationId={id}
         patientName={patientName}
         activeStep="export"
+      />
+
+      <StickyFooter
+        submitLabel="DOCX exportieren"
+        submitIcon="file_download"
+        loading={downloading}
+        onSubmit={handleDownload}
       />
     </div>
   );

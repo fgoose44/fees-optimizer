@@ -1,72 +1,39 @@
-<!DOCTYPE html>
-
-<html class="light" lang="de"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>FEES Optimizer - Step 2: Nativbefund</title>
+<!DOCTYPE html><html class="light" lang="de"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>FEES Optimizer - Befunderhebung</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
 <script id="tailwind-config">
       tailwind.config = {
         darkMode: "class",
         theme: {
           extend: {
             colors: {
-              "on-primary-fixed-variant": "#004a75",
-              "on-error-container": "#93000a",
-              "on-primary-fixed": "#001d32",
-              "on-tertiary-fixed-variant": "#930010",
-              "surface-dim": "#d9dadb",
-              "outline": "#717881",
-              "surface": "#f8f9fa",
-              "outline-variant": "#c0c7d1",
-              "secondary-fixed-dim": "#78dc77",
-              "on-background": "#191c1d",
-              "on-primary-container": "#d2e7ff",
-              "surface-container": "#edeeef",
-              "tertiary-fixed-dim": "#ffb3ac",
-              "on-tertiary-container": "#ffddda",
-              "surface-container-highest": "#e1e3e4",
-              "on-secondary": "#ffffff",
-              "on-secondary-fixed": "#002204",
-              "surface-container-low": "#f3f4f5",
-              "inverse-primary": "#95ccff",
-              "background": "#f8f9fa",
-              "on-surface-variant": "#40474f",
-              "secondary-fixed": "#94f990",
-              "secondary": "#006e1c",
-              "surface-variant": "#e1e3e4",
-              "inverse-surface": "#2e3132",
-              "surface-bright": "#f8f9fa",
-              "error": "#ba1a1a",
-              "on-primary": "#ffffff",
-              "tertiary-container": "#c52427",
-              "primary-fixed-dim": "#95ccff",
-              "inverse-on-surface": "#f0f1f2",
-              "primary-container": "#106ba3",
-              "surface-container-lowest": "#ffffff",
-              "on-tertiary-fixed": "#410003",
-              "on-tertiary": "#ffffff",
-              "primary-fixed": "#cde5ff",
-              "on-secondary-fixed-variant": "#005313",
-              "secondary-container": "#91f78e",
-              "on-surface": "#191c1d",
-              "on-error": "#ffffff",
               "primary": "#005280",
-              "error-container": "#ffdad6",
-              "tertiary": "#a10012",
-              "tertiary-fixed": "#ffdad6",
-              "surface-tint": "#006399",
+              "surface": "#f8f9fa",
+              "on-surface": "#191c1d",
+              "outline": "#717881",
+              "outline-variant": "#c0c7d1",
+              "surface-container-low": "#f3f4f5",
+              "surface-container": "#edeeef",
+              "surface-container-high": "#e7e8e9",
+              "secondary": "#006e1c",
+              "secondary-container": "#91f78e",
               "on-secondary-container": "#00731e",
-              "surface-container-high": "#e7e8e9"
+              "on-surface-variant": "#40474f",
             },
             fontFamily: {
               "headline": ["Manrope"],
               "body": ["Inter"],
-              "label": ["Inter"]
             },
-            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+            borderRadius: {
+              "DEFAULT": "0.125rem",
+              "lg": "0.25rem",
+              "xl": "0.5rem",
+              "12": "12px",
+            },
           },
         },
       }
@@ -74,10 +41,6 @@
 <style>
       .material-symbols-outlined {
         font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-      }
-      .glass-effect {
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
       }
       .custom-scrollbar::-webkit-scrollbar {
         width: 4px;
@@ -91,311 +54,215 @@
       }
     </style>
 </head>
-<body class="bg-[#f8f9fa] font-body text-on-surface antialiased custom-scrollbar">
-<!-- Unified Top Navigation (from COMPONENTS_61) -->
-<header class="fixed top-0 w-full z-50 bg-[#f8f9fa] border-b border-slate-200">
-<div class="flex justify-between items-center h-16 px-8 w-full max-w-[1920px] mx-auto">
-<div class="flex items-center gap-8">
-<span class="text-2xl font-extrabold text-[#005280] tracking-tighter font-headline">FEES Analytics</span>
-<nav class="hidden md:flex gap-6 items-center">
-<a class="text-slate-500 hover:text-[#005280] transition-colors font-headline font-bold tracking-tight text-sm" href="#">STAMMDATEN</a>
-<a class="text-[#005280] border-b-2 border-[#005280] pb-2 font-headline font-bold tracking-tight text-sm" href="#">BEFUND</a>
-<a class="text-slate-500 hover:text-[#005280] transition-colors font-headline font-bold tracking-tight text-sm" href="#">SCHLUCKTEST</a>
-<a class="text-slate-500 hover:text-[#005280] transition-colors font-headline font-bold tracking-tight text-sm" href="#">EXPORT</a>
+<body class="bg-surface font-body text-on-surface antialiased custom-scrollbar">
+<!-- Top-Navigation: Unified with Mobile Reference -->
+<header class="fixed top-0 w-full h-16 z-50 bg-white/90 backdrop-blur-xl border-b border-outline-variant/30">
+<div class="flex justify-between items-center px-6 w-full max-w-[1920px] mx-auto h-full">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-2xl" style="font-variation-settings: &quot;FILL&quot; 1;">clinical_notes</span>
+<span class="text-xl font-bold tracking-tighter text-primary font-headline" style="">FEES Analytics</span>
+</div>
+<nav class="hidden md:flex gap-8 items-center h-full">
+<a class="text-outline hover:text-primary transition-colors font-headline font-bold text-xs tracking-wider" href="#" style="">STAMMDATEN</a>
+<a class="text-primary border-b-2 border-primary h-full flex items-center font-headline font-bold text-xs tracking-wider" href="#" style="">BEFUND</a>
+<a class="text-outline hover:text-primary transition-colors font-headline font-bold text-xs tracking-wider" href="#" style="">SCHLUCKTEST</a>
+<a class="text-outline hover:text-primary transition-colors font-headline font-bold text-xs tracking-wider" href="#" style="">EXPORT</a>
 </nav>
-</div>
 <div class="flex items-center gap-4">
-<span class="material-symbols-outlined text-slate-500 cursor-pointer p-2 hover:bg-slate-100 rounded-md transition-all scale-95 duration-150 ease-in-out" data-icon="settings">settings</span>
-<div class="w-8 h-8 rounded-full bg-primary-fixed overflow-hidden border border-outline-variant cursor-pointer scale-95 duration-150 ease-in-out hover:bg-slate-100">
-<img alt="Professional Avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCufvZ7z2y0mCDHEcY6ImNWAIyeRozFjAYqdz2Wu7EiczgabTnnDqceznJcD8JSDAS11xdd3Bz8fxclhqRyzPSOrrtPQD88ATbEX18sr-o1HSs8nUsO-UEL0Ec5NnBEFUuj6WfFWPOjLY0cKr1e_JdBTcLrkHcKeOrupECMf330RaablxodlKCNddywlFYaado6j-oqA0vhwuUr3JiZC36NNIKUkVOeJRMJ8viZFqai-vBKAsEmUKQaREgmB_GhNOFyGJeU7MYZ-nz0"/>
-</div>
+<button class="p-2 hover:bg-surface-container rounded-full transition-colors" style="">
+<span class="material-symbols-outlined text-outline" data-icon="settings" style="">settings</span>
+</button>
+<button class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant" style="">
+<img alt="User Avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCufvZ7z2y0mCDHEcY6ImNWAIyeRozFjAYqdz2Wu7EiczgabTnnDqceznJcD8JSDAS11xdd3Bz8fxclhqRyzPSOrrtPQD88ATbEX18sr-o1HSs8nUsO-UEL0Ec5NnBEFUuj6WfFWPOjLY0cKr1e_JdBTcLrkHcKeOrupECMf330RaablxodlKCNddywlFYaado6j-oqA0vhwuUr3JiZC36NNIKUkVOeJRMJ8viZFqai-vBKAsEmUKQaREgmB_GhNOFyGJeU7MYZ-nz0" class="" style="">
+</button>
 </div>
 </div>
 </header>
-<!-- Step Header (from COMPONENTS_61 style) -->
-<div class="w-full sticky top-16 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-100 shadow-sm">
-<div class="flex justify-between items-center h-12 px-8 max-w-[1920px] mx-auto">
-<div class="flex items-center gap-2">
-<span class="material-symbols-outlined text-[#005280] text-lg" data-icon="clinical_notes">clinical_notes</span>
-<span class="font-['Inter'] font-medium text-xs uppercase tracking-widest text-[#005280]">Schritt 2 von 4</span>
+<!-- Sub-Leiste: Unified with Mobile Reference -->
+<div class="w-full sticky top-16 z-40 bg-white border-b border-outline-variant/20">
+<div class="flex justify-between items-center h-12 px-6 w-full max-w-[900px] mx-auto">
+<div class="flex items-center gap-6 w-full">
+<div class="flex items-center gap-2 shrink-0">
+<span class="font-medium text-sm text-on-surface-variant" style="">Schritt 2 von 4</span>
 </div>
-<div class="flex items-center gap-2">
-<span class="text-xs font-bold text-outline uppercase">Nativbefund</span>
-<button class="bg-primary text-white px-4 py-1 rounded-full text-xs font-bold hover:opacity-80 transition-opacity">Weiter</button>
+<!-- 4-segment progress indicator -->
+<div class="flex gap-2 flex-1 h-1.5">
+<div class="h-full flex-1 bg-primary rounded-full"></div>
+<div class="h-full flex-1 bg-primary rounded-full"></div>
+<div class="h-full flex-1 bg-outline-variant/40 rounded-full"></div>
+<div class="h-full flex-1 bg-outline-variant/40 rounded-full"></div>
 </div>
 </div>
 </div>
-<main class="pt-8 pb-28 px-4 max-w-2xl mx-auto min-h-screen">
-<!-- Patient Info -->
-<div class="mb-8">
-<div class="flex justify-between items-end mb-2">
+</div>
+<main class="pt-8 pb-32 px-4 max-w-[900px] mx-auto min-h-screen">
+<!-- Patient-Banner: Unified style -->
+<section class="bg-surface-container-low p-3 rounded-12 flex items-center justify-between mb-8">
+<div class="flex items-center gap-3">
+<div class="w-11 h-11 rounded-xl bg-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-white" style="font-variation-settings: &quot;FILL&quot; 1;">person</span>
+</div>
 <div>
-<h1 class="text-2xl font-extrabold font-headline text-on-surface">Nativbefund</h1>
-<p class="text-sm text-outline mt-1 font-medium italic">[Patient/in]</p>
-</div>
-<div class="text-right">
-<span class="text-sm font-medium text-outline">Anatomische Übersicht</span>
+<p class="text-[10px] uppercase tracking-widest text-outline font-bold leading-none mb-1" style="">UNTERSUCHUNG FÜR</p>
+<p class="font-headline font-bold text-on-surface text-base" style="">[Patient/in]</p>
 </div>
 </div>
-<div class="w-full bg-outline-variant/30 h-1.5 rounded-full overflow-hidden">
-<div class="bg-primary h-full w-1/2 rounded-full shadow-[0_0_8px_rgba(0,82,128,0.4)]"></div>
+<div class="px-4 py-1.5 border border-secondary/30 rounded-full flex items-center gap-1.5 min-h-[32px] bg-white">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="text-[11px] font-bold text-on-secondary-container uppercase tracking-wide" style="">Befund</span>
 </div>
-</div>
-<!-- Findings Content -->
+</section>
+<!-- Headline & Description -->
+<header class="mb-8 px-1">
+<h2 class="text-[20px] font-headline font-extrabold tracking-tight text-primary mb-1" style="">Befunderhebung</h2>
+<p class="text-on-surface-variant text-[14px] font-body" style="">Dokumentation der anatomischen Strukturen und Funktionen im Nativbefund.</p>
+</header>
+<!-- Content Area -->
 <div class="space-y-6">
-<!-- Langmore-Graduierung -->
-<section class="bg-surface-container-lowest p-5 rounded-xl shadow-sm border-l-4 border-primary">
+<!-- Langmore-Graduierung Card -->
+<section class="bg-white p-6 rounded-12 border border-outline-variant/20 shadow-none">
 <div class="flex items-center gap-2 mb-4">
-<span class="material-symbols-outlined text-primary" data-icon="clinical_notes">clinical_notes</span>
-<h2 class="font-bold font-headline text-lg">Langmore-Graduierung</h2>
+<span class="material-symbols-outlined text-primary" data-icon="clinical_notes" style="">clinical_notes</span>
+<h3 class="font-bold font-headline text-lg" style="">Langmore-Graduierung</h3>
 </div>
 <div class="relative">
-<select class="w-full bg-surface-container-low border-none rounded-lg py-3 px-4 text-on-surface font-medium focus:ring-2 focus:ring-primary appearance-none">
+<select class="w-full bg-surface-container-low border border-outline-variant/20 rounded-lg py-3 px-4 text-on-surface font-medium focus:ring-2 focus:ring-primary appearance-none">
 <option value="0">Grad 0: Keine Sekretretention</option>
 <option value="1">Grad 1: Diskrete Sekretansammlung</option>
 <option value="2">Grad 2: Mäßige Sekretansammlung</option>
 <option value="3">Grad 3: Schwere Sekretansammlung</option>
 </select>
-<span class="material-symbols-outlined absolute right-4 top-3 pointer-events-none text-outline" data-icon="expand_more">expand_more</span>
+<span class="material-symbols-outlined absolute right-4 top-3 pointer-events-none text-outline" data-icon="expand_more" style="">expand_more</span>
 </div>
 </section>
-<!-- Anatomical Structures -->
+<!-- Anatomische Strukturen Section -->
 <div class="space-y-4">
-<h3 class="text-xs font-bold text-outline uppercase tracking-wider ml-1">Anatomische Strukturen</h3>
-<!-- 1. SCHLEIMHÄUTE -->
-<div class="bg-surface-container-low rounded-2xl p-5">
+<h4 class="text-[11px] font-bold text-outline uppercase tracking-wider ml-1" style="">Anatomische Strukturen</h4>
+<!-- Card Grid or List of Structures -->
+<div class="grid gap-4">
+<!-- Schleimhäute -->
+<div class="bg-white rounded-12 p-5 border border-outline-variant/20">
 <div class="flex justify-between items-center mb-4">
-<h4 class="font-bold font-headline text-on-surface">Schleimhäute</h4>
-<button class="text-outline hover:text-primary transition-colors">
-<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+<h5 class="font-bold font-headline text-on-surface" style="">Schleimhäute</h5>
+<button class="text-outline hover:text-primary transition-colors" style="">
+<span class="material-symbols-outlined" data-icon="add_circle" style="">add_circle</span>
 </button>
 </div>
 <div class="flex flex-wrap gap-2">
-<button class="px-4 py-1.5 rounded-full border border-outline-variant/30 bg-surface-container-lowest text-sm font-medium hover:border-primary hover:text-primary transition-all active:scale-95">feucht</button>
-<button class="px-4 py-1.5 rounded-full border border-outline-variant/30 bg-surface-container-lowest text-sm font-medium hover:border-primary hover:text-primary transition-all">gerötet</button>
-<button class="px-4 py-1.5 rounded-full border border-outline-variant/30 bg-surface-container-lowest text-sm font-medium hover:border-primary hover:text-primary transition-all">geschwollen</button>
-<button class="px-4 py-1.5 rounded-full bg-secondary text-white text-sm font-medium shadow-sm">normal durchblutet</button>
-<button class="px-4 py-1.5 rounded-full border border-outline-variant/30 bg-surface-container-lowest text-sm font-medium hover:border-primary hover:text-primary transition-all">keine Läsionen</button>
+<button class="px-4 py-1.5 rounded-full border border-outline-variant/30 text-sm font-medium hover:bg-surface-container transition-all" style="">feucht</button>
+<button class="px-4 py-1.5 rounded-full border border-outline-variant/30 text-sm font-medium hover:bg-surface-container transition-all" style="">gerötet</button>
+<button class="px-4 py-1.5 rounded-full border border-outline-variant/30 text-sm font-medium hover:bg-surface-container transition-all" style="">geschwollen</button>
+<button class="px-4 py-1.5 rounded-full bg-secondary text-white text-sm font-medium" style="">normal durchblutet</button>
+<button class="px-4 py-1.5 rounded-full border border-outline-variant/30 text-sm font-medium hover:bg-surface-container transition-all" style="">keine Läsionen</button>
 </div>
 </div>
-<!-- 2. VELUM -->
-<div class="bg-surface-container-low rounded-2xl p-5">
+<!-- Velum -->
+<div class="bg-white rounded-12 p-5 border border-outline-variant/20">
 <div class="flex justify-between items-center mb-4">
-<h4 class="font-bold font-headline text-on-surface">Velum</h4>
-<button class="text-outline hover:text-primary transition-colors">
-<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+<h5 class="font-bold font-headline text-on-surface" style="">Velum</h5>
+<button class="text-outline hover:text-primary transition-colors" style="">
+<span class="material-symbols-outlined" data-icon="add_circle" style="">add_circle</span>
 </button>
 </div>
-<div class="flex flex-wrap gap-2 mb-4">
-<button class="px-4 py-1.5 rounded-full bg-secondary text-white text-sm font-medium shadow-sm">symmetrisch</button>
-<button class="px-4 py-1.5 rounded-full border border-outline-variant/30 bg-surface-container-lowest text-sm font-medium hover:border-primary hover:text-primary transition-all">asymmetrisch</button>
-<button class="px-4 py-1.5 rounded-full border border-outline-variant/30 bg-surface-container-lowest text-sm font-medium hover:border-primary hover:text-primary transition-all">Insuffizienz</button>
+<div class="flex flex-wrap items-center gap-4 mb-4">
+<div class="flex flex-wrap gap-2">
+<button class="px-4 py-1.5 rounded-full bg-secondary text-white text-sm font-medium" style="">symmetrisch</button>
+<button class="px-4 py-1.5 rounded-full border border-outline-variant/30 text-sm font-medium hover:bg-surface-container transition-all" style="">asymmetrisch</button>
+<button class="px-4 py-1.5 rounded-full border border-outline-variant/30 text-sm font-medium hover:bg-surface-container transition-all" style="">Insuffizienz</button>
 </div>
-<div class="flex bg-surface-container-high rounded-full p-1 max-w-[120px]">
-<button class="flex-1 py-1 text-[10px] font-bold rounded-full text-on-surface-variant">L</button>
-<button class="flex-1 py-1 text-[10px] font-bold rounded-full text-on-surface-variant">R</button>
-<button class="flex-1 py-1 text-[10px] font-bold rounded-full bg-primary text-white shadow-sm">BEIDE</button>
+<div class="flex bg-surface-container rounded-full p-0.5">
+<button class="px-3 py-1 text-[10px] font-bold rounded-full text-outline" style="">L</button>
+<button class="px-3 py-1 text-[10px] font-bold rounded-full text-outline" style="">R</button>
+<button class="px-3 py-1 text-[10px] font-bold rounded-full bg-primary text-white" style="">BEIDE</button>
 </div>
 </div>
-<!-- 3. ZUNGENBASIS -->
-<div class="bg-surface-container-low rounded-2xl p-5">
+</div>
+<!-- Zungenbasis -->
+<div class="bg-white rounded-12 p-5 border border-outline-variant/20">
 <div class="flex justify-between items-center mb-4">
-<h4 class="font-bold font-headline text-on-surface">Zungenbasis</h4>
-<button class="text-outline hover:text-primary transition-colors">
-<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+<h5 class="font-bold font-headline text-on-surface" style="">Zungenbasis</h5>
+<button class="text-outline hover:text-primary transition-colors" style="">
+<span class="material-symbols-outlined" data-icon="add_circle" style="">add_circle</span>
 </button>
 </div>
 <div class="flex flex-wrap gap-2">
-<button class="px-4 py-1.5 rounded-full bg-secondary text-white text-sm font-medium shadow-sm">unauffällig</button>
-<button class="px-4 py-1.5 rounded-full border border-outline-variant/30 bg-surface-container-lowest text-sm font-medium hover:border-primary hover:text-primary transition-all">hypertroph</button>
-<button class="px-4 py-1.5 rounded-full border border-outline-variant/30 bg-surface-container-lowest text-sm font-medium hover:border-primary hover:text-primary transition-all">atrophiert</button>
-<button class="px-4 py-1.5 rounded-full border border-outline-variant/30 bg-surface-container-lowest text-sm font-medium hover:border-primary hover:text-primary transition-all">Coating (glasig/blasig)</button>
-<button class="px-4 py-1.5 rounded-full border border-outline-variant/30 bg-surface-container-lowest text-sm font-medium hover:border-primary hover:text-primary transition-all">anatomisch korrekt</button>
+<button class="px-4 py-1.5 rounded-full bg-secondary text-white text-sm font-medium" style="">unauffällig</button>
+<button class="px-4 py-1.5 rounded-full border border-outline-variant/30 text-sm font-medium hover:bg-surface-container transition-all" style="">hypertroph</button>
+<button class="px-4 py-1.5 rounded-full border border-outline-variant/30 text-sm font-medium hover:bg-surface-container transition-all" style="">atrophiert</button>
+<button class="px-4 py-1.5 rounded-full border border-outline-variant/30 text-sm font-medium hover:bg-surface-container transition-all" style="">Coating (glasig/blasig)</button>
 </div>
-</div>
-<!-- 4. EPIGLOTTIS -->
-<div class="bg-surface-container-low rounded-2xl p-5">
-<div class="flex justify-between items-center mb-4">
-<h4 class="font-bold font-headline text-on-surface">Epiglottis</h4>
-<button class="text-outline hover:text-primary transition-colors">
-<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
-</button>
-</div>
-<div class="flex flex-wrap gap-2">
-<button class="px-4 py-1.5 rounded-full bg-secondary text-white text-sm font-medium shadow-sm">symmetrisch</button>
-<button class="px-4 py-1.5 rounded-full border border-outline-variant/30 bg-surface-container-lowest text-sm font-medium hover:border-primary hover:text-primary transition-all">Omegaepiglottis</button>
-<button class="px-4 py-1.5 rounded-full border border-outline-variant/30 bg-surface-container-lowest text-sm font-medium hover:border-primary hover:text-primary transition-all">geschwollen</button>
-</div>
-</div>
-<!-- 5. PHARYNX -->
-<div class="bg-surface-container-low rounded-2xl p-5">
-<div class="flex justify-between items-center mb-4">
-<h4 class="font-bold font-headline text-on-surface">Pharynx</h4>
-<button class="text-outline hover:text-primary transition-colors">
-<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
-</button>
-</div>
-<div class="flex flex-wrap gap-2 mb-4">
-<button class="px-4 py-1.5 rounded-full bg-secondary text-white text-sm font-medium shadow-sm">unauffällig</button>
-<button class="px-4 py-1.5 rounded-full border border-outline-variant/30 bg-surface-container-lowest text-sm font-medium hover:border-primary hover:text-primary transition-all">verengt</button>
-<button class="px-4 py-1.5 rounded-full border border-outline-variant/30 bg-surface-container-lowest text-sm font-medium hover:border-primary hover:text-primary transition-all">Parese</button>
-</div>
-<div class="flex bg-surface-container-high rounded-full p-1 max-w-[120px]">
-<button class="flex-1 py-1 text-[10px] font-bold rounded-full text-on-surface-variant">L</button>
-<button class="flex-1 py-1 text-[10px] font-bold rounded-full text-on-surface-variant">R</button>
-<button class="flex-1 py-1 text-[10px] font-bold rounded-full bg-primary text-white shadow-sm">BEIDE</button>
-</div>
-</div>
-<!-- 6. LARYNX / KEHLKOPF -->
-<div class="bg-surface-container-low rounded-2xl p-5">
-<div class="flex justify-between items-center mb-4">
-<h4 class="font-bold font-headline text-on-surface">Larynx / Kehlkopf</h4>
-<button class="text-outline hover:text-primary transition-colors">
-<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
-</button>
-</div>
-<div class="flex flex-wrap gap-2 mb-4">
-<button class="px-4 py-1.5 rounded-full bg-secondary text-white text-sm font-medium shadow-sm">symmetrisch</button>
-<button class="px-4 py-1.5 rounded-full border border-outline-variant/30 bg-surface-container-lowest text-sm font-medium hover:border-primary hover:text-primary transition-all">Ödem</button>
-<button class="px-4 py-1.5 rounded-full border border-outline-variant/30 bg-surface-container-lowest text-sm font-medium hover:border-primary hover:text-primary transition-all">Aryknorpel auffällig</button>
-<button class="px-4 py-1.5 rounded-full border border-outline-variant/30 bg-surface-container-lowest text-sm font-medium hover:border-primary hover:text-primary transition-all">hypertroph</button>
-<button class="px-4 py-1.5 rounded-full border border-outline-variant/30 bg-surface-container-lowest text-sm font-medium hover:border-primary hover:text-primary transition-all">unauffällige Anatomie</button>
-</div>
-<div class="flex bg-surface-container-high rounded-full p-1 max-w-[120px]">
-<button class="flex-1 py-1 text-[10px] font-bold rounded-full text-on-surface-variant">L</button>
-<button class="flex-1 py-1 text-[10px] font-bold rounded-full text-on-surface-variant">R</button>
-<button class="flex-1 py-1 text-[10px] font-bold rounded-full bg-primary text-white shadow-sm">BEIDE</button>
-</div>
-</div>
-<!-- 7. VALLECULAE / SINUS PIRIFORMES -->
-<div class="bg-surface-container-low rounded-2xl p-5">
-<div class="flex justify-between items-center mb-4">
-<h4 class="font-bold font-headline text-on-surface">Valleculae / Sinus pirif.</h4>
-<button class="text-outline hover:text-primary transition-colors">
-<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
-</button>
-</div>
-<div class="flex flex-wrap gap-2 mb-4">
-<button class="px-4 py-1.5 rounded-full bg-secondary text-white text-sm font-medium shadow-sm">keine Retentionen</button>
-<button class="px-4 py-1.5 rounded-full border border-outline-variant/30 bg-surface-container-lowest text-sm font-medium hover:border-primary hover:text-primary transition-all">dezent</button>
-<button class="px-4 py-1.5 rounded-full border border-outline-variant/30 bg-surface-container-lowest text-sm font-medium hover:border-primary hover:text-primary transition-all">deutlich</button>
-<button class="px-4 py-1.5 rounded-full border border-outline-variant/30 bg-surface-container-lowest text-sm font-medium hover:border-primary hover:text-primary transition-all">massiv</button>
-</div>
-<div class="flex bg-surface-container-high rounded-full p-1 max-w-[120px]">
-<button class="flex-1 py-1 text-[10px] font-bold rounded-full text-on-surface-variant">L</button>
-<button class="flex-1 py-1 text-[10px] font-bold rounded-full text-on-surface-variant">R</button>
-<button class="flex-1 py-1 text-[10px] font-bold rounded-full bg-primary text-white shadow-sm">BEIDE</button>
 </div>
 </div>
 </div>
 <!-- Reflexe Section -->
-<section class="bg-surface-container-low rounded-2xl p-5 border border-outline-variant/20 shadow-sm">
+<section class="bg-white p-6 rounded-12 border border-outline-variant/20 shadow-none">
 <div class="flex items-center gap-2 mb-6">
-<span class="material-symbols-outlined text-primary" data-icon="bolt">bolt</span>
-<h3 class="font-bold font-headline text-lg">Reflexe</h3>
+<span class="material-symbols-outlined text-primary" data-icon="bolt" style="">bolt</span>
+<h3 class="font-bold font-headline text-lg" style="">Reflexe</h3>
 </div>
-<div class="space-y-6">
+<div class="grid sm:grid-cols-2 gap-8">
 <div>
-<p class="text-xs font-bold text-outline uppercase mb-3 ml-1">HUSTENSTOSS SPONTAN</p>
-<div class="flex flex-wrap gap-2">
-<button class="px-4 py-2 rounded-xl bg-secondary text-white text-sm font-medium shadow-sm">auslösbar</button>
-<button class="px-4 py-2 rounded-xl border border-outline-variant/30 bg-surface-container-lowest text-sm font-medium hover:border-primary transition-all">insuffizient</button>
-<button class="px-4 py-2 rounded-xl border border-outline-variant/30 bg-surface-container-lowest text-sm font-medium hover:border-primary transition-all">nicht auslösbar</button>
+<p class="text-[11px] font-bold text-outline uppercase mb-3" style="">HUSTENSTOSS SPONTAN</p>
+<div class="flex flex-col gap-2">
+<button class="w-full text-left px-4 py-2 rounded-lg bg-secondary text-white text-sm font-medium" style="">auslösbar</button>
+<button class="w-full text-left px-4 py-2 rounded-lg border border-outline-variant/30 text-sm font-medium hover:bg-surface-container transition-all" style="">insuffizient</button>
+<button class="w-full text-left px-4 py-2 rounded-lg border border-outline-variant/30 text-sm font-medium hover:bg-surface-container transition-all" style="">nicht auslösbar</button>
 </div>
 </div>
 <div>
-<p class="text-xs font-bold text-outline uppercase mb-3 ml-1">SCHLUCKVERSUCH SPONTAN</p>
-<div class="flex flex-wrap gap-2">
-<button class="px-4 py-2 rounded-xl bg-secondary text-white text-sm font-medium shadow-sm">möglich</button>
-<button class="px-4 py-2 rounded-xl border border-outline-variant/30 bg-surface-container-lowest text-sm font-medium hover:border-primary transition-all">verzögert</button>
-<button class="px-4 py-2 rounded-xl border border-outline-variant/30 bg-surface-container-lowest text-sm font-medium hover:border-primary transition-all">nicht möglich</button>
+<p class="text-[11px] font-bold text-outline uppercase mb-3" style="">SCHLUCKVERSUCH SPONTAN</p>
+<div class="flex flex-col gap-2">
+<button class="w-full text-left px-4 py-2 rounded-lg bg-secondary text-white text-sm font-medium" style="">möglich</button>
+<button class="w-full text-left px-4 py-2 rounded-lg border border-outline-variant/30 text-sm font-medium hover:bg-surface-container transition-all" style="">verzögert</button>
+<button class="w-full text-left px-4 py-2 rounded-lg border border-outline-variant/30 text-sm font-medium hover:bg-surface-container transition-all" style="">nicht möglich</button>
 </div>
 </div>
 </div>
 </section>
-<!-- Phonationskontrolle -->
-<section class="border border-outline-variant/30 rounded-2xl overflow-hidden bg-surface-container-lowest transition-all mt-6">
-<button class="w-full flex items-center justify-between p-5 hover:bg-surface-container-low transition-colors group">
+<!-- Phonationskontrolle Card (Optional) -->
+<section class="bg-white rounded-12 border border-outline-variant/20 overflow-hidden shadow-none">
+<button class="w-full flex items-center justify-between p-6 hover:bg-surface-container-low transition-colors group" style="">
 <div class="flex items-center gap-2">
-<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors" data-icon="volume_up">volume_up</span>
-<span class="font-bold font-headline">Phonationskontrolle</span>
-<span class="text-[10px] text-outline font-bold uppercase ml-2 px-1.5 py-0.5 bg-surface-container-high rounded">Optional</span>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors" data-icon="volume_up" style="">volume_up</span>
+<span class="font-bold font-headline text-lg" style="">Phonationskontrolle</span>
+<span class="text-[10px] text-outline font-bold uppercase ml-2 px-1.5 py-0.5 bg-surface-container-high rounded" style="">Optional</span>
 </div>
-<span class="material-symbols-outlined text-outline" data-icon="expand_more">expand_more</span>
+<span class="material-symbols-outlined text-outline" data-icon="expand_more" style="">expand_more</span>
 </button>
-<div class="px-5 pb-5 space-y-4">
+<div class="px-6 pb-6 space-y-4">
 <div class="grid gap-4 sm:grid-cols-2">
 <div class="space-y-1">
-<label class="text-[11px] font-bold text-outline ml-1">Velopharyngealer Verschluss</label>
-<select class="w-full rounded-xl border-outline-variant/40 bg-surface-container-low text-sm focus:ring-primary focus:border-primary">
+<label class="text-[11px] font-bold text-outline ml-1" style="">Velopharyngealer Verschluss</label>
+<select class="w-full rounded-lg border border-outline-variant/20 bg-surface-container-low text-sm p-2.5 focus:ring-primary">
 <option>Vollständig</option>
 <option>Inkomplett</option>
 <option>Fehlend</option>
 </select>
 </div>
 <div class="space-y-1">
-<label class="text-[11px] font-bold text-outline ml-1">Stimmlippenbeweglichkeit</label>
-<select class="w-full rounded-xl border-outline-variant/40 bg-surface-container-low text-sm focus:ring-primary focus:border-primary">
+<label class="text-[11px] font-bold text-outline ml-1" style="">Stimmlippenbeweglichkeit</label>
+<select class="w-full rounded-lg border border-outline-variant/20 bg-surface-container-low text-sm p-2.5 focus:ring-primary">
 <option>Seitengleich</option>
 <option>Eingeschränkt (L)</option>
 <option>Eingeschränkt (R)</option>
-<option>Stillstand (L)</option>
-<option>Stillstand (R)</option>
 </select>
 </div>
-<div class="space-y-1">
-<label class="text-[11px] font-bold text-outline ml-1">Glissando</label>
-<select class="w-full rounded-xl border-outline-variant/40 bg-surface-container-low text-sm focus:ring-primary focus:border-primary">
-<option>Unauffällig</option>
-<option>Eingeschränkt</option>
-<option>Nicht möglich</option>
-</select>
-</div>
-<div class="space-y-1">
-<label class="text-[11px] font-bold text-outline ml-1">Glottisschluss/Taschenfalten</label>
-<select class="w-full rounded-xl border-outline-variant/40 bg-surface-container-low text-sm focus:ring-primary focus:border-primary">
-<option>Komplett</option>
-<option>Inkomplett</option>
-<option>Medio-lateraler Hypertonus</option>
-</select>
-</div>
-</div>
-<div class="space-y-1">
-<label class="text-[11px] font-bold text-outline ml-1">Willkürliches Husten/Räuspern</label>
-<select class="w-full rounded-xl border-outline-variant/40 bg-surface-container-low text-sm focus:ring-primary focus:border-primary">
-<option>Kräftig</option>
-<option>Schwach</option>
-<option>Nicht möglich</option>
-</select>
 </div>
 </div>
 </section>
 </div>
-<!-- Next Action -->
-<div class="mt-10 mb-16">
-<button class="w-full bg-gradient-to-r from-primary to-primary-container text-white py-4 rounded-full font-bold shadow-lg shadow-sky-200 active:scale-95 transition-all flex items-center justify-center gap-2">
-<span>Weiter zu Schritt 3: Bolus-Prüfung</span>
-<span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+</main>
+<!-- Footer Sticky Bar: Unified style -->
+<footer class="fixed bottom-0 left-0 w-full z-50 bg-white/90 backdrop-blur-xl border-t border-outline-variant/30 py-4 px-6 shadow-[0_-4px_20px_0_rgba(0,0,0,0.03)]">
+<div class="max-w-[900px] mx-auto w-full flex justify-between items-center">
+<button class="flex items-center gap-1.5 text-primary font-bold text-sm hover:underline" style="">
+<span class="material-symbols-outlined text-lg" data-icon="arrow_back" style="">arrow_back</span>
+                Zurück
+            </button>
+<button class="bg-primary text-white px-8 py-3.5 rounded-xl font-headline font-bold text-sm shadow-lg hover:opacity-95 active:scale-[0.98] transition-all flex items-center gap-2" style="">
+                SPEICHERN &amp; WEITER
+                <span class="material-symbols-outlined text-lg" data-icon="arrow_forward" style="">arrow_forward</span>
 </button>
 </div>
-</main>
-<!-- Bottom Navigation (Mobile) -->
-<nav class="fixed bottom-0 left-0 w-full z-50 rounded-t-3xl border-t border-slate-100 bg-white/80 backdrop-blur-md shadow-[0_-4px_20px_0_rgba(0,0,0,0.05)] flex justify-around items-center px-4 pt-3 pb-safe lg:hidden">
-<a class="flex flex-col items-center justify-center text-slate-400 px-5 py-2 hover:text-sky-600 transition-colors" href="#">
-<span class="material-symbols-outlined mb-1" data-icon="analytics">analytics</span>
-<span class="text-[10px] uppercase tracking-wider font-bold">Stammdaten</span>
-</a>
-<a class="flex flex-col items-center justify-center bg-sky-600 text-white rounded-2xl px-5 py-2 shadow-lg shadow-sky-200" href="#">
-<span class="material-symbols-outlined mb-1" data-icon="clinical_notes">clinical_notes</span>
-<span class="text-[10px] uppercase tracking-wider font-bold">Befund</span>
-</a>
-<a class="flex flex-col items-center justify-center text-slate-400 px-5 py-2 hover:text-sky-600 transition-colors" href="#">
-<span class="material-symbols-outlined mb-1" data-icon="rate_review">rate_review</span>
-<span class="text-[10px] uppercase tracking-wider font-bold">Schlucktest</span>
-</a>
-<a class="flex flex-col items-center justify-center text-slate-400 px-5 py-2 hover:text-sky-600 transition-colors" href="#">
-<span class="material-symbols-outlined mb-1" data-icon="ios_share">ios_share</span>
-<span class="text-[10px] uppercase tracking-wider font-bold">Export</span>
-</a>
-</nav>
+</footer>
 </body></html>

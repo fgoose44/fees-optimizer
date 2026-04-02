@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+
+<html class="light" lang="de"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>FEES Analytics - Dashboard</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-tint": "#006399",
+              "secondary": "#006e1c",
+              "tertiary-fixed": "#ffdad6",
+              "surface": "#f8f9fa",
+              "surface-container-low": "#f3f4f5",
+              "surface-bright": "#f8f9fa",
+              "on-surface-variant": "#40474f",
+              "background": "#f8f9fa",
+              "on-primary-fixed": "#001d32",
+              "primary-fixed-dim": "#95ccff",
+              "surface-container": "#edeeef",
+              "on-error": "#ffffff",
+              "on-secondary-container": "#00731e",
+              "surface-dim": "#d9dadb",
+              "outline": "#717881",
+              "on-tertiary-fixed": "#410003",
+              "secondary-fixed-dim": "#78dc77",
+              "secondary-fixed": "#94f990",
+              "primary-container": "#106ba3",
+              "outline-variant": "#c0c7d1",
+              "on-tertiary-container": "#ffddda",
+              "on-primary-container": "#d2e7ff",
+              "on-error-container": "#93000a",
+              "on-surface": "#191c1d",
+              "inverse-on-surface": "#f0f1f2",
+              "surface-variant": "#e1e3e4",
+              "on-background": "#191c1d",
+              "surface-container-lowest": "#ffffff",
+              "surface-container-highest": "#e1e3e4",
+              "on-secondary": "#ffffff",
+              "secondary-container": "#91f78e",
+              "on-tertiary-fixed-variant": "#930010",
+              "error-container": "#ffdad6",
+              "tertiary-container": "#c52427",
+              "on-primary-fixed-variant": "#004a75",
+              "inverse-surface": "#2e3132",
+              "tertiary": "#a10012",
+              "on-secondary-fixed": "#002204",
+              "on-tertiary": "#ffffff",
+              "tertiary-fixed-dim": "#ffb3ac",
+              "on-secondary-fixed-variant": "#005313",
+              "on-primary": "#ffffff",
+              "error": "#ba1a1a",
+              "inverse-primary": "#95ccff",
+              "surface-container-high": "#e7e8e9",
+              "primary-fixed": "#cde5ff",
+              "primary": "#005280"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem", "fees": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        h1, h2, h3, .brand-logo {
+            font-family: 'Manrope', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen">
+<!-- Top Navigation -->
+<nav class="fixed top-0 w-full z-50 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-md shadow-sm dark:shadow-none">
+<div class="flex justify-between items-center w-full px-8 py-4 max-w-full">
+<div class="text-2xl font-bold tracking-tight text-sky-900 dark:text-sky-100">FEES Analytics</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2">
+<button class="p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-700/50 transition-colors rounded-full active:scale-95 duration-150 ease-in-out">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+</button>
+<button class="p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-700/50 transition-colors rounded-full active:scale-95 duration-150 ease-in-out">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+</div>
+<div class="h-10 w-10 rounded-full overflow-hidden border border-outline-variant">
+<img alt="Kliniker Profil" class="w-full h-full object-cover" data-alt="Close-up portrait of a professional medical doctor in a clean clinical environment with soft natural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD523hhf9iTebIOBaNGB61f3zWq7kJ5u5qb6rMcP0Xv1hS8PZJ4lgJrvlSEuXz4weMjhSJeo8cu3YpnycdGA0Tss4d41FMx0w5glAEUbiXUpTRXNDebGrS12HI5afRzmb33I0F9Xni7DDNjXOveWSapDXf9rkYBU7IFXHNztS-yLiuEUm7RhZGuozXPiqefUnFBgOdkvABDse71FAId84vZMwOAJ4neOzPHzG66boGlmIarHoyPj6PHpRyT-seqGbFiT8LRn9PK0x30"/>
+</div>
+</div>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="pt-28 pb-20 px-6">
+<div class="max-w-[900px] mx-auto">
+<!-- Welcome Header Section -->
+<header class="flex justify-between items-end mb-12">
+<div>
+<h1 class="text-4xl font-extrabold tracking-tight text-on-surface mb-2">Willkommen zurück</h1>
+<p class="text-on-surface-variant font-medium">Sie haben 4 laufende Untersuchungen heute.</p>
+</div>
+<button class="bg-primary text-on-primary px-6 py-3 rounded-full flex items-center gap-2 font-bold shadow-lg hover:brightness-110 active:scale-95 transition-all duration-150">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+                    Neue FEES-Dokumentation
+                </button>
+</header>
+<!-- Anatomical Data Grid / Dashboard Cards -->
+<section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Card 1: WNL State -->
+<div class="bg-surface-container-lowest rounded-fees relative overflow-hidden flex flex-col h-full transition-transform hover:translate-y-[-2px]">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-secondary"></div>
+<div class="p-6 flex-grow">
+<div class="flex justify-between items-start mb-4">
+<div>
+<p class="text-xs font-bold uppercase tracking-widest text-outline mb-1 font-label">14. OKT 2023 • 09:15</p>
+<h3 class="text-xl font-bold text-on-surface">Patient #DE-2941</h3>
+</div>
+<span class="px-3 py-1 bg-secondary-container text-on-secondary-container text-xs font-bold rounded-full">ABGESCHLOSSEN</span>
+</div>
+<p class="text-on-surface-variant text-sm line-clamp-2 mb-6">Diagnose: Unauffälliger Schluckakt ohne Penetration oder Aspiration. PAS Score: 1.</p>
+</div>
+<div class="px-6 py-4 bg-surface-container-low flex justify-between items-center">
+<button class="flex items-center gap-1 text-primary font-bold text-sm hover:underline active:scale-95">
+                            Details ansehen <span class="material-symbols-outlined text-base" data-icon="arrow_forward">arrow_forward</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="download">download</span>
+</button>
+</div>
+</div>
+<!-- Card 2: Pathological State -->
+<div class="bg-surface-container-lowest rounded-fees relative overflow-hidden flex flex-col h-full transition-transform hover:translate-y-[-2px]">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
+<div class="p-6 flex-grow">
+<div class="flex justify-between items-start mb-4">
+<div>
+<p class="text-xs font-bold uppercase tracking-widest text-outline mb-1 font-label">14. OKT 2023 • 10:45</p>
+<h3 class="text-xl font-bold text-on-surface">Patient #DE-8821</h3>
+</div>
+<span class="px-3 py-1 bg-primary-fixed text-on-primary-fixed-variant text-xs font-bold rounded-full">IN BEARBEITUNG</span>
+</div>
+<p class="text-on-surface-variant text-sm line-clamp-2 mb-6">Status: Verzögerte Schluckreflexauslösung, Rückstände im Recessus piriformis beidseits.</p>
+</div>
+<div class="px-6 py-4 bg-surface-container-low flex justify-between items-center">
+<button class="flex items-center gap-1 text-primary font-bold text-sm hover:underline active:scale-95">
+                            Fortsetzen <span class="material-symbols-outlined text-base" data-icon="arrow_forward">arrow_forward</span>
+</button>
+<button class="text-outline-variant cursor-not-allowed">
+<span class="material-symbols-outlined" data-icon="download">download</span>
+</button>
+</div>
+</div>
+<!-- Card 3: Pathological State -->
+<div class="bg-surface-container-lowest rounded-fees relative overflow-hidden flex flex-col h-full transition-transform hover:translate-y-[-2px]">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-secondary"></div>
+<div class="p-6 flex-grow">
+<div class="flex justify-between items-start mb-4">
+<div>
+<p class="text-xs font-bold uppercase tracking-widest text-outline mb-1 font-label">13. OKT 2023 • 14:20</p>
+<h3 class="text-xl font-bold text-on-surface">Patient #DE-1102</h3>
+</div>
+<span class="px-3 py-1 bg-secondary-container text-on-secondary-container text-xs font-bold rounded-full">ABGESCHLOSSEN</span>
+</div>
+<p class="text-on-surface-variant text-sm line-clamp-2 mb-6">Diagnose: Chronische Dysphagie bei Zustand nach Schlaganfall. Kostformanpassung empfohlen.</p>
+</div>
+<div class="px-6 py-4 bg-surface-container-low flex justify-between items-center">
+<button class="flex items-center gap-1 text-primary font-bold text-sm hover:underline active:scale-95">
+                            Details ansehen <span class="material-symbols-outlined text-base" data-icon="arrow_forward">arrow_forward</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="download">download</span>
+</button>
+</div>
+</div>
+<!-- Card 4: Draft -->
+<div class="bg-surface-container-lowest rounded-fees relative overflow-hidden flex flex-col h-full transition-transform hover:translate-y-[-2px]">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
+<div class="p-6 flex-grow">
+<div class="flex justify-between items-start mb-4">
+<div>
+<p class="text-xs font-bold uppercase tracking-widest text-outline mb-1 font-label">13. OKT 2023 • 16:00</p>
+<h3 class="text-xl font-bold text-on-surface">Patient #DE-4459</h3>
+</div>
+<span class="px-3 py-1 bg-primary-fixed text-on-primary-fixed-variant text-xs font-bold rounded-full">ENTWURF</span>
+</div>
+<p class="text-on-surface-variant text-sm line-clamp-2 mb-6">Status: Untersuchung unterbrochen. Video-Upload steht noch aus.</p>
+</div>
+<div class="px-6 py-4 bg-surface-container-low flex justify-between items-center">
+<button class="flex items-center gap-1 text-primary font-bold text-sm hover:underline active:scale-95">
+                            Fortsetzen <span class="material-symbols-outlined text-base" data-icon="arrow_forward">arrow_forward</span>
+</button>
+<button class="text-outline-variant cursor-not-allowed">
+<span class="material-symbols-outlined" data-icon="download">download</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Tonal Layering Section: Insights -->
+<aside class="mt-12 p-8 bg-surface-container-low rounded-fees">
+<div class="flex items-center gap-4 mb-6">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="insights">insights</span>
+<h2 class="text-xl font-bold tracking-tight">Klinische Zusammenfassung (Woche)</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="bg-surface-container-lowest p-5 rounded-xl">
+<p class="text-xs font-bold text-outline uppercase font-label mb-1">Untersuchungen</p>
+<p class="text-3xl font-extrabold text-primary">24</p>
+</div>
+<div class="bg-surface-container-lowest p-5 rounded-xl">
+<p class="text-xs font-bold text-outline uppercase font-label mb-1">Ø PAS Score</p>
+<p class="text-3xl font-extrabold text-secondary">2.4</p>
+</div>
+<div class="bg-surface-container-lowest p-5 rounded-xl">
+<p class="text-xs font-bold text-outline uppercase font-label mb-1">Aspirationen</p>
+<p class="text-3xl font-extrabold text-tertiary">3</p>
+</div>
+</div>
+</aside>
+</div>
+</main>
+<!-- Bottom Footer / Utility (Optional, keeping it clean) -->
+<footer class="mt-auto py-8 text-center text-outline-variant text-xs font-medium">
+        © 2023 FEES Analytics • Präzisionskurator v2.4.1
+    </footer>
+</body></html>

@@ -17,6 +17,30 @@
 
 ---
 
+## Phase 5 — Design Refresh (2026-04-02)
+
+Stitch-HTML-Screens als verbindliche visuelle Vorlage. Exakte Tailwind-Klassen, Farben, Abstände, Schriftgrößen übernehmen. Funktionalität NICHT ändern.
+
+### A. Foundation ✅
+- [x] `tailwind.config.ts` — `"card": "0.75rem"` zu borderRadius hinzufügen
+- [x] `app/(protected)/layout.tsx` — max-w-[900px], pt-16 Spacing für fixed Header
+
+### B. Shared Components ✅
+- [x] `components/Header.tsx` — Fixed, Glassmorphism, Desktop Tab-Nav
+- [x] `components/ExaminationNav.tsx` — Restyle, lg:hidden auf Desktop
+- [x] `components/PatientBanner.tsx` — Neu erstellt
+- [x] `components/StickyFooter.tsx` — Neu erstellt
+
+### C. Screen-Updates
+
+- [x] **Dashboard** `/dashboard` ✅
+- [x] **Stammdaten** `/examination/new` ✅
+- [x] **Befund** `/examination/[id]/befund` ✅
+- [x] **Schlucktest** `/examination/[id]/schlucktest` ✅
+- [x] **Export** `/examination/[id]/export` ✅
+
+---
+
 ## Phase 5 — Backlog (nach Clara-Test)
 - [ ] Stammdaten editierbar für gespeicherte Untersuchungen
 - [ ] BODS-Logik Feinjustierung mit klinischem Feedback (Clara)
@@ -25,4 +49,4 @@
 - [ ] Passwort-Änderung für User
 
 ---
-_Zuletzt aktualisiert: 2026-04-01_
+_Zuletzt aktualisiert: 2026-04-02 — Phase 5 Design Refresh vollständig abgeschlossen_

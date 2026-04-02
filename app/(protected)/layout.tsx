@@ -15,9 +15,10 @@ export default async function ProtectedLayout({
   if (!user) redirect("/login");
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-background">
       <Header />
-      <main className="flex-1 px-4 py-6 max-w-2xl mx-auto w-full">
+      {/* pt-16 für fixed Header */}
+      <main className="flex-1 pt-16 max-w-[900px] mx-auto w-full">
         {children}
       </main>
     </div>

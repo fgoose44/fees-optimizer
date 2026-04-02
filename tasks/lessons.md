@@ -38,3 +38,10 @@ Die 5 Vorlage-FEES-Berichte in `prompts/` werden server-seitig zur Laufzeit via 
 
 ## Phase 3 DB-SQL-Spalten — Deployment-Reihenfolge
 Neue DB-Spalten müssen VOR dem ersten Produktionsaufruf der neuen Export-Seite in Supabase ausgeführt werden. Ohne die neuen Spalten schlagen alle PATCH-Aufrufe lautlos fehl oder werfen Fehler.
+
+## Phase 5 Design-Refresh — Architekturentscheidungen
+- **ExaminationNav auf Desktop verstecken**: `lg:hidden` in ExaminationNav — Desktop nutzt Tab-Nav im globalen Header via `usePathname()`
+- **StickyFooter + ExaminationNav**: Beide fixed bottom-0. Auf Mobile koexistieren sie (ExaminationNav unter StickyFooter). Kein Konflikt, da ExaminationNav nur auf Mobile sichtbar.
+- **PatientName über URL-Params**: Kein State-Management notwendig — `searchParams.get("patientName")` in jedem Schritt. Export-Seite hat editierbares Inline-Input statt PatientBanner.
+- **rounded-card Token**: `0.75rem` (12px) als Custom Tailwind-Token für alle Cards und Section-Container — entspricht Stitch 12px Radius.
+- **`font-label` Klasse**: Für Section-Header in Befund/Schlucktest verwendet. Sicherstellen dass diese Klasse in tailwind.config.ts definiert ist.

@@ -9,6 +9,8 @@ import {
   COMMUNICATION_SUGGESTIONS,
 } from "@/lib/constants";
 import type { ExaminationFormData } from "@/lib/types";
+import PatientBanner from "@/components/PatientBanner";
+import StickyFooter from "@/components/StickyFooter";
 
 const today = new Date().toISOString().split("T")[0];
 
@@ -38,8 +40,7 @@ export default function NewExaminationPage() {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleSubmit() {
     setSaving(true);
     setError(null);
 
@@ -80,26 +81,26 @@ export default function NewExaminationPage() {
   }
 
   return (
-    <div className="space-y-6 pb-8">
+    <div className="px-4 pt-6 pb-32 space-y-6">
+      {/* Patient-Banner */}
+      <PatientBanner
+        patientName={form.patientName}
+        stepLabel="Stammdaten"
+        badgeClass="bg-secondary-container text-on-secondary-container"
+      />
+
       {/* Seiten-Header */}
-      <div className="space-y-1">
-        <div className="flex gap-1 mb-3">
-          {[0, 1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className={`h-1 flex-1 rounded-full ${i === 0 ? "bg-primary" : "bg-outline-variant"}`}
-            />
-          ))}
-        </div>
-        <h2 className="text-2xl font-headline font-extrabold text-primary tracking-tight">
+      <header className="space-y-1">
+        <h2 className="text-[20px] font-headline font-extrabold text-primary tracking-tight">
           Neue Untersuchung
         </h2>
-        <p className="text-on-surface-variant text-sm">
+        <p className="text-on-surface-variant text-[14px] font-medium">
           Stammdaten und klinische Angaben
         </p>
-      </div>
+      </header>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Formular */}
+      <div className="space-y-5">
 
         {/* Patientenname — lokal */}
         <Field label="Patient/in (nur lokal — wird nicht gespeichert)">
@@ -253,16 +254,15 @@ export default function NewExaminationPage() {
             {error}
           </p>
         )}
+      </div>
 
-        <button
-          type="submit"
-          disabled={saving}
-          className="w-full bg-gradient-to-r from-primary to-primary-container text-on-primary rounded-2xl py-4 font-headline font-bold text-base shadow-lg shadow-primary/20 flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-50"
-        >
-          {saving ? "Speichern…" : "Speichern & Weiter"}
-          {!saving && <span className="material-symbols-outlined">arrow_forward</span>}
-        </button>
-      </form>
+      {/* StickyFooter */}
+      <StickyFooter
+        backHref="/dashboard"
+        submitLabel="Speichern & Weiter"
+        loading={saving}
+        onSubmit={handleSubmit}
+      />
     </div>
   );
 }

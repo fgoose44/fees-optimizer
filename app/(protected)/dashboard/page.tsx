@@ -36,7 +36,6 @@ export default function DashboardPage() {
       if (!user) { router.push("/login"); return; }
       setUserEmail(user.email ?? "");
 
-      // Untersuchungen laden
       const { data: examData } = await supabase
         .from("examinations")
         .select("id, examination_date, status, medical_diagnosis, assessment_text")
@@ -44,9 +43,7 @@ export default function DashboardPage() {
 
       if (!examData) { setLoading(false); return; }
 
-      // Prüfen welche Befunde + Schlucktests vorhanden sind
       const ids = examData.map((e) => e.id);
-
       const [nativRes, swallowRes] = await Promise.all([
         supabase.from("native_findings").select("examination_id").in("examination_id", ids),
         supabase
@@ -75,7 +72,6 @@ export default function DashboardPage() {
     if (!confirm("Untersuchung wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.")) return;
     setDeletingId(id);
     const supabase = createClient();
-    // Kinder zuerst löschen (falls kein CASCADE konfiguriert)
     await supabase.from("swallow_tests").delete().eq("examination_id", id);
     await supabase.from("native_findings").delete().eq("examination_id", id);
     await supabase.from("examinations").delete().eq("id", id);
@@ -107,131 +103,174 @@ export default function DashboardPage() {
 
   const formatDate = (iso: string) =>
     new Date(iso).toLocaleDateString("de-DE", {
-      day: "2-digit", month: "2-digit", year: "numeric",
+      day: "2-digit", month: "long", year: "numeric",
     });
 
   const statusLabel = (s: string) =>
     s === "erstdiagnostik" ? "Erstdiagnostik" : "Verlaufsdiagnostik";
 
+  // Stats
+  const totalExams = exams.length;
+  const thisWeek = exams.filter((e) => {
+    const d = new Date(e.examination_date);
+    const now = new Date();
+    const weekAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+    return d >= weekAgo;
+  }).length;
+
   return (
-    <div className="space-y-6">
-      {/* Begrüßung */}
-      <div>
-        <h1 className="text-2xl font-headline font-extrabold text-on-surface tracking-tight">
-          FEES Dokumentation
-        </h1>
-        {userEmail && (
-          <p className="text-sm text-on-surface-variant mt-0.5">{userEmail}</p>
-        )}
-      </div>
+    <div className="px-4 py-6 pb-24 space-y-8">
+      {/* Welcome Header */}
+      <header className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
+        <div>
+          <h1 className="text-[28px] font-headline font-extrabold tracking-tight text-on-surface">
+            Willkommen zurück
+          </h1>
+          {userEmail && (
+            <p className="text-on-surface-variant font-medium text-sm mt-0.5">{userEmail}</p>
+          )}
+        </div>
+        <Link
+          href="/examination/new"
+          className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary-container text-on-primary rounded-full font-headline font-bold text-sm shadow-lg shadow-primary/20 active:scale-95 transition-all whitespace-nowrap"
+        >
+          <span className="material-symbols-outlined text-xl">add</span>
+          Neue FEES-Dokumentation
+        </Link>
+      </header>
 
-      {/* Neue Untersuchung */}
-      <Link
-        href="/examination/new"
-        className="flex items-center justify-center gap-2 w-full py-4 bg-gradient-to-r from-primary to-primary-container text-on-primary rounded-2xl font-headline font-bold text-base shadow-lg shadow-primary/20 active:scale-[0.98] transition-all"
-      >
-        <span className="material-symbols-outlined text-xl">add_circle</span>
-        Neue FEES-Dokumentation
-      </Link>
-
-      {/* Liste */}
+      {/* Untersuchungs-Liste */}
       {loading ? (
         <div className="flex items-center justify-center py-16">
           <span className="text-on-surface-variant text-sm">Lade Untersuchungen …</span>
         </div>
       ) : exams.length === 0 ? (
-        <div className="text-center py-16 space-y-3">
-          <span className="material-symbols-outlined text-5xl text-outline-variant">
-            folder_open
-          </span>
+        <div className="text-center py-20 space-y-3">
+          <span className="material-symbols-outlined text-5xl text-outline-variant">folder_open</span>
           <p className="text-on-surface-variant text-sm">
-            Noch keine Untersuchungen. Starte jetzt deine erste FEES-Dokumentation.
+            Noch keine Untersuchungen. Starte jetzt die erste FEES-Dokumentation.
           </p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <section className="space-y-4">
           <p className="text-xs font-bold text-on-surface-variant uppercase tracking-widest px-1">
-            Bisherige Untersuchungen ({exams.length})
+            Letzte Untersuchungen
           </p>
+
           {exams.map((exam) => {
             const done = !!(exam.assessment_text && exam.assessment_text.length > 10);
             const diagDisplay = exam.medical_diagnosis
-              ? exam.medical_diagnosis.length > 45
-                ? exam.medical_diagnosis.slice(0, 42) + "…"
+              ? exam.medical_diagnosis.length > 60
+                ? exam.medical_diagnosis.slice(0, 57) + "…"
                 : exam.medical_diagnosis
               : "Keine Diagnose eingetragen";
 
             return (
               <div
                 key={exam.id}
-                className="bg-surface-container-lowest rounded-2xl p-4 shadow-sm space-y-3"
+                className="bg-surface-container-lowest rounded-card relative overflow-hidden flex flex-col transition-transform hover:-translate-y-px"
               >
-                {/* Kopfzeile */}
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-headline font-bold text-base text-on-surface">
+                {/* Linker Accent-Bar */}
+                <div
+                  className={`absolute left-0 top-0 bottom-0 w-1 ${
+                    done ? "bg-secondary" : "bg-primary"
+                  }`}
+                />
+
+                <div className="pl-5 pr-4 pt-4 pb-3 flex-grow">
+                  {/* Kopfzeile */}
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold uppercase tracking-widest text-outline mb-1 font-label">
                         {formatDate(exam.examination_date)}
-                      </span>
-                      <span className="text-xs text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-full">
-                        {statusLabel(exam.status)}
-                      </span>
+                      </p>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span
+                          className="inline-block px-2 py-0.5 bg-surface-container-highest text-on-surface-variant text-[11px] font-semibold rounded-full"
+                        >
+                          {statusLabel(exam.status)}
+                        </span>
+                      </div>
                     </div>
-                    <p className="text-sm text-on-surface-variant mt-0.5 truncate">
-                      {diagDisplay}
-                    </p>
+                    {/* Status-Badge */}
+                    <span
+                      className={`flex-none text-[10px] font-bold px-3 py-1 rounded-full ${
+                        done
+                          ? "bg-secondary-container text-on-secondary-container"
+                          : "bg-primary-fixed text-on-primary-fixed-variant"
+                      }`}
+                    >
+                      {done ? "ABGESCHLOSSEN" : "IN BEARBEITUNG"}
+                    </span>
                   </div>
-                  {/* Status-Badge */}
-                  <span
-                    className={`flex-none text-[11px] font-bold px-2.5 py-1 rounded-full ${
-                      done
-                        ? "bg-secondary-container text-secondary"
-                        : "bg-primary-fixed text-primary"
-                    }`}
-                  >
-                    {done ? "Abgeschlossen" : "In Bearbeitung"}
-                  </span>
+
+                  <p className="text-sm text-on-surface-variant line-clamp-1 mb-4">
+                    {diagDisplay}
+                  </p>
                 </div>
 
-                {/* Aktionen */}
-                <div className="flex gap-2 flex-wrap">
+                {/* Action-Footer */}
+                <div className="px-5 py-3 bg-surface-container-low flex justify-between items-center">
                   <Link
                     href={nextStep(exam)}
-                    className="flex-1 min-w-[100px] flex items-center justify-center gap-1.5 py-2.5 bg-primary text-on-primary rounded-xl text-sm font-semibold active:scale-95 transition-all"
+                    className="flex items-center gap-1 text-primary font-bold text-sm hover:underline active:scale-95"
                   >
-                    <span className="material-symbols-outlined text-base">
-                      {done ? "visibility" : "edit_note"}
-                    </span>
                     {done ? "Ansehen" : "Fortsetzen"}
+                    <span className="material-symbols-outlined text-base">arrow_forward</span>
                   </Link>
-
-                  <button
-                    type="button"
-                    onClick={() => handleDownload(exam.id)}
-                    disabled={downloadingId === exam.id}
-                    className="flex items-center justify-center gap-1.5 px-4 py-2.5 bg-surface-container-high text-on-surface rounded-xl text-sm font-semibold active:scale-95 transition-all disabled:opacity-50"
-                  >
-                    <span className="material-symbols-outlined text-base">
-                      {downloadingId === exam.id ? "hourglass_empty" : "download"}
-                    </span>
-                    DOCX
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(exam.id)}
-                    disabled={deletingId === exam.id}
-                    className="flex items-center justify-center gap-1 px-3 py-2.5 bg-tertiary-fixed/30 text-tertiary rounded-xl text-sm font-semibold active:scale-95 transition-all disabled:opacity-50"
-                  >
-                    <span className="material-symbols-outlined text-base">
-                      {deletingId === exam.id ? "hourglass_empty" : "delete"}
-                    </span>
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleDownload(exam.id)}
+                      disabled={downloadingId === exam.id}
+                      className="w-11 h-11 flex items-center justify-center rounded-xl bg-surface-container text-on-surface-variant hover:text-primary transition-colors disabled:opacity-50"
+                      title="DOCX herunterladen"
+                    >
+                      <span className="material-symbols-outlined text-[20px]">
+                        {downloadingId === exam.id ? "hourglass_empty" : "download"}
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(exam.id)}
+                      disabled={deletingId === exam.id}
+                      className="w-11 h-11 flex items-center justify-center rounded-xl bg-tertiary-fixed/30 text-tertiary hover:bg-tertiary/10 transition-colors disabled:opacity-50"
+                      title="Löschen"
+                    >
+                      <span className="material-symbols-outlined text-[20px]">
+                        {deletingId === exam.id ? "hourglass_empty" : "delete"}
+                      </span>
+                    </button>
+                  </div>
                 </div>
               </div>
             );
           })}
-        </div>
+        </section>
+      )}
+
+      {/* Stats-Bento */}
+      {!loading && totalExams > 0 && (
+        <section className="grid grid-cols-2 gap-4">
+          <div className="bg-surface-container-low p-4 rounded-card flex flex-col justify-between h-32">
+            <span className="material-symbols-outlined text-secondary text-[28px]">clinical_notes</span>
+            <div>
+              <div className="text-2xl font-headline font-extrabold text-on-surface">{thisWeek}</div>
+              <div className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">
+                Diese Woche
+              </div>
+            </div>
+          </div>
+          <div className="bg-primary-fixed p-4 rounded-card flex flex-col justify-between h-32">
+            <span className="material-symbols-outlined text-primary text-[28px]">history</span>
+            <div>
+              <div className="text-2xl font-headline font-extrabold text-primary">{totalExams}</div>
+              <div className="text-[10px] font-bold text-on-primary-fixed-variant uppercase tracking-wider">
+                Gesamt
+              </div>
+            </div>
+          </div>
+        </section>
       )}
     </div>
   );

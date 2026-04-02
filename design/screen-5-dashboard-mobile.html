@@ -1,0 +1,223 @@
+<!DOCTYPE html><html class="light" lang="de"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary-fixed": "#cde5ff",
+              "tertiary-fixed-dim": "#ffb3ac",
+              "on-tertiary-container": "#ffddda",
+              "surface-container": "#edeeef",
+              "on-secondary": "#ffffff",
+              "inverse-surface": "#2e3132",
+              "secondary-fixed-dim": "#78dc77",
+              "on-background": "#191c1d",
+              "surface-container-low": "#f3f4f5",
+              "on-surface": "#191c1d",
+              "inverse-primary": "#95ccff",
+              "background": "#f8f9fa",
+              "surface-container-highest": "#e1e3e4",
+              "secondary-container": "#91f78e",
+              "outline": "#717881",
+              "on-secondary-fixed-variant": "#005313",
+              "surface-bright": "#f8f9fa",
+              "secondary-fixed": "#94f990",
+              "on-tertiary-fixed-variant": "#930010",
+              "outline-variant": "#c0c7d1",
+              "tertiary": "#a10012",
+              "surface-dim": "#d9dadb",
+              "primary-container": "#106ba3",
+              "on-primary-container": "#d2e7ff",
+              "on-primary-fixed": "#001d32",
+              "on-primary": "#ffffff",
+              "on-primary-fixed-variant": "#004a75",
+              "error": "#ba1a1a",
+              "tertiary-fixed": "#ffdad6",
+              "surface": "#f8f9fa",
+              "on-tertiary-fixed": "#410003",
+              "surface-variant": "#e1e3e4",
+              "primary-fixed-dim": "#95ccff",
+              "on-secondary-container": "#00731e",
+              "on-secondary-fixed": "#002204",
+              "on-error": "#ffffff",
+              "on-surface-variant": "#40474f",
+              "inverse-on-surface": "#f0f1f2",
+              "primary": "#005280",
+              "tertiary-container": "#c52427",
+              "surface-tint": "#006399",
+              "on-error-container": "#93000a",
+              "error-container": "#ffdad6",
+              "on-tertiary": "#ffffff",
+              "surface-container-lowest": "#ffffff",
+              "surface-container-high": "#e7e8e9",
+              "secondary": "#006e1c"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      body {
+        -webkit-tap-highlight-color: transparent;
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background font-body text-on-background min-h-screen pb-24">
+<!-- TopAppBar -->
+<nav class="fixed top-0 w-full z-50 bg-white/40 dark:bg-slate-900/80 backdrop-blur-xl transition-all duration-300 ease-in-out">
+<div class="flex justify-between items-center px-6 h-16 w-full">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="person" style="">person</span>
+</div>
+<h1 class="font-headline font-bold text-lg tracking-tight text-primary" style="">FEES Analytics</h1>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-100/50 transition-all duration-300 active:scale-95" style="">
+<span class="material-symbols-outlined text-slate-500" data-icon="logout" style="">logout</span>
+</button>
+</div>
+</nav>
+<main class="pt-20 px-4 space-y-6 max-w-2xl mx-auto">
+<!-- Main CTA -->
+<div class="mt-4">
+<button class="w-full h-14 bg-gradient-to-r from-primary to-primary-container text-on-primary font-headline font-bold text-md rounded-xl flex items-center justify-center gap-2 active:scale-95 transition-transform duration-200" style="">
+<span class="material-symbols-outlined" data-icon="add" style="">add</span>
+<span class="" style="">Neue FEES-Dokumentation</span>
+</button>
+</div>
+<!-- Section Header -->
+<div class="flex items-center justify-between px-1">
+<h2 class="font-headline font-bold text-on-surface-variant text-sm uppercase tracking-widest" style="">Letzte Untersuchungen</h2>
+<button class="text-primary text-xs font-semibold" style="">Alle ansehen</button>
+</div>
+<!-- Examination Cards List -->
+<div class="space-y-4">
+<!-- Card 1: In Progress -->
+<div class="bg-surface-container-lowest rounded-xl overflow-hidden flex relative border-l-[4px] border-primary transition-all active:scale-[0.98]">
+<div class="p-4 flex-1">
+<div class="flex justify-between items-start mb-2">
+<span class="font-headline font-bold text-lg" style="">12. Okt 2023</span>
+<span class="px-2 py-1 bg-amber-100 text-amber-800 text-[10px] font-bold rounded-md uppercase tracking-wider" style="">In Bearbeitung</span>
+</div>
+<div class="mb-3">
+<span class="inline-block px-2 py-0.5 bg-surface-container-highest text-on-surface-variant text-[11px] font-semibold rounded-full mb-2" style="">Verlaufsdiagnostik</span>
+<p class="text-sm text-on-surface-variant line-clamp-1" style="">V.a. pharyngeale Dysphagie bei Zustand nach Apoplex, Mediainfarkt links...</p>
+</div>
+<div class="flex items-center justify-between mt-4">
+<button class="min-h-[44px] px-4 -ml-4 flex items-center text-primary font-bold text-sm gap-1 hover:bg-primary-fixed/20 rounded-lg" style="">
+                            Fortsetzen
+                            <span class="material-symbols-outlined text-sm" data-icon="arrow_forward" style="">arrow_forward</span>
+</button>
+<button class="w-11 h-11 flex items-center justify-center rounded-xl bg-surface-container-low text-on-surface-variant" style="">
+<span class="material-symbols-outlined" data-icon="description" style="">description</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card 2: Completed -->
+<div class="bg-surface-container-lowest rounded-xl overflow-hidden flex relative border-l-[4px] border-secondary transition-all active:scale-[0.98]">
+<div class="p-4 flex-1">
+<div class="flex justify-between items-start mb-2">
+<span class="font-headline font-bold text-lg" style="">08. Okt 2023</span>
+<span class="px-2 py-1 bg-secondary-container text-on-secondary-container text-[10px] font-bold rounded-md uppercase tracking-wider" style="">Abgeschlossen</span>
+</div>
+<div class="mb-3">
+<span class="inline-block px-2 py-0.5 bg-surface-container-highest text-on-surface-variant text-[11px] font-semibold rounded-full mb-2" style="">Erstdiagnostik</span>
+<p class="text-sm text-on-surface-variant line-clamp-1" style="">Neurogener Schluckstörung bei M. Parkinson, Stadium III nach Hoehn &amp; Yahr.</p>
+</div>
+<div class="flex items-center justify-between mt-4">
+<button class="min-h-[44px] px-4 -ml-4 flex items-center text-primary font-bold text-sm gap-1 hover:bg-primary-fixed/20 rounded-lg" style="">
+                            Ansehen
+                            <span class="material-symbols-outlined text-sm" data-icon="visibility" style="">visibility</span>
+</button>
+<button class="w-11 h-11 flex items-center justify-center rounded-xl bg-primary-fixed/30 text-primary" style="">
+<span class="material-symbols-outlined" data-icon="ios_share" style="">ios_share</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card 3: Completed -->
+<div class="bg-surface-container-lowest rounded-xl overflow-hidden flex relative border-l-[4px] border-secondary transition-all active:scale-[0.98]">
+<div class="p-4 flex-1">
+<div class="flex justify-between items-start mb-2">
+<span class="font-headline font-bold text-lg" style="">29. Sep 2023</span>
+<span class="px-2 py-1 bg-secondary-container text-on-secondary-container text-[10px] font-bold rounded-md uppercase tracking-wider" style="">Abgeschlossen</span>
+</div>
+<div class="mb-3">
+<span class="inline-block px-2 py-0.5 bg-surface-container-highest text-on-surface-variant text-[11px] font-semibold rounded-full mb-2" style="">Verlaufsdiagnostik</span>
+<p class="text-sm text-on-surface-variant line-clamp-1" style="">Evaluation der Dekanülierungsfähigkeit bei chronischer Aspirationsneigung.</p>
+</div>
+<div class="flex items-center justify-between mt-4">
+<button class="min-h-[44px] px-4 -ml-4 flex items-center text-primary font-bold text-sm gap-1 hover:bg-primary-fixed/20 rounded-lg" style="">
+                            Ansehen
+                            <span class="material-symbols-outlined text-sm" data-icon="visibility" style="">visibility</span>
+</button>
+<button class="w-11 h-11 flex items-center justify-center rounded-xl bg-primary-fixed/30 text-primary" style="">
+<span class="material-symbols-outlined" data-icon="ios_share" style="">ios_share</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Stats/Insight Bento Style -->
+<div class="grid grid-cols-2 gap-4 mt-8 pb-10">
+<div class="bg-surface-container-low p-4 rounded-xl flex flex-col justify-between h-32">
+<span class="material-symbols-outlined text-secondary" data-icon="clinical_notes" style="">clinical_notes</span>
+<div>
+<div class="text-2xl font-headline font-extrabold text-on-surface" style="">14</div>
+<div class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider" style="">Diese Woche</div>
+</div>
+</div>
+<div class="bg-primary-fixed p-4 rounded-xl flex flex-col justify-between h-32">
+<span class="material-symbols-outlined text-primary" data-icon="history" style="">history</span>
+<div>
+<div class="text-2xl font-headline font-extrabold text-primary" style="">128</div>
+<div class="text-[10px] font-bold text-on-primary-fixed-variant uppercase tracking-wider" style="">Gesamt 2023</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-t-2xl shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
+<div class="flex justify-around items-center px-4 pb-4 pt-2 w-full">
+<!-- Active Tab: Placeholder logic - defaulting to first item for dashboard context -->
+<button class="flex flex-col items-center justify-center bg-sky-100 dark:bg-sky-900/40 text-sky-900 dark:text-sky-100 rounded-xl px-3 py-1.5 active:scale-90 transition-transform duration-200" style="">
+<span class="material-symbols-outlined" data-icon="person_clinical" style="">person</span>
+<span class="font-inter text-[10px] font-semibold uppercase tracking-wider mt-1" style="">STAMMDATEN</span>
+</button>
+<button class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 px-3 py-1.5 active:scale-90 transition-transform duration-200 hover:text-sky-600 dark:hover:text-sky-300" style="">
+<span class="material-symbols-outlined" data-icon="description" style="">description</span>
+<span class="font-inter text-[10px] font-semibold uppercase tracking-wider mt-1" style="">BEFUND</span>
+</button>
+<button class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 px-3 py-1.5 active:scale-90 transition-transform duration-200 hover:text-sky-600 dark:hover:text-sky-300" style="">
+<span class="material-symbols-outlined" data-icon="Stethoscope" style="">stethoscope</span>
+<span class="font-inter text-[10px] font-semibold uppercase tracking-wider mt-1" style="">SCHLUCKTEST</span>
+</button>
+<button class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 px-3 py-1.5 active:scale-90 transition-transform duration-200 hover:text-sky-600 dark:hover:text-sky-300" style="">
+<span class="material-symbols-outlined" data-icon="ios_share" style="">ios_share</span>
+<span class="font-inter text-[10px] font-semibold uppercase tracking-wider mt-1" style="">EXPORT</span>
+</button>
+</div>
+</nav>
+</body></html>
