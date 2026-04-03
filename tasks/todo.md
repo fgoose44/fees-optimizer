@@ -50,15 +50,15 @@ Stitch-HTML-Screens als verbindliche visuelle Vorlage. Exakte Tailwind-Klassen, 
 
 ---
 
-## Phase 6 — Bug-Fixes & UX nach User-Testing (2026-04-03)
+## Phase 6 — Bug-Fixes & UX nach User-Testing (2026-04-03) ✅
 
-- [ ] 1. **Bug: Befund/Schlucktest-Daten laden** — `useEffect` in befund/page.tsx und schlucktest/page.tsx, der gespeicherte Daten beim Öffnen aus DB lädt
-- [ ] 2. **Dashboard: Logopäden-Name** ⚠️ DB — `profiles`-Tabelle (first_name, last_name) + Account-Settings-Seite + Dashboard-Anzeige
-- [ ] 3. **Navigation** — Logout-Button auf Examination-Seiten → Dashboard-Link; Logout bleibt auf Dashboard
-- [ ] 4. **Therapieempfehlungen Textarea** — rows 2 → 4, resize-y
-- [ ] 5. **Fortlaufende Patienten-ID** ⚠️ DB — `patient_nr SERIAL` in examinations + PatientBanner zeigt #001 statt Patientenname
-- [ ] 6. **Export-Header vereinheitlichen** — PatientBanner mit editierbarem Input-Prop, Export-Seite nutzt PatientBanner
-- [ ] 7. **Doppelter Progress-Indikator** — `border-b-2 border-primary` vom aktiven Tab-Link entfernen
+- [x] 1. **Bug: Befund/Schlucktest-Daten laden** — useEffect lädt alle Felder aus DB beim Öffnen
+- [x] 2. **Dashboard: Logopäden-Name** — profiles-Tabelle + /account Profilseite + Dashboard-Anzeige mit Fallback
+- [x] 3. **Navigation** — Logout → Home-Icon auf Examination-Seiten; Logout bleibt auf Dashboard
+- [x] 4. **Therapieempfehlungen Textarea** — rows 4, resize-y
+- [x] 5. **Fortlaufende Patienten-ID** — patient_nr SERIAL + PatientBanner zeigt #001; Export hat separates DOCX-Namensfeld
+- [x] 6. **Export-Header vereinheitlichen** — PatientBanner für alle 4 Seiten identisch
+- [x] 7. **Doppelter Progress-Indikator** — border-b-2 vom aktiven Tab entfernt
 
 ---
 _Zuletzt aktualisiert: 2026-04-03 — Phase 6 in Arbeit_

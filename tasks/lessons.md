@@ -39,6 +39,17 @@ Die 5 Vorlage-FEES-Berichte in `prompts/` werden server-seitig zur Laufzeit via 
 ## Phase 3 DB-SQL-Spalten — Deployment-Reihenfolge
 Neue DB-Spalten müssen VOR dem ersten Produktionsaufruf der neuen Export-Seite in Supabase ausgeführt werden. Ohne die neuen Spalten schlagen alle PATCH-Aufrufe lautlos fehl oder werfen Fehler.
 
+## Phase 6 — Lessons
+
+### DB-Daten beim Öffnen laden (Bug-Fix-Muster)
+Alle Examination-Seiten (befund, schlucktest, export) haben jetzt einen useEffect der beim Mount alle relevanten DB-Felder lädt. Bei neuen Seiten immer prüfen ob ein Lade-useEffect benötigt wird.
+
+### profiles-Tabelle: SELECT-Policy für kleines Team
+`auth.uid() IS NOT NULL` statt `auth.uid() = id` — erlaubt allen eingeloggten Nutzern alle Profile zu lesen (nötig für Dashboard-Anzeige des Ersteller-Namens). Nur sinnvoll für kleine, geschlossene Teams.
+
+### patient_nr: SERIAL + URL-freier Ansatz
+patient_nr wird in jeder Examination-Seite direkt aus `examinations` geladen (kein URL-Param). Nur stammdaten (new/page.tsx) hat noch keinen patient_nr vor dem ersten Speichern → zeigt patientName als Fallback.
+
 ## Phase 5 Design-Refresh — Architekturentscheidungen
 - **ExaminationNav auf Desktop verstecken**: `lg:hidden` in ExaminationNav — Desktop nutzt Tab-Nav im globalen Header via `usePathname()`
 - **StickyFooter + ExaminationNav**: Beide fixed bottom-0. Auf Mobile koexistieren sie (ExaminationNav unter StickyFooter). Kein Konflikt, da ExaminationNav nur auf Mobile sichtbar.
