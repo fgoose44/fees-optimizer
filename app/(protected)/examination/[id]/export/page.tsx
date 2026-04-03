@@ -255,34 +255,12 @@ export default function ExportPage() {
   return (
     <div className="px-4 pt-6 pb-[160px] space-y-6">
       {/* Patient-Banner mit editierbarem Namen */}
-      <div className="bg-surface-container-low p-3 rounded-card flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-primary-fixed flex items-center justify-center flex-shrink-0">
-            <span
-              className="material-symbols-outlined text-primary"
-              style={{ fontVariationSettings: "'FILL' 1" }}
-            >
-              person
-            </span>
-          </div>
-          <div>
-            <p className="text-[10px] uppercase tracking-widest text-outline font-bold leading-none mb-1">
-              UNTERSUCHUNG FÜR
-            </p>
-            <input
-              type="text"
-              value={patientName}
-              onChange={(e) => setPatientName(e.target.value)}
-              placeholder="[Patient/in] — nur für DOCX"
-              className="font-headline font-bold text-on-surface bg-transparent focus:outline-none text-base w-48"
-            />
-          </div>
-        </div>
-        <div className="px-4 py-1.5 rounded-full flex items-center gap-1.5 min-h-[32px] bg-secondary-container text-on-secondary-container">
-          <span className="w-2 h-2 rounded-full bg-current opacity-60" />
-          <span className="text-[11px] font-bold uppercase tracking-wide">Export</span>
-        </div>
-      </div>
+      <PatientBanner
+        patientName={patientName}
+        stepLabel="Export"
+        badgeClass="bg-secondary-container text-on-secondary-container"
+        onNameChange={setPatientName}
+      />
 
       {/* ---- BODS Score ---- */}
       <section className="space-y-3">
@@ -537,9 +515,9 @@ export default function ExportPage() {
           value={state.therapyNotes}
           onChange={(e) => set("therapyNotes", e.target.value)}
           onBlur={handleSave}
-          rows={2}
+          rows={4}
           placeholder="Weitere Therapieempfehlungen (Freitext)…"
-          className="w-full bg-surface-container-highest rounded-card px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
+          className="w-full bg-surface-container-highest rounded-card px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-y"
         />
       </section>
 

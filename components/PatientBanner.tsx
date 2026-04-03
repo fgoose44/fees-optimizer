@@ -3,12 +3,15 @@ interface PatientBannerProps {
   stepLabel: string;
   /** Tailwind bg class for the step badge, e.g. "bg-secondary-container text-on-secondary-container" */
   badgeClass?: string;
+  /** Wenn gesetzt: Name-Feld ist editierbar (für Export-Seite) */
+  onNameChange?: (name: string) => void;
 }
 
 export default function PatientBanner({
   patientName,
   stepLabel,
   badgeClass = "bg-secondary-container text-on-secondary-container",
+  onNameChange,
 }: PatientBannerProps) {
   return (
     <section className="bg-surface-container-low p-3 rounded-card flex items-center justify-between">
@@ -25,9 +28,19 @@ export default function PatientBanner({
           <p className="text-[10px] uppercase tracking-widest text-outline font-bold leading-none mb-1">
             UNTERSUCHUNG FÜR
           </p>
-          <p className="font-headline font-bold text-on-surface text-base">
-            {patientName || "[Patient/in]"}
-          </p>
+          {onNameChange ? (
+            <input
+              type="text"
+              value={patientName}
+              onChange={(e) => onNameChange(e.target.value)}
+              placeholder="[Patient/in] — nur für DOCX"
+              className="font-headline font-bold text-on-surface bg-transparent focus:outline-none text-base w-48"
+            />
+          ) : (
+            <p className="font-headline font-bold text-on-surface text-base">
+              {patientName || "[Patient/in]"}
+            </p>
+          )}
         </div>
       </div>
 

@@ -81,7 +81,7 @@ export default function Header() {
                     href={stepHref(s.key)}
                     className={`font-headline font-semibold text-sm h-full flex items-center transition-colors ${
                       isActive
-                        ? "text-primary border-b-2 border-primary"
+                        ? "text-primary"
                         : "text-on-surface-variant hover:text-primary"
                     }`}
                   >
@@ -92,24 +92,36 @@ export default function Header() {
             </nav>
           )}
 
-          {/* Step-Label (mobile) + Logout */}
+          {/* Step-Label (mobile) + Dashboard-Link oder Logout */}
           <div className="flex items-center gap-1">
             {isExamination && stepIndex >= 0 && (
               <span className="text-on-surface-variant font-label text-sm font-medium lg:hidden">
                 Schritt {stepIndex + 1} von 4
               </span>
             )}
-            <form action={logout}>
-              <button
-                type="submit"
+            {isExamination ? (
+              <Link
+                href="/dashboard"
                 className="p-2 hover:bg-surface-container rounded-full transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
-                title="Abmelden"
+                title="Zum Dashboard"
               >
                 <span className="material-symbols-outlined text-on-surface-variant text-[22px]">
-                  logout
+                  home
                 </span>
-              </button>
-            </form>
+              </Link>
+            ) : (
+              <form action={logout}>
+                <button
+                  type="submit"
+                  className="p-2 hover:bg-surface-container rounded-full transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+                  title="Abmelden"
+                >
+                  <span className="material-symbols-outlined text-on-surface-variant text-[22px]">
+                    logout
+                  </span>
+                </button>
+              </form>
+            )}
           </div>
         </div>
 

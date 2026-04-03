@@ -203,28 +203,76 @@ export default function SchlucktestPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Beim Laden: bestehende Auswahl aus DB holen
+  // Beim Laden: bestehende Daten aus DB holen
   useEffect(() => {
     async function loadExisting() {
       const supabase = createClient();
-      const { data } = await supabase
+
+      // Alle Schlucktest-Daten laden (nicht nur Auswahl)
+      const { data: swallowRows } = await supabase
         .from("swallow_tests")
-        .select("consistency, not_tested")
+        .select(
+          "consistency, not_tested, praedeglutitiv, schluckakt, retention_valleculae_l, retention_valleculae_r, retention_sinus_l, retention_sinus_r, retention_pharynx, pen_asp, pas_score, clearing, kompensation, kompensation_notes"
+        )
         .eq("examination_id", id);
 
-      if (data && data.length > 0) {
-        const tested = data
+      if (swallowRows && swallowRows.length > 0) {
+        const tested = swallowRows
           .filter((t) => !t.not_tested)
           .map((t) => t.consistency as Consistency);
+
         if (tested.length > 0) {
           setSelected(tested);
           setActiveTab(tested[0]);
           setView("testing");
+
+          // Konsistenz-Daten in State mappen
+          const loaded = buildInitialConsistencies();
+          for (const row of swallowRows) {
+            if (!row.not_tested) {
+              loaded[row.consistency as Consistency] = {
+                not_tested: false,
+                praedeglutitiv:         row.praedeglutitiv ?? [],
+                schluckakt:             row.schluckakt ?? [],
+                retention_valleculae_l: row.retention_valleculae_l ?? "",
+                retention_valleculae_r: row.retention_valleculae_r ?? "",
+                retention_sinus_l:      row.retention_sinus_l ?? "",
+                retention_sinus_r:      row.retention_sinus_r ?? "",
+                retention_pharynx:      row.retention_pharynx ?? "",
+                pen_asp:                row.pen_asp ?? "",
+                pas_score:              row.pas_score ?? null,
+                clearing:               row.clearing ?? [],
+                kompensation:           row.kompensation ?? [],
+                kompensation_notes:     row.kompensation_notes ?? "",
+              };
+            }
+          }
+          setConsistencies(loaded);
         }
       }
+
+      // Gesamtbeurteilung + BODS II aus examinations laden
+      const { data: exam } = await supabase
+        .from("examinations")
+        .select("overall_assessment, overall_sensitivity, sensitivity_side, bods_nutrition, iddsi_level")
+        .eq("id", id)
+        .single();
+
+      if (exam) {
+        setSummary({
+          overall_assessment:  exam.overall_assessment ?? [],
+          overall_sensitivity: exam.overall_sensitivity ?? "",
+          sensitivity_side:    exam.sensitivity_side ?? "",
+          bods_nutrition:      exam.bods_nutrition ?? null,
+          iddsi_level:         exam.iddsi_level ?? null,
+        });
+        if (exam.bods_nutrition !== null) setBodsOverride(true);
+      }
+
       setLoadingSelection(false);
     }
     loadExisting();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   // BODS II auto-suggestion

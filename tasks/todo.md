@@ -49,4 +49,16 @@ Stitch-HTML-Screens als verbindliche visuelle Vorlage. Exakte Tailwind-Klassen, 
 - [ ] Passwort-Änderung für User
 
 ---
-_Zuletzt aktualisiert: 2026-04-02 — Phase 5 Design Refresh vollständig abgeschlossen_
+
+## Phase 6 — Bug-Fixes & UX nach User-Testing (2026-04-03)
+
+- [ ] 1. **Bug: Befund/Schlucktest-Daten laden** — `useEffect` in befund/page.tsx und schlucktest/page.tsx, der gespeicherte Daten beim Öffnen aus DB lädt
+- [ ] 2. **Dashboard: Logopäden-Name** ⚠️ DB — `profiles`-Tabelle (first_name, last_name) + Account-Settings-Seite + Dashboard-Anzeige
+- [ ] 3. **Navigation** — Logout-Button auf Examination-Seiten → Dashboard-Link; Logout bleibt auf Dashboard
+- [ ] 4. **Therapieempfehlungen Textarea** — rows 2 → 4, resize-y
+- [ ] 5. **Fortlaufende Patienten-ID** ⚠️ DB — `patient_nr SERIAL` in examinations + PatientBanner zeigt #001 statt Patientenname
+- [ ] 6. **Export-Header vereinheitlichen** — PatientBanner mit editierbarem Input-Prop, Export-Seite nutzt PatientBanner
+- [ ] 7. **Doppelter Progress-Indikator** — `border-b-2 border-primary` vom aktiven Tab-Link entfernen
+
+---
+_Zuletzt aktualisiert: 2026-04-03 — Phase 6 in Arbeit_

@@ -160,6 +160,55 @@ export default function BefundPage() {
   const [expandedNotes, setExpandedNotes] = useState<StructureKey[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loadingData, setLoadingData] = useState(true);
+
+  // Bestehende Daten aus DB laden
+  useEffect(() => {
+    async function loadFromDB() {
+      const supabase = createClient();
+      const { data: nativ } = await supabase
+        .from("native_findings")
+        .select(
+          "mucosa, mucosa_notes, velum, velum_side, velum_notes, tongue_base, tongue_base_notes, epiglottis, epiglottis_notes, pharynx, pharynx_side, pharynx_notes, larynx, larynx_side, larynx_notes, valleculae, valleculae_side, valleculae_notes, cough_reflex, swallow_reflex, vp_closure, vocal_fold_mobility, glissando, glottis_closure, voluntary_cough, langmore_score, bods_saliva"
+        )
+        .eq("examination_id", id)
+        .maybeSingle();
+
+      if (nativ) {
+        setData({
+          mucosa:       { selected: nativ.mucosa ?? [],       side: "",                          notes: nativ.mucosa_notes ?? "" },
+          velum:        { selected: nativ.velum ?? [],        side: nativ.velum_side ?? "",       notes: nativ.velum_notes ?? "" },
+          tongue_base:  { selected: nativ.tongue_base ?? [],  side: "",                          notes: nativ.tongue_base_notes ?? "" },
+          epiglottis:   { selected: nativ.epiglottis ?? [],   side: "",                          notes: nativ.epiglottis_notes ?? "" },
+          pharynx:      { selected: nativ.pharynx ?? [],      side: nativ.pharynx_side ?? "",    notes: nativ.pharynx_notes ?? "" },
+          larynx:       { selected: nativ.larynx ?? [],       side: nativ.larynx_side ?? "",     notes: nativ.larynx_notes ?? "" },
+          valleculae:   { selected: nativ.valleculae ?? [],   side: nativ.valleculae_side ?? "", notes: nativ.valleculae_notes ?? "" },
+          cough_reflex:       nativ.cough_reflex ?? "",
+          swallow_reflex:     nativ.swallow_reflex ?? "",
+          vp_closure:         nativ.vp_closure ?? "",
+          vocal_fold_mobility: nativ.vocal_fold_mobility ?? "",
+          glissando:          nativ.glissando ?? "",
+          glottis_closure:    nativ.glottis_closure ?? "",
+          voluntary_cough:    nativ.voluntary_cough ?? "",
+          langmore_score:     nativ.langmore_score ?? null,
+          bods_saliva:        nativ.bods_saliva ?? null,
+        });
+        // Wenn ein BODS-Wert gespeichert wurde, Override aktivieren (verhindert Auto-Überschreiben)
+        if (nativ.bods_saliva !== null) setBodsOverride(true);
+        // Notizfelder mit Inhalt aufklappen
+        const withNotes: StructureKey[] = (
+          ["mucosa", "velum", "tongue_base", "epiglottis", "pharynx", "larynx", "valleculae"] as StructureKey[]
+        ).filter((k) => {
+          const notesKey = `${k}_notes` as keyof typeof nativ;
+          return !!(nativ[notesKey]);
+        });
+        if (withNotes.length > 0) setExpandedNotes(withNotes);
+      }
+      setLoadingData(false);
+    }
+    loadFromDB();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   const suggestedBods = suggestBodsI(data);
   useEffect(() => {
@@ -242,6 +291,14 @@ export default function BefundPage() {
 
     const qs = patientName ? `?patientName=${encodeURIComponent(patientName)}` : "";
     router.push(`/examination/${id}/schlucktest${qs}`);
+  }
+
+  if (loadingData) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <span className="material-symbols-outlined animate-spin text-primary text-4xl">progress_activity</span>
+      </div>
+    );
   }
 
   const filledCount = STRUCTURES.filter((s) => data[s.key].selected.length > 0).length;
