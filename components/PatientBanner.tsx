@@ -1,18 +1,26 @@
 interface PatientBannerProps {
-  patientName: string;
   stepLabel: string;
-  /** Tailwind bg class for the step badge, e.g. "bg-secondary-container text-on-secondary-container" */
+  /** Tailwind bg class for the step badge */
   badgeClass?: string;
-  /** Wenn gesetzt: Name-Feld ist editierbar (für Export-Seite) */
-  onNameChange?: (name: string) => void;
+  /** Fortlaufende Patienten-Nr aus DB — wird als #001 angezeigt */
+  patientNr?: number | null;
+  /** Fallback-Name (z.B. auf Stammdaten-Seite vor erstem Speichern) */
+  patientName?: string;
 }
 
 export default function PatientBanner({
-  patientName,
   stepLabel,
   badgeClass = "bg-secondary-container text-on-secondary-container",
-  onNameChange,
+  patientNr,
+  patientName,
 }: PatientBannerProps) {
+  const displayText =
+    patientNr != null
+      ? `#${String(patientNr).padStart(3, "0")}`
+      : patientName || "[Patient/in]";
+
+  const displayLabel = patientNr != null ? "UNTERSUCHUNG" : "UNTERSUCHUNG FÜR";
+
   return (
     <section className="bg-surface-container-low p-3 rounded-card flex items-center justify-between">
       <div className="flex items-center gap-3">
@@ -26,21 +34,11 @@ export default function PatientBanner({
         </div>
         <div>
           <p className="text-[10px] uppercase tracking-widest text-outline font-bold leading-none mb-1">
-            UNTERSUCHUNG FÜR
+            {displayLabel}
           </p>
-          {onNameChange ? (
-            <input
-              type="text"
-              value={patientName}
-              onChange={(e) => onNameChange(e.target.value)}
-              placeholder="[Patient/in] — nur für DOCX"
-              className="font-headline font-bold text-on-surface bg-transparent focus:outline-none text-base w-48"
-            />
-          ) : (
-            <p className="font-headline font-bold text-on-surface text-base">
-              {patientName || "[Patient/in]"}
-            </p>
-          )}
+          <p className="font-headline font-bold text-on-surface text-base">
+            {displayText}
+          </p>
         </div>
       </div>
 

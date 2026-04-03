@@ -156,6 +156,7 @@ export default function BefundPage() {
   const patientName = searchParams.get("patientName") ?? "";
 
   const [data, setData] = useState<NativbefundData>(initialData);
+  const [patientNr, setPatientNr] = useState<number | null>(null);
   const [bodsOverride, setBodsOverride] = useState(false);
   const [expandedNotes, setExpandedNotes] = useState<StructureKey[]>([]);
   const [saving, setSaving] = useState(false);
@@ -166,6 +167,15 @@ export default function BefundPage() {
   useEffect(() => {
     async function loadFromDB() {
       const supabase = createClient();
+
+      // patient_nr für Header
+      const { data: examRow } = await supabase
+        .from("examinations")
+        .select("patient_nr")
+        .eq("id", id)
+        .single();
+      if (examRow) setPatientNr(examRow.patient_nr ?? null);
+
       const { data: nativ } = await supabase
         .from("native_findings")
         .select(
@@ -309,6 +319,7 @@ export default function BefundPage() {
     <div className="px-4 pt-6 pb-32 space-y-6">
       {/* Patient-Banner */}
       <PatientBanner
+        patientNr={patientNr}
         patientName={patientName}
         stepLabel="Befund"
         badgeClass="bg-secondary-container text-on-secondary-container"

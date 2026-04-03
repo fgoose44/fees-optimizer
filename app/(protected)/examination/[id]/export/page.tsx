@@ -92,6 +92,7 @@ export default function ExportPage() {
     searchParams.get("patientName") ?? ""
   );
 
+  const [patientNr, setPatientNr] = useState<number | null>(null);
   const [state, setState] = useState<ExportState>(initialState);
   const [generating, setGenerating] = useState(false);
   const [downloading, setDownloading] = useState(false);
@@ -107,7 +108,7 @@ export default function ExportPage() {
       const supabase = createClient();
       const { data: exam } = await supabase
         .from("examinations")
-        .select("has_tracheostomy, bods_nutrition, iddsi_level, assessment_text, pathophysiology_text, dys_level, beverage_iddsi, therapy_recommendations, therapy_notes, tracheostomy_recommendation")
+        .select("has_tracheostomy, bods_nutrition, iddsi_level, assessment_text, pathophysiology_text, dys_level, beverage_iddsi, therapy_recommendations, therapy_notes, tracheostomy_recommendation, patient_nr")
         .eq("id", id)
         .single();
       const { data: nativ } = await supabase
@@ -131,6 +132,7 @@ export default function ExportPage() {
           therapyNotes: exam.therapy_notes ?? "",
           tracheostomyRec: exam.tracheostomy_recommendation ?? "",
         }));
+        if (exam.patient_nr != null) setPatientNr(exam.patient_nr);
       }
       setLoaded(true);
     }
@@ -254,13 +256,25 @@ export default function ExportPage() {
 
   return (
     <div className="px-4 pt-6 pb-[160px] space-y-6">
-      {/* Patient-Banner mit editierbarem Namen */}
+      {/* Patient-Banner */}
       <PatientBanner
-        patientName={patientName}
+        patientNr={patientNr}
         stepLabel="Export"
         badgeClass="bg-secondary-container text-on-secondary-container"
-        onNameChange={setPatientName}
       />
+
+      {/* Name für DOCX — wird NICHT gespeichert */}
+      <div className="flex items-center gap-2 px-1 -mt-2">
+        <span className="material-symbols-outlined text-outline text-[16px]">lock</span>
+        <span className="text-xs text-outline">Name für DOCX:</span>
+        <input
+          type="text"
+          value={patientName}
+          onChange={(e) => setPatientName(e.target.value)}
+          placeholder="[Patient/in]"
+          className="flex-1 text-sm bg-transparent border-b border-outline-variant/50 focus:border-primary focus:outline-none py-0.5 text-on-surface placeholder:text-outline/50"
+        />
+      </div>
 
       {/* ---- BODS Score ---- */}
       <section className="space-y-3">

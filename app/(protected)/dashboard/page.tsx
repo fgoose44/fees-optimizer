@@ -13,6 +13,14 @@ interface ExamRow {
   assessment_text: string | null;
   has_nativbefund: boolean;
   has_schlucktest: boolean;
+  patient_nr: number | null;
+  user_id: string;
+}
+
+interface Profile {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
 }
 
 function nextStep(row: ExamRow): string {
@@ -24,6 +32,7 @@ function nextStep(row: ExamRow): string {
 export default function DashboardPage() {
   const router = useRouter();
   const [exams, setExams] = useState<ExamRow[]>([]);
+  const [profiles, setProfiles] = useState<Record<string, Profile>>({});
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
@@ -36,7 +45,7 @@ export default function DashboardPage() {
 
       const { data: examData } = await supabase
         .from("examinations")
-        .select("id, examination_date, status, medical_diagnosis, assessment_text")
+        .select("id, examination_date, status, medical_diagnosis, assessment_text, user_id, patient_nr")
         .order("examination_date", { ascending: false });
 
       if (!examData) { setLoading(false); return; }
@@ -54,13 +63,26 @@ export default function DashboardPage() {
       const nativSet = new Set((nativRes.data ?? []).map((r) => r.examination_id));
       const swallowSet = new Set((swallowRes.data ?? []).map((r) => r.examination_id));
 
-      setExams(
-        examData.map((e) => ({
-          ...e,
-          has_nativbefund: nativSet.has(e.id),
-          has_schlucktest: swallowSet.has(e.id),
-        }))
-      );
+      const rows = examData.map((e) => ({
+        ...e,
+        patient_nr: e.patient_nr ?? null,
+        has_nativbefund: nativSet.has(e.id),
+        has_schlucktest: swallowSet.has(e.id),
+      }));
+      setExams(rows);
+
+      // Profile für Logopäden-Namen laden
+      const userIds = [...new Set(rows.map((e) => e.user_id))];
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("id, first_name, last_name")
+        .in("id", userIds);
+      if (profileData) {
+        const map: Record<string, Profile> = {};
+        profileData.forEach((p) => { map[p.id] = p; });
+        setProfiles(map);
+      }
+
       setLoading(false);
     }
     load();
@@ -121,9 +143,15 @@ export default function DashboardPage() {
 
       {/* Welcome Header */}
       <header className="flex items-center justify-between gap-4">
-        <h1 className="text-[24px] font-headline font-extrabold tracking-tight text-on-surface">
-          Willkommen zurück
-        </h1>
+        <div>
+          <h1 className="text-[24px] font-headline font-extrabold tracking-tight text-on-surface">
+            Willkommen zurück
+          </h1>
+          <Link href="/account" className="text-xs text-on-surface-variant hover:text-primary flex items-center gap-1 mt-0.5">
+            <span className="material-symbols-outlined text-sm">manage_accounts</span>
+            Profil bearbeiten
+          </Link>
+        </div>
         <Link
           href="/examination/new"
           className="flex items-center justify-center gap-1.5 px-5 py-2.5 bg-primary text-on-primary rounded-full font-headline font-bold text-sm shadow-md shadow-primary/20 active:scale-95 transition-all whitespace-nowrap"
@@ -182,6 +210,13 @@ export default function DashboardPage() {
                 ? exam.medical_diagnosis.slice(0, 52) + "…"
                 : exam.medical_diagnosis
               : "Keine Diagnose eingetragen";
+            const profile = profiles[exam.user_id];
+            const creatorName = profile?.first_name
+              ? `${profile.first_name}${profile.last_name ? " " + profile.last_name : ""}`
+              : null;
+            const nrLabel = exam.patient_nr != null
+              ? `#${String(exam.patient_nr).padStart(3, "0")}`
+              : null;
 
             return (
               <div
@@ -196,8 +231,13 @@ export default function DashboardPage() {
                 />
 
                 <div className="pl-5 pr-3 py-2.5">
-                  {/* Zeile 1: Datum + Status-Pill + Aktionen */}
+                  {/* Zeile 1: Nr + Datum + Status + Aktionen */}
                   <div className="flex items-center gap-2 mb-1">
+                    {nrLabel && (
+                      <span className="text-[11px] font-extrabold text-primary font-label">
+                        {nrLabel}
+                      </span>
+                    )}
                     <p className="text-[11px] font-bold uppercase tracking-widest text-outline font-label">
                       {formatDate(exam.examination_date)}
                     </p>
@@ -239,11 +279,17 @@ export default function DashboardPage() {
                     </div>
                   </div>
 
-                  {/* Zeile 2: Diagnose + Abschluss-Badge */}
+                  {/* Zeile 2: Diagnose + Ersteller + Badge */}
                   <div className="flex items-center gap-2">
                     <p className="text-sm text-on-surface-variant truncate flex-1">
                       {diagDisplay}
                     </p>
+                    {creatorName && (
+                      <span className="flex-none text-[10px] text-outline flex items-center gap-0.5">
+                        <span className="material-symbols-outlined text-[12px]">person</span>
+                        {creatorName}
+                      </span>
+                    )}
                     <span
                       className={`flex-none text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
                         done

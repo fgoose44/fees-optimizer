@@ -191,6 +191,8 @@ export default function SchlucktestPage() {
   const id = params.id as string;
   const patientName = searchParams.get("patientName") ?? "";
 
+  const [patientNr, setPatientNr] = useState<number | null>(null);
+
   // Welche Konsistenzen wurden ausgewählt
   const [selected, setSelected] = useState<Consistency[]>([]);
   const [view, setView] = useState<View>("selection");
@@ -254,7 +256,7 @@ export default function SchlucktestPage() {
       // Gesamtbeurteilung + BODS II aus examinations laden
       const { data: exam } = await supabase
         .from("examinations")
-        .select("overall_assessment, overall_sensitivity, sensitivity_side, bods_nutrition, iddsi_level")
+        .select("overall_assessment, overall_sensitivity, sensitivity_side, bods_nutrition, iddsi_level, patient_nr")
         .eq("id", id)
         .single();
 
@@ -267,6 +269,7 @@ export default function SchlucktestPage() {
           iddsi_level:         exam.iddsi_level ?? null,
         });
         if (exam.bods_nutrition !== null) setBodsOverride(true);
+        if (exam.patient_nr != null) setPatientNr(exam.patient_nr);
       }
 
       setLoadingSelection(false);
@@ -412,6 +415,7 @@ export default function SchlucktestPage() {
       <div className="px-4 pt-6 pb-32 space-y-6">
         {/* Patient-Banner */}
         <PatientBanner
+          patientNr={patientNr}
           patientName={patientName}
           stepLabel="Schlucktest"
           badgeClass="bg-primary-fixed text-on-primary-fixed-variant"
