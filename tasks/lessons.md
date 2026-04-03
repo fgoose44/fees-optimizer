@@ -50,6 +50,24 @@ Alle Examination-Seiten (befund, schlucktest, export) haben jetzt einen useEffec
 ### patient_nr: SERIAL + URL-freier Ansatz
 patient_nr wird in jeder Examination-Seite direkt aus `examinations` geladen (kein URL-Param). Nur stammdaten (new/page.tsx) hat noch keinen patient_nr vor dem ersten Speichern → zeigt patientName als Fallback.
 
+## Stitch MCP: Screens generieren und anpassen
+Der `mcp__stitch__` MCP kann direkt aus Claude Code aufgerufen werden um Screens zu generieren (`generate_screen_from_text`), zu bearbeiten (`edit_screens`) und Design-Systeme anzuwenden (`apply_design_system`). Änderungen im Stitch-Projekt werden als HTML-Export in `design/` gespeichert und dienen als Implementierungsvorlage.
+
+## Stitch-Konsistenz: Design-System zuerst definieren
+Bevor Screens generiert werden, Design-System in Stitch anlegen (`create_design_system`) mit den Farben aus `tailwind.config.ts`. Sonst weichen generierte Screens von der implementierten Palette ab und müssen manuell korrigiert werden.
+
+## Claude Code als Design-Tool: konkrete Klassen vorgeben
+Bei UI-Änderungen nicht "mach es schöner" schreiben, sondern konkrete Tailwind-Klassen oder Hex-Werte nennen. Beispiel: "Accent-Bar links: `bg-[#006e1c]` für normal, `bg-[#a10012]` für pathologisch". Das verhindert Interpretationsspielraum und unnötige Iterationen.
+
+## Kleine Design-Änderungen: direkt Edit, kein Plan
+Für einzelne Farb-, Spacing- oder Text-Korrekturen (< 5 Zeilen) direkt die Datei lesen und per Edit ändern. Kein Plan, kein Agent, kein Todo. Overhead lohnt sich erst ab mehreren zusammenhängenden Änderungen.
+
+## Node.js für npx-basierte MCPs
+MCP-Server die `npx` als Command nutzen (z.B. `@anthropic-ai/mcp-server-*`) benötigen Node.js im PATH. Bei macOS-Installationen via nvm: sicherstellen dass `~/.zshrc` den nvm-Pfad setzt und Claude Desktop nach Shell-Login startet, damit `npx` gefunden wird.
+
+## claude_desktop_config.json: MCP-Server eintragen
+MCP-Server für Claude Desktop werden in `~/Library/Application Support/Claude/claude_desktop_config.json` unter `mcpServers` eingetragen. Jeder Eintrag braucht `command`, `args` (Array) und ggf. `env`. Nach Änderungen Claude Desktop neu starten. Tabs im Claude Desktop zeigen aktive MCP-Verbindungen.
+
 ## Phase 5 Design-Refresh — Architekturentscheidungen
 - **ExaminationNav auf Desktop verstecken**: `lg:hidden` in ExaminationNav — Desktop nutzt Tab-Nav im globalen Header via `usePathname()`
 - **StickyFooter + ExaminationNav**: Beide fixed bottom-0. Auf Mobile koexistieren sie (ExaminationNav unter StickyFooter). Kein Konflikt, da ExaminationNav nur auf Mobile sichtbar.
