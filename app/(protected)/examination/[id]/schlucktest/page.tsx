@@ -560,8 +560,8 @@ export default function SchlucktestPage() {
       </section>
 
       {/* ---- PENETRATION / ASPIRATION ---- */}
-      <section className="bg-tertiary-fixed/20 rounded-card p-4 border-l-4 border-tertiary">
-        <h3 className="text-[11px] font-bold text-tertiary mb-3 tracking-widest uppercase font-label">
+      <section className="bg-[#a10012]/5 rounded-card p-4 border-l-4 border-[#a10012]">
+        <h3 className="text-[11px] font-bold text-[#a10012] mb-3 tracking-widest uppercase font-label">
           Penetration / Aspiration
         </h3>
         <div className="flex flex-wrap gap-2 mb-4">
@@ -584,7 +584,7 @@ export default function SchlucktestPage() {
         </div>
         {(current.pen_asp === "penetration" || current.pen_asp === "aspiration") && (
           <div>
-            <label className="block text-[11px] font-bold text-tertiary uppercase tracking-wider mb-1">
+            <label className="block text-[11px] font-bold text-[#a10012] uppercase tracking-wider mb-1">
               PAS-Score (Rosenbek)
             </label>
             <select
@@ -592,7 +592,7 @@ export default function SchlucktestPage() {
               onChange={(e) =>
                 updateCurrent({ pas_score: e.target.value ? Number(e.target.value) : null })
               }
-              className="w-full bg-surface-container-lowest border border-outline-variant/40 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-tertiary/20"
+              className="w-full bg-surface-container-lowest border border-outline-variant/40 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#a10012]/20"
             >
               <option value="">— PAS-Score wählen —</option>
               {PAS_OPTIONS.map((o) => (

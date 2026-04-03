@@ -259,6 +259,7 @@ export default function NewExaminationPage() {
       {/* StickyFooter */}
       <StickyFooter
         backHref="/dashboard"
+        backLabel="← Dashboard"
         submitLabel="Speichern & Weiter"
         loading={saving}
         onSubmit={handleSubmit}
@@ -315,4 +316,4 @@ function SuggestionInput({
 }
 
 const inputClass =
-  "w-full bg-surface-container-highest border-b-2 border-outline-variant focus:border-primary focus:outline-none px-3 py-2.5 text-sm rounded-t-lg text-on-surface placeholder:text-outline/60 transition-colors";
+  "w-full bg-surface-container-highest border border-[#e5e7eb] focus:border-primary focus:outline-none px-3 py-2.5 text-sm rounded-lg text-on-surface placeholder:text-outline/60 transition-colors";

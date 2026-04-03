@@ -17,8 +17,8 @@ export default async function ProtectedLayout({
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
-      {/* pt-16 für fixed Header */}
-      <main className="flex-1 pt-16 max-w-[900px] mx-auto w-full">
+      {/* pt-[68px]: h-14 (56px) Logo-Zeile + 4px Bar + 8px Abstand = 68px Header */}
+      <main className="flex-1 pt-[68px] max-w-[900px] mx-auto w-full">
         {children}
       </main>
     </div>

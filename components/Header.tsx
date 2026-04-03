@@ -37,7 +37,6 @@ export default function Header() {
   const isExamination = activeStep !== null || pathname.startsWith("/examination/new");
   const examId = getExamId(pathname);
 
-  // Href für Desktop-Tab-Nav
   function stepHref(key: Step): string {
     if (key === "stammdaten") return "/examination/new";
     if (!examId) return "#";
@@ -51,10 +50,13 @@ export default function Header() {
   }
 
   return (
-    <header className="fixed top-0 w-full z-50 bg-white/40 backdrop-blur-xl border-b border-outline-variant/20">
-      <div className="max-w-[900px] mx-auto px-4 h-16 flex flex-col justify-center">
-        {/* Zeile 1: Logo + Step-Info + Icons */}
-        <div className="flex items-center justify-between mb-1.5">
+    // Gesamthöhe: h-14 (56px) + pb-2 (8px) + h-1 (4px) = 68px — immer konstant
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white/70 backdrop-blur-xl border-b border-outline-variant/20">
+      <div className="max-w-[900px] mx-auto px-4">
+
+        {/* Zeile 1: Logo + Tab-Nav + Step + Logout — 56px */}
+        <div className="h-14 flex items-center justify-between">
+
           {/* Logo */}
           <div className="flex items-center gap-2">
             <span
@@ -64,7 +66,7 @@ export default function Header() {
               clinical_notes
             </span>
             <span className="font-headline font-bold text-lg tracking-tight text-primary">
-              FEES Analytics
+              FEES Optimizer
             </span>
           </div>
 
@@ -79,7 +81,7 @@ export default function Header() {
                     href={stepHref(s.key)}
                     className={`font-headline font-semibold text-sm h-full flex items-center transition-colors ${
                       isActive
-                        ? "text-primary border-b-2 border-primary pb-px"
+                        ? "text-primary border-b-2 border-primary"
                         : "text-on-surface-variant hover:text-primary"
                     }`}
                   >
@@ -111,19 +113,23 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Zeile 2: Progress-Bar (nur Examination-Seiten) */}
-        {isExamination && stepIndex >= 0 && (
-          <div className="flex gap-1 h-1 w-full">
-            {[0, 1, 2, 3].map((i) => (
+        {/* Zeile 2: Progress-Bar — immer 12px hoch (4px Bar + 8px Abstand), hält Header-Höhe konstant */}
+        <div className="pb-2 flex gap-1">
+          {isExamination && stepIndex >= 0 ? (
+            [0, 1, 2, 3].map((i) => (
               <div
                 key={i}
-                className={`flex-1 rounded-full transition-colors ${
+                className={`flex-1 h-1 rounded-full transition-colors ${
                   i <= stepIndex ? "bg-primary" : "bg-outline-variant"
                 }`}
               />
-            ))}
-          </div>
-        )}
+            ))
+          ) : (
+            // Platzhalter: hält Höhe, damit pt-[68px] im Layout immer stimmt
+            <div className="h-1 w-full" />
+          )}
+        </div>
+
       </div>
     </header>
   );

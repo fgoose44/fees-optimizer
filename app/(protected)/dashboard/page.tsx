@@ -25,7 +25,6 @@ export default function DashboardPage() {
   const router = useRouter();
   const [exams, setExams] = useState<ExamRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [userEmail, setUserEmail] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
@@ -34,7 +33,6 @@ export default function DashboardPage() {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { router.push("/login"); return; }
-      setUserEmail(user.email ?? "");
 
       const { data: examData } = await supabase
         .from("examinations")
@@ -119,25 +117,45 @@ export default function DashboardPage() {
   }).length;
 
   return (
-    <div className="px-4 py-6 pb-24 space-y-8">
+    <div className="px-4 py-5 pb-10 space-y-5 max-w-[800px] mx-auto">
+
       {/* Welcome Header */}
-      <header className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
-        <div>
-          <h1 className="text-[28px] font-headline font-extrabold tracking-tight text-on-surface">
-            Willkommen zurück
-          </h1>
-          {userEmail && (
-            <p className="text-on-surface-variant font-medium text-sm mt-0.5">{userEmail}</p>
-          )}
-        </div>
+      <header className="flex items-center justify-between gap-4">
+        <h1 className="text-[24px] font-headline font-extrabold tracking-tight text-on-surface">
+          Willkommen zurück
+        </h1>
         <Link
           href="/examination/new"
-          className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary-container text-on-primary rounded-full font-headline font-bold text-sm shadow-lg shadow-primary/20 active:scale-95 transition-all whitespace-nowrap"
+          className="flex items-center justify-center gap-1.5 px-5 py-2.5 bg-primary text-on-primary rounded-full font-headline font-bold text-sm shadow-md shadow-primary/20 active:scale-95 transition-all whitespace-nowrap"
         >
-          <span className="material-symbols-outlined text-xl">add</span>
-          Neue FEES-Dokumentation
+          <span className="material-symbols-outlined text-lg">add</span>
+          Neue FEES
         </Link>
       </header>
+
+      {/* Stats-Bento — ÜBER der Liste */}
+      {!loading && totalExams > 0 && (
+        <section className="grid grid-cols-2 gap-3">
+          <div className="bg-surface-container-low p-3.5 rounded-card flex items-center gap-3">
+            <span className="material-symbols-outlined text-secondary text-[24px]">clinical_notes</span>
+            <div>
+              <div className="text-xl font-headline font-extrabold text-on-surface leading-none">{thisWeek}</div>
+              <div className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mt-0.5">
+                Diese Woche
+              </div>
+            </div>
+          </div>
+          <div className="bg-primary-fixed p-3.5 rounded-card flex items-center gap-3">
+            <span className="material-symbols-outlined text-primary text-[24px]">history</span>
+            <div>
+              <div className="text-xl font-headline font-extrabold text-primary leading-none">{totalExams}</div>
+              <div className="text-[10px] font-bold text-on-primary-fixed-variant uppercase tracking-wider mt-0.5">
+                Gesamt
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Untersuchungs-Liste */}
       {loading ? (
@@ -145,14 +163,14 @@ export default function DashboardPage() {
           <span className="text-on-surface-variant text-sm">Lade Untersuchungen …</span>
         </div>
       ) : exams.length === 0 ? (
-        <div className="text-center py-20 space-y-3">
+        <div className="text-center py-16 space-y-3">
           <span className="material-symbols-outlined text-5xl text-outline-variant">folder_open</span>
           <p className="text-on-surface-variant text-sm">
             Noch keine Untersuchungen. Starte jetzt die erste FEES-Dokumentation.
           </p>
         </div>
       ) : (
-        <section className="space-y-4">
+        <section className="space-y-2.5">
           <p className="text-xs font-bold text-on-surface-variant uppercase tracking-widest px-1">
             Letzte Untersuchungen
           </p>
@@ -160,116 +178,86 @@ export default function DashboardPage() {
           {exams.map((exam) => {
             const done = !!(exam.assessment_text && exam.assessment_text.length > 10);
             const diagDisplay = exam.medical_diagnosis
-              ? exam.medical_diagnosis.length > 60
-                ? exam.medical_diagnosis.slice(0, 57) + "…"
+              ? exam.medical_diagnosis.length > 55
+                ? exam.medical_diagnosis.slice(0, 52) + "…"
                 : exam.medical_diagnosis
               : "Keine Diagnose eingetragen";
 
             return (
               <div
                 key={exam.id}
-                className="bg-surface-container-lowest rounded-card relative overflow-hidden flex flex-col transition-transform hover:-translate-y-px"
+                className="bg-surface-container-lowest rounded-card relative overflow-hidden"
               >
                 {/* Linker Accent-Bar */}
                 <div
                   className={`absolute left-0 top-0 bottom-0 w-1 ${
-                    done ? "bg-secondary" : "bg-primary"
+                    done ? "bg-[#006e1c]" : "bg-primary"
                   }`}
                 />
 
-                <div className="pl-5 pr-4 pt-4 pb-3 flex-grow">
-                  {/* Kopfzeile */}
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <div className="min-w-0">
-                      <p className="text-xs font-bold uppercase tracking-widest text-outline mb-1 font-label">
-                        {formatDate(exam.examination_date)}
-                      </p>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span
-                          className="inline-block px-2 py-0.5 bg-surface-container-highest text-on-surface-variant text-[11px] font-semibold rounded-full"
-                        >
-                          {statusLabel(exam.status)}
+                <div className="pl-5 pr-3 py-2.5">
+                  {/* Zeile 1: Datum + Status-Pill + Aktionen */}
+                  <div className="flex items-center gap-2 mb-1">
+                    <p className="text-[11px] font-bold uppercase tracking-widest text-outline font-label">
+                      {formatDate(exam.examination_date)}
+                    </p>
+                    <span className="text-[10px] font-semibold px-2 py-0.5 bg-surface-container-highest text-on-surface-variant rounded-full">
+                      {statusLabel(exam.status)}
+                    </span>
+
+                    {/* Aktionen — rechts bündig */}
+                    <div className="ml-auto flex items-center gap-1">
+                      <Link
+                        href={nextStep(exam)}
+                        className="flex items-center gap-0.5 text-primary font-bold text-xs px-2 py-1 rounded-lg hover:bg-primary/5 transition-colors"
+                      >
+                        {done ? "Ansehen" : "Fortsetzen"}
+                        <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => handleDownload(exam.id)}
+                        disabled={downloadingId === exam.id}
+                        className="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors disabled:opacity-50"
+                        title="DOCX herunterladen"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">
+                          {downloadingId === exam.id ? "hourglass_empty" : "download"}
                         </span>
-                      </div>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(exam.id)}
+                        disabled={deletingId === exam.id}
+                        className="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-[#a10012] hover:bg-[#a10012]/5 transition-colors disabled:opacity-50"
+                        title="Löschen"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">
+                          {deletingId === exam.id ? "hourglass_empty" : "delete"}
+                        </span>
+                      </button>
                     </div>
-                    {/* Status-Badge */}
+                  </div>
+
+                  {/* Zeile 2: Diagnose + Abschluss-Badge */}
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm text-on-surface-variant truncate flex-1">
+                      {diagDisplay}
+                    </p>
                     <span
-                      className={`flex-none text-[10px] font-bold px-3 py-1 rounded-full ${
+                      className={`flex-none text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
                         done
-                          ? "bg-secondary-container text-on-secondary-container"
+                          ? "bg-[#006e1c]/10 text-[#006e1c]"
                           : "bg-primary-fixed text-on-primary-fixed-variant"
                       }`}
                     >
                       {done ? "ABGESCHLOSSEN" : "IN BEARBEITUNG"}
                     </span>
                   </div>
-
-                  <p className="text-sm text-on-surface-variant line-clamp-1 mb-4">
-                    {diagDisplay}
-                  </p>
-                </div>
-
-                {/* Action-Footer */}
-                <div className="px-5 py-3 bg-surface-container-low flex justify-between items-center">
-                  <Link
-                    href={nextStep(exam)}
-                    className="flex items-center gap-1 text-primary font-bold text-sm hover:underline active:scale-95"
-                  >
-                    {done ? "Ansehen" : "Fortsetzen"}
-                    <span className="material-symbols-outlined text-base">arrow_forward</span>
-                  </Link>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleDownload(exam.id)}
-                      disabled={downloadingId === exam.id}
-                      className="w-11 h-11 flex items-center justify-center rounded-xl bg-surface-container text-on-surface-variant hover:text-primary transition-colors disabled:opacity-50"
-                      title="DOCX herunterladen"
-                    >
-                      <span className="material-symbols-outlined text-[20px]">
-                        {downloadingId === exam.id ? "hourglass_empty" : "download"}
-                      </span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(exam.id)}
-                      disabled={deletingId === exam.id}
-                      className="w-11 h-11 flex items-center justify-center rounded-xl bg-tertiary-fixed/30 text-tertiary hover:bg-tertiary/10 transition-colors disabled:opacity-50"
-                      title="Löschen"
-                    >
-                      <span className="material-symbols-outlined text-[20px]">
-                        {deletingId === exam.id ? "hourglass_empty" : "delete"}
-                      </span>
-                    </button>
-                  </div>
                 </div>
               </div>
             );
           })}
-        </section>
-      )}
-
-      {/* Stats-Bento */}
-      {!loading && totalExams > 0 && (
-        <section className="grid grid-cols-2 gap-4">
-          <div className="bg-surface-container-low p-4 rounded-card flex flex-col justify-between h-32">
-            <span className="material-symbols-outlined text-secondary text-[28px]">clinical_notes</span>
-            <div>
-              <div className="text-2xl font-headline font-extrabold text-on-surface">{thisWeek}</div>
-              <div className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">
-                Diese Woche
-              </div>
-            </div>
-          </div>
-          <div className="bg-primary-fixed p-4 rounded-card flex flex-col justify-between h-32">
-            <span className="material-symbols-outlined text-primary text-[28px]">history</span>
-            <div>
-              <div className="text-2xl font-headline font-extrabold text-primary">{totalExams}</div>
-              <div className="text-[10px] font-bold text-on-primary-fixed-variant uppercase tracking-wider">
-                Gesamt
-              </div>
-            </div>
-          </div>
         </section>
       )}
     </div>

@@ -3,8 +3,10 @@
 import { useRouter } from "next/navigation";
 
 interface StickyFooterProps {
-  /** URL für "← Zurück". Falls undefined: router.back() */
+  /** URL für den Zurück-Button. Falls undefined: router.back() */
   backHref?: string;
+  /** Label für den Zurück-Button (default: "← Zurück") */
+  backLabel?: string;
   /** Label für den rechten Primary-Button */
   submitLabel?: string;
   /** Ist der Submit-Button deaktiviert? */
@@ -21,6 +23,7 @@ interface StickyFooterProps {
 
 export default function StickyFooter({
   backHref,
+  backLabel = "← Zurück",
   submitLabel = "Speichern & Weiter",
   disabled = false,
   loading = false,
@@ -44,7 +47,7 @@ export default function StickyFooter({
           onClick={handleBack}
           className="flex items-center justify-center px-6 min-h-[44px] text-primary font-bold text-sm hover:bg-primary/5 rounded-xl transition-colors"
         >
-          ← Zurück
+          {backLabel}
         </button>
 
         {/* Speichern & Weiter */}

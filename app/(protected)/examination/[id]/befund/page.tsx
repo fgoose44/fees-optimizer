@@ -157,6 +157,7 @@ export default function BefundPage() {
 
   const [data, setData] = useState<NativbefundData>(initialData);
   const [bodsOverride, setBodsOverride] = useState(false);
+  const [expandedNotes, setExpandedNotes] = useState<StructureKey[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -279,13 +280,13 @@ export default function BefundPage() {
             <div
               key={struct.key}
               className={`bg-white p-5 rounded-card border-l-4 ${
-                isPathological ? "border-tertiary" : "border-secondary"
+                isPathological ? "border-[#a10012]" : "border-[#006e1c]"
               }`}
             >
               {/* Strukturkopf */}
               <div className="flex items-center justify-between mb-4">
                 <h3 className={`text-xs font-bold uppercase tracking-widest font-label ${
-                  isPathological ? "text-tertiary" : "text-secondary"
+                  isPathological ? "text-[#a10012]" : "text-[#006e1c]"
                 }`}>
                   {struct.label}
                 </h3>
@@ -310,7 +311,7 @@ export default function BefundPage() {
               </div>
 
               {/* Chips */}
-              <div className="flex flex-wrap gap-2 mb-4">
+              <div className="flex flex-wrap gap-2 mb-3">
                 {struct.options.map((opt) => {
                   const active = finding.selected.includes(opt);
                   const isWnl = WNL_OPTS.includes(opt);
@@ -333,14 +334,25 @@ export default function BefundPage() {
                 })}
               </div>
 
-              {/* Freitext */}
-              <input
-                type="text"
-                value={finding.notes}
-                onChange={(e) => updateStructure(struct.key, { notes: e.target.value })}
-                placeholder={struct.notesPlaceholder}
-                className="w-full bg-surface-container-highest border-b-2 border-outline-variant/50 focus:border-primary focus:outline-none px-3 py-2 text-sm rounded-t-lg placeholder:text-outline/60 transition-colors"
-              />
+              {/* Freitext — ausklappbar */}
+              {(expandedNotes.includes(struct.key) || finding.notes.length > 0) ? (
+                <input
+                  type="text"
+                  value={finding.notes}
+                  onChange={(e) => updateStructure(struct.key, { notes: e.target.value })}
+                  placeholder={struct.notesPlaceholder}
+                  className="w-full bg-surface-container-highest border-b-2 border-outline-variant/50 focus:border-primary focus:outline-none px-3 py-2 text-sm rounded-t-lg placeholder:text-outline/60 transition-colors"
+                />
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setExpandedNotes((prev) => [...prev, struct.key])}
+                  className="text-xs text-on-surface-variant hover:text-primary flex items-center gap-0.5 mt-1 transition-colors"
+                >
+                  <span className="material-symbols-outlined text-sm">add</span>
+                  Notiz hinzufügen
+                </button>
+              )}
             </div>
           );
         })}

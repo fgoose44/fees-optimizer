@@ -253,7 +253,7 @@ export default function ExportPage() {
   }
 
   return (
-    <div className="px-4 pt-6 pb-32 space-y-6">
+    <div className="px-4 pt-6 pb-[160px] space-y-6">
       {/* Patient-Banner mit editierbarem Namen */}
       <div className="bg-surface-container-low p-3 rounded-card flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -321,7 +321,7 @@ export default function ExportPage() {
             bodsTotal !== null
               ? bodsTotal <= 4 ? "bg-secondary text-on-secondary shadow-secondary/20"
               : bodsTotal <= 8 ? "bg-primary text-on-primary shadow-primary/20"
-              : "bg-tertiary text-on-tertiary shadow-tertiary/20"
+              : "bg-[#a10012] text-white shadow-[#a10012]/20"
               : "bg-surface-container text-on-surface-variant"
           }`}>
             <span className="text-[10px] font-bold opacity-80 uppercase mb-1">Gesamt</span>
@@ -347,7 +347,7 @@ export default function ExportPage() {
         {generating ? (
           <>
             <span className="material-symbols-outlined animate-spin text-lg">progress_activity</span>
-            KI generiert Beurteilung…
+            Wird generiert...
           </>
         ) : (
           <>
