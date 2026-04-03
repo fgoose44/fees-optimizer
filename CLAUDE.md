@@ -1,10 +1,6 @@
 # FEES Analytics & Workflow Optimizer
 
-## Was ist das?
-Digitales Dokumentationstool für Logopädinnen. Strukturierte Eingabemaske für FEES-Befunde → automatische DOCX-Berichterstellung. Ziel: Dokumentationszeit von ~120 Min auf <5 Min pro Patient.
-
-## Wer nutzt es?
-Clara und Kolleginnen (2–5 Logopädinnen, stationäre Rehaklinik). Bei ~90% der FEES sind zwei Logopädinnen anwesend.
+**PRD:** siehe [docs/PRD_v04.md](docs/PRD_v04.md)
 
 ## Tech Stack
 | Komponente | Technologie |
@@ -24,43 +20,10 @@ Clara und Kolleginnen (2–5 Logopädinnen, stationäre Rehaklinik). Bei ~90% de
 5. **KI-generierte Beurteilungen:** Medizinisch plausibel — keine erfundenen Befunde, keine übertriebenen Schlussfolgerungen.
 6. **Einfachheit vor Eleganz.** Minimaler Code-Impact, keine Refactors nebenbei.
 
-## Berichtsformat — KEINE Tabellen
-Das KIS der Klinik kann keine Tabellen in Arztbriefe einfügen. Daher:
-- Nativbefund: Stichpunkte
-- Phonationskontrolle: Stichpunkte
-- Scoring-Systeme (BODS, Langmore): Stichpunkte
-- Schlucktests: Fließtext (pro Konsistenz ein Absatz)
-- Beurteilung: Fließtext (WICHTIGSTER ABSCHNITT — Ärzte lesen primär diesen Teil)
-- Therapieempfehlungen: Stichpunkte
-
-## Scoring-Systeme im MVP
-- **BODS:** BODS I (Speichel) + BODS II (Ernährung) = Gesamt. Auch für TK-Patienten. Automatisch berechnet.
-- **PAS:** Penetrations-/Aspirationsskala 1–8 (Rosenbek). Bei allen Konsistenzen. Manuelle Eingabe.
-- **Langmore:** Hypopharyngeale Speichelansammlung Grad 0–3. Manuelle Eingabe.
-- **IDDSI:** Level 0–7 (Kostformempfehlung). Dropdown.
-- ~~Yale Residue~~ — NICHT im MVP.
-
-## Konsistenzen-Katalog (7 Stück)
-1. Speichel
-2. Brei / Aqua (DYS I)
-3. Nektar angedickt (ThickandEasy)
-4. Wasser (Glas)
-5. Wasser (Strohhalm)
-6. Wasser (Dysphagie-Becher / Kapi-Cup)
-7. Brot (NICHT Zwieback)
-
-## Datenschutz
-Keine personenbezogenen Daten im System. Cloud-Hosting (Vercel + Supabase) ist unproblematisch. Claude API erhält nur anonymisierte klinische Befunddaten.
-
-## Workflow
-- **Modus A (MVP/Standard):** Logopädin dokumentiert selbst direkt nach der FEES
-- **Modus B (optional/Test):** Zweite Logopädin dokumentiert parallel während der FEES
-- Beide Modi nutzen dieselbe Eingabemaske
-
 ## Projektstruktur
+- `docs/PRD_v04.md` — Produktanforderungen, Features, Roadmap
 - `tasks/todo.md` — Aktuelle Aufgaben und Status
 - `tasks/lessons.md` — Gelernte Lektionen und Regeln
-- PRD v0.3 und DEV_GUIDE v1.0 sind die maßgeblichen Spezifikationsdokumente
 
 ## Design-Referenz (Stitch)
 - DESIGN.md im Projekt-Root enthält das Design-System (Farben, Typografie, Spacing)
