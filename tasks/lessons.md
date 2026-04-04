@@ -42,5 +42,14 @@ Alle Examination-Seiten (befund, schlucktest, export) laden per useEffect alle r
 ## patient_nr: immer aus DB laden, nie als URL-Param
 patient_nr wird in jeder Examination-Seite direkt aus `examinations` geladen. Neue Seiten müssen das ebenfalls tun. Nur `new/page.tsx` hat noch keinen patient_nr vor dem ersten Speichern → zeigt patientName als Fallback.
 
+## BODS I + II: Skala ist 0–3, nicht 1–8
+Bogenhausener Dysphagie Score hat zwei Subskalen (Speichel, Ernährung), beide 0–3. Die ursprüngliche 1–8-Implementierung war falsch. Auto-Suggest-Funktionen in `lib/bods.ts` und Slider-Range in `befund/page.tsx` / `schlucktest/page.tsx` müssen 0–3 reflektieren.
+
+## Langmore-Autovorschlag: beide Retentions-Blöcke auslesen
+`suggestLangmore()` in `befund/page.tsx` liest `valleculae.selected` UND `sinus_piriformes.selected`. Wenn Valleculae und Sinus getrennte Blöcke sind, müssen Änderungen an der Retention-Logik immer beide Blöcke berücksichtigen.
+
+## Bedingte Blöcke: has_tracheostomy aus examinations in befund laden
+Die `befund`-Seite lädt `has_tracheostomy` aus der `examinations`-Tabelle, um den transstomatal-Block bedingt anzuzeigen. Neue Seiten, die patientenspezifische Felder brauchen, müssen ähnlich vorgehen.
+
 ## MCP-Setup: Stitch + Claude Desktop
 MCP-Server in `~/Library/Application Support/Claude/claude_desktop_config.json` unter `mcpServers` eintragen (`command`, `args`, ggf. `env`). npx-basierte MCPs brauchen Node.js im PATH — bei nvm: sicherstellen dass `~/.zshrc` den nvm-Pfad setzt und Claude Desktop nach Shell-Login startet. Stitch MCP: Design-System vor Screen-Generierung anlegen (`create_design_system`), damit Farben mit `tailwind.config.ts` übereinstimmen.

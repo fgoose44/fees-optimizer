@@ -21,6 +21,9 @@ const initialForm: ExaminationFormData = {
   rassScore: 0,
   communication: "",
   hasTracheostomy: false,
+  cannulaType: "",
+  cuffStatus: "",
+  speakingValve: "",
   procedureDescription: "",
   medicalDiagnosis: "",
   dysphagia_question: "",
@@ -62,6 +65,9 @@ export default function NewExaminationPage() {
         rass_score: form.rassScore,
         communication: form.communication,
         has_tracheostomy: form.hasTracheostomy,
+        cannula_type: form.cannulaType,
+        cuff_status: form.cuffStatus,
+        speaking_valve: form.speakingValve,
         procedure_description: form.procedureDescription,
         medical_diagnosis: form.medicalDiagnosis,
         dysphagia_question: form.dysphagia_question,
@@ -204,6 +210,69 @@ export default function NewExaminationPage() {
             ))}
           </div>
         </Field>
+
+        {/* TK-Unterfelder */}
+        {form.hasTracheostomy && (
+          <div className="bg-surface-container-low rounded-xl p-4 space-y-4 border-l-4 border-tertiary">
+            <Field label="Kanülentyp">
+              <input
+                type="text"
+                value={form.cannulaType}
+                onChange={(e) => set("cannulaType", e.target.value)}
+                placeholder="z.B. Portex Soft-Seal Cuffed 7.0"
+                className={inputClass}
+              />
+            </Field>
+
+            <Field label="Cuff-Status">
+              <div className="flex rounded-xl overflow-hidden bg-surface-container-high p-1 gap-1">
+                {(
+                  [
+                    ["geblockt", "Geblockt"],
+                    ["entblockt", "Entblockt"],
+                  ] as const
+                ).map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => set("cuffStatus", form.cuffStatus === value ? "" : value)}
+                    className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all min-h-[44px] ${
+                      form.cuffStatus === value
+                        ? "bg-tertiary text-on-tertiary font-bold shadow-sm"
+                        : "text-on-surface-variant hover:bg-surface-container-highest"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </Field>
+
+            <Field label="Sprechventil">
+              <div className="flex rounded-xl overflow-hidden bg-surface-container-high p-1 gap-1">
+                {(
+                  [
+                    ["vorhanden", "Vorhanden"],
+                    ["nicht_vorhanden", "Nicht vorhanden"],
+                  ] as const
+                ).map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => set("speakingValve", form.speakingValve === value ? "" : value)}
+                    className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all min-h-[44px] ${
+                      form.speakingValve === value
+                        ? "bg-tertiary text-on-tertiary font-bold shadow-sm"
+                        : "text-on-surface-variant hover:bg-surface-container-highest"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </Field>
+          </div>
+        )}
 
         {/* Angewandtes Verfahren */}
         <Field label="Angewandtes Verfahren">

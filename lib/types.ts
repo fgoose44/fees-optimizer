@@ -11,6 +11,9 @@ export interface ExaminationFormData {
   rassScore: number;
   communication: string;
   hasTracheostomy: boolean;
+  cannulaType: string;       // Freitext, nur wenn TK = true
+  cuffStatus: string;        // 'geblockt' | 'entblockt' | ''
+  speakingValve: string;     // 'vorhanden' | 'nicht_vorhanden' | ''
   procedureDescription: string;
   medicalDiagnosis: string;
   dysphagia_question: string;
@@ -40,6 +43,13 @@ export interface NativbefundData {
   pharynx: StructureFinding;
   larynx: StructureFinding;
   valleculae: StructureFinding;
+  sinus_piriformes: StructureFinding;
+
+  // Transstomatal (nur wenn TK = true)
+  trachea_mucosa: string[];
+  trachea_structures: string[];
+  trachea_structures_notes: string;
+  tk_position: string; // 'mittig' | 'nicht_mittig' | ''
 
   // Reflexe
   cough_reflex: string; // 'auslösbar' | 'insuffizient' | 'nicht auslösbar' | ''
@@ -48,7 +58,9 @@ export interface NativbefundData {
   // Phonationskontrolle (optional)
   vp_closure: string;
   vocal_fold_mobility: string;
+  vocal_fold_weakness_side: string; // 'links' | 'rechts' | '' — nur wenn vocal_fold_mobility = 'asymmetrisch'
   glissando: string;
+  glissando_weakness_side: string;  // 'links' | 'rechts' | '' — nur wenn glissando = 'asymmetrisch'
   glottis_closure: string;
   voluntary_cough: string;
 

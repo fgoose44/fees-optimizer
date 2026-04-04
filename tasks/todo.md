@@ -8,23 +8,26 @@
 ### Phase 4 — Pre-Clara-Test Bugfixes + UX ✅ (2026-04-01)
 ### Phase 5 — Design Refresh ✅ (2026-04-02)
 ### Phase 6 — Bug-Fixes & UX nach User-Testing ✅ (2026-04-03)
+### Phase 7 — Clara-Feedback: UI & DB-Anpassungen ✅ (2026-04-04)
 
-Phase 6 umfasste:
-- Bug: Befund/Schlucktest-Daten laden — useEffect lädt alle Felder aus DB beim Öffnen
-- Dashboard: Logopäden-Name — profiles-Tabelle + /account Profilseite + Dashboard-Anzeige
-- Navigation — Home-Icon auf Examination-Seiten statt Logout
-- Therapieempfehlungen Textarea — rows 4, resize-y
-- Fortlaufende Patienten-ID — patient_nr SERIAL + PatientBanner zeigt #001
-- Export-Header vereinheitlichen — PatientBanner für alle 4 Seiten
-- Doppelter Progress-Indikator — border-b-2 vom aktiven Tab entfernt
+Phase 7 umfasste (10 Schritte):
+- [1] Stammdaten TK-Felder: Kanülentyp, Cuff-Status, Sprechventil — DB + UI
+- [2] Nativbefund Pharynx: Chip „Schwäche" ergänzt
+- [3] Schlucktest Prädeglutitiv: „Leaking" entfernt, „Übertritt von Bolusanteilen (Leaking)"
+- [4] Schlucktest Kompensation: „Chin-down" ergänzt
+- [5] Navigation: „Export" → „Analyse"
+- [6] Nativbefund transstomatal: neuer Block (Schleimhäute, Strukturveränderungen, TK-Position) — DB + UI
+- [7] Valleculae / Sinus piriformes getrennt: eigene Blöcke mit erweiterter Chip-Liste — DB + UI
+- [8] Phonationskontrolle: Stimmlippenbeweglichkeit + Glissando mit „asymmetrisch"-Subfeldern; Glissando → „Konstriktorenkontraktion (Glissando)"
+- [9] Langmore: Beschreibungen + Autovorschlag aus Valleculae + Sinus
+- [10] BODS I + II: Skala auf 0–3 korrigiert (war 1–8), Stufenbeschreibungen als Legende
 
 ---
 
-## Offen — Backlog (nach Clara-Feedback)
+## Offen — Backlog
 
 - [ ] Stammdaten editierbar für gespeicherte Untersuchungen
-- [ ] BODS-Logik Feinjustierung mit klinischem Feedback (Clara)
 - [ ] Passwort-Änderung für User (/account Seite erweitern)
 
 ---
-_Zuletzt aktualisiert: 2026-04-03 — Phase 6 abgeschlossen_
+_Zuletzt aktualisiert: 2026-04-04 — Phase 7 abgeschlossen_

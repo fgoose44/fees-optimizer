@@ -31,7 +31,7 @@ const steps: { key: Step; label: string; icon: string; href: (id: string, pn: st
   },
   {
     key: "export",
-    label: "EXPORT",
+    label: "ANALYSE",
     icon: "description",
     href: (id, pn) => `/examination/${id}/export?patientName=${encodeURIComponent(pn)}`,
   },
