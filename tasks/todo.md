@@ -20,14 +20,22 @@ Phase 7 umfasste (10 Schritte):
 - [7] Valleculae / Sinus piriformes getrennt: eigene Blöcke mit erweiterter Chip-Liste — DB + UI
 - [8] Phonationskontrolle: Stimmlippenbeweglichkeit + Glissando mit „asymmetrisch"-Subfeldern; Glissando → „Konstriktorenkontraktion (Glissando)"
 - [9] Langmore: Beschreibungen + Autovorschlag aus Valleculae + Sinus
-- [10] BODS I + II: Skala auf 0–3 korrigiert (war 1–8), Stufenbeschreibungen als Legende
+- [10] BODS I + II: Skala 1–8 (Bartolome & Schröter-Morasch 2006), Stufenbeschreibungen als Legende
+
+### Phase 8 — DOCX-Überarbeitung + Profil-Titel + Navigation-Fix ✅ (2026-04-04)
+
+Phase 8 umfasste (4 Punkte):
+- [A] DOCX-Dateiname: `YYMMDD_FEES-Bericht_XXXX.docx` (4-stellige Patient-ID)
+- [B] DOCX-Formatierung: Arial durchgehend, Tab-Stop-Zeilen (3500 DXA), 11pt Überschriften, Word-Bullets, Seitenkopf (Patient-ID + Datum, kein Name)
+- [C] profiles-Tabelle: `title`-Feld ergänzt — `/account`-Seite mit Eingabe; DOCX-Signatur nutzt Titel italic
+- [D] Navigation-Bug behoben: `/stammdaten`-Route war 404 → Seite erstellt; `router.refresh()` vor `router.push()` in handleSave
 
 ---
 
 ## Offen — Backlog
 
-- [ ] Stammdaten editierbar für gespeicherte Untersuchungen
+- [ ] Stammdaten editierbar für gespeicherte Untersuchungen (aktuell nur read-only)
 - [ ] Passwort-Änderung für User (/account Seite erweitern)
 
 ---
-_Zuletzt aktualisiert: 2026-04-04 — Phase 7 abgeschlossen_
+_Zuletzt aktualisiert: 2026-04-04 — Phase 8 abgeschlossen_

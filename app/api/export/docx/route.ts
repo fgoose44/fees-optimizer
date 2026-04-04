@@ -1,7 +1,10 @@
 /* eslint-disable */
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { Document, Packer, Paragraph, TextRun, AlignmentType } from "docx";
+import {
+  Document, Packer, Paragraph, TextRun, AlignmentType,
+  Header, Tab, TabStopType, TabStopPosition,
+} from "docx";
 import { RASS_OPTIONS } from "@/lib/constants";
 
 // ============================================================
@@ -9,15 +12,11 @@ import { RASS_OPTIONS } from "@/lib/constants";
 // ============================================================
 
 const FONT = "Arial";
-const SIZE_BODY = 22;      // 11pt (half-points)
-const SIZE_HEADING = 24;   // 12pt
-const SIZE_TITLE = 28;     // 14pt
-const SP_AFTER = 120;      // 6pt in Twips (1/1440 inch)
-const SP_HEADING_BEFORE = 200;
-const SP_HEADING_AFTER = 80;
-
-// Seitenränder in Twips: 2,5cm = 1417, 2cm = 1134
-const PAGE_MARGIN = { top: 1417, bottom: 1417, left: 1134, right: 1134 };
+const SIZE_BODY = 22;        // 11pt (half-points)
+const SIZE_TITLE = 28;       // 14pt
+const SP_AFTER_BODY = 120;   // 6pt spacing after body text
+const SP_AFTER_SECTION = 240; // 12pt spacing after section / before heading
+const TAB_STOP = 3500;       // 6cm Tab-Stop für Label/Wert-Zeilen
 
 // ============================================================
 // Label-Maps
@@ -57,8 +56,8 @@ const BEVERAGE_LABELS: Record<number, string> = {
 };
 
 const LANGMORE_LABELS: Record<number, string> = {
-  0: "Grad 0 – Normal (feucht)",
-  1: "Grad 1 – Ansammlung in Valleculae/Sinus piriformes",
+  0: "Grad 0 – Keine sichtbaren Sekrete oder nur transiente Bläschen in Valleculae/Sinus",
+  1: "Grad 1 – Beidseits oder tief gepoolt in Valleculae/Sinus, kein Larynxeingang betroffen",
   2: "Grad 2 – Transiente Ansammlung im Larynxeingang",
   3: "Grad 3 – Permanente Ansammlung im Larynxeingang",
 };
@@ -67,32 +66,53 @@ const LANGMORE_LABELS: Record<number, string> = {
 // Paragraph-Helfer
 // ============================================================
 
-function body(text: string, opts?: { bold?: boolean; italic?: boolean }) {
+/** Fließtext 11pt, spacing after 120 */
+function body(text: string, opts?: { bold?: boolean; italic?: boolean }): Paragraph {
   return new Paragraph({
     children: [new TextRun({ text, font: FONT, size: SIZE_BODY, bold: opts?.bold, italics: opts?.italic })],
-    spacing: { after: SP_AFTER },
+    spacing: { after: SP_AFTER_BODY },
   });
 }
 
-function heading(text: string) {
+/** Abschnittsüberschrift: 11pt, fett, spacing before 240 / after 120 */
+function heading(text: string): Paragraph {
   return new Paragraph({
-    children: [new TextRun({ text, font: FONT, size: SIZE_HEADING, bold: true })],
-    spacing: { before: SP_HEADING_BEFORE, after: SP_HEADING_AFTER },
+    children: [new TextRun({ text, font: FONT, size: SIZE_BODY, bold: true })],
+    spacing: { before: SP_AFTER_SECTION, after: SP_AFTER_BODY },
   });
 }
 
-function bullet(text: string, level = 0) {
+/**
+ * Label/Wert-Zeile mit Tab-Stop bei 3500 DXA.
+ * Label fett, Wert normal — keine Bullets.
+ */
+function labelRow(label: string, value: string): Paragraph {
   return new Paragraph({
-    bullet: { level },
+    tabStops: [{ type: TabStopType.LEFT, position: TAB_STOP }],
+    children: [
+      new TextRun({ text: `${label}:`, font: FONT, size: SIZE_BODY, bold: true }),
+      new TextRun({ children: [new Tab()], font: FONT, size: SIZE_BODY }),
+      new TextRun({ text: value || "—", font: FONT, size: SIZE_BODY }),
+    ],
+    spacing: { after: SP_AFTER_BODY },
+  });
+}
+
+/** Echtes Word-Bullet mit Einzug */
+function bullet(text: string): Paragraph {
+  return new Paragraph({
+    bullet: { level: 0 },
+    indent: { left: 720, hanging: 360 },
     children: [new TextRun({ text, font: FONT, size: SIZE_BODY })],
-    spacing: { after: SP_AFTER },
+    spacing: { after: SP_AFTER_BODY },
   });
 }
 
-function gap() {
+/** Leerzeile */
+function gap(): Paragraph {
   return new Paragraph({
     children: [new TextRun({ text: "", font: FONT, size: SIZE_BODY })],
-    spacing: { after: SP_AFTER },
+    spacing: { after: SP_AFTER_BODY },
   });
 }
 
@@ -111,19 +131,16 @@ function swallowTestToProse(t: any): Paragraph {
   const label = CONSISTENCY_LABELS[t.consistency] ?? t.consistency;
   const parts: string[] = [];
 
-  // Prädeglutitiv
   if (t.praedeglutitiv?.length) {
     parts.push(`prädeglutitiv ${(t.praedeglutitiv as string[]).join(", ")}`);
   } else {
     parts.push("prädeglutitiv kein Leaking beobachtbar");
   }
 
-  // Schluckakt
   if (t.schluckakt?.length) {
     parts.push(`Schluckakt ${(t.schluckakt as string[]).join(", ")}`);
   }
 
-  // Postdeglutitiv — Retentionen
   const retentions: string[] = [];
   if (t.retention_valleculae_l) retentions.push(`Valleculae links ${t.retention_valleculae_l}`);
   if (t.retention_valleculae_r) retentions.push(`Valleculae rechts ${t.retention_valleculae_r}`);
@@ -136,12 +153,10 @@ function swallowTestToProse(t: any): Paragraph {
     parts.push("postdeglutitiv keine Retentionen sichtbar");
   }
 
-  // Clearing
   if (t.clearing?.length) {
     parts.push(`Clearing ${(t.clearing as string[]).join(", ")}`);
   }
 
-  // Penetration/Aspiration
   if (t.pen_asp && t.pen_asp !== "keine") {
     const pas = t.pas_score != null ? ` PAS ${t.pas_score}` : "";
     parts.push(`${t.pen_asp}${pas} sichtbar`);
@@ -149,59 +164,88 @@ function swallowTestToProse(t: any): Paragraph {
     parts.push("keine Hinweise auf Penetration/Aspiration");
   }
 
-  // Kompensation
   if (t.kompensation?.length || t.kompensation_notes) {
     const komp = [...(t.kompensation ?? [])];
     if (t.kompensation_notes) komp.push(t.kompensation_notes);
     parts.push(`Kompensation: ${komp.join(", ")}`);
   }
 
-  const text = `Schlucken von ${label}: ${parts.join(", ")}.`;
-  return body(text);
+  return body(`Schlucken von ${label}: ${parts.join(", ")}.`);
 }
 
 // ============================================================
-// Nativbefund → Stichpunkte
+// Nativbefund → Label/Wert-Zeilen
 // ============================================================
 
-function nativbefundBullets(n: any): Paragraph[] {
+function nativbefundRows(n: any): Paragraph[] {
   const items: Paragraph[] = [];
 
-  const add = (label: string, values: string[], side = "") => {
+  const addRow = (label: string, values: string[], side = "") => {
     if (values?.length) {
-      items.push(bullet(`${label}: ${values.join(", ")}${sideLabel(side)}`));
+      items.push(labelRow(label, values.join(", ") + sideLabel(side)));
     }
   };
 
-  add("Schleimhäute", n.mucosa);
-  add("Velum", n.velum, n.velum_side);
-  add("Zungenbasis", n.tongue_base);
-  add("Epiglottis", n.epiglottis);
-  add("Pharynx", n.pharynx, n.pharynx_side);
-  add("Larynx/Kehlkopf", n.larynx, n.larynx_side);
-  add("Valleculae/Sinus piriformes", n.valleculae, n.valleculae_side);
+  addRow("Schleimhäute", n.mucosa);
+  addRow("Velum", n.velum, n.velum_side);
+  addRow("Zungenbasis", n.tongue_base);
+  addRow("Epiglottis", n.epiglottis);
+  addRow("Pharynx", n.pharynx, n.pharynx_side);
+  addRow("Larynx/Kehlkopf", n.larynx, n.larynx_side);
 
-  if (n.cough_reflex) items.push(bullet(`Hustenstoß spontan: ${n.cough_reflex}`));
-  if (n.swallow_reflex) items.push(bullet(`Schluckversuch spontan: ${n.swallow_reflex}`));
+  // Valleculae und Sinus getrennt
+  if (n.valleculae?.length) {
+    addRow("Valleculae", n.valleculae, n.valleculae_side);
+  }
+  if (n.sinus_piriformes?.length) {
+    addRow("Sinus piriformes", n.sinus_piriformes, n.sinus_piriformes_side);
+  }
+  if (!n.valleculae?.length && !n.sinus_piriformes?.length) {
+    items.push(labelRow("Valleculae/Sinus pir.", ["keine Retentionen"]));
+  }
 
-  return items.length ? items : [bullet("Nativbefund nicht dokumentiert")];
+  if (n.cough_reflex) items.push(labelRow("Hustenstoß spontan", n.cough_reflex));
+  if (n.swallow_reflex) items.push(labelRow("Schluckversuch spontan", n.swallow_reflex));
+
+  return items.length ? items : [body("Nativbefund nicht dokumentiert", { italic: true })];
 }
 
 // ============================================================
-// Phonationskontrolle → Stichpunkte
+// Transstomatal-Befund → Label/Wert-Zeilen
 // ============================================================
 
-function phonationBullets(n: any): Paragraph[] | null {
+function transstomatalRows(n: any): Paragraph[] {
+  const items: Paragraph[] = [];
+  if (n.trachea_mucosa?.length) items.push(labelRow("Schleimhäute Trachea", n.trachea_mucosa.join(", ")));
+  if (n.trachea_structures?.length) {
+    const val = n.trachea_structures.join(", ") + (n.trachea_structures_notes ? ` (${n.trachea_structures_notes})` : "");
+    items.push(labelRow("Strukturveränderungen", val));
+  }
+  if (n.tk_position) {
+    items.push(labelRow("TK-Position", n.tk_position === "mittig" ? "Mittig im Lumen" : "Nicht mittig im Lumen"));
+  }
+  return items.length ? items : [body("(Transstomatal-Befund nicht dokumentiert)", { italic: true })];
+}
+
+// ============================================================
+// Phonationskontrolle → Label/Wert-Zeilen
+// ============================================================
+
+function phonationRows(n: any): Paragraph[] | null {
   const fields: [string, string][] = [
     ["Velopharyngealer Verschluss", n.vp_closure],
-    ["Stimmlippenbeweglichkeit", n.vocal_fold_mobility],
-    ["Glissando", n.glissando],
+    ["Stimmlippenbeweglichkeit", n.vocal_fold_mobility
+      ? n.vocal_fold_mobility + (n.vocal_fold_mobility === "asymmetrisch" && n.vocal_fold_weakness_side ? ` — Schwäche ${n.vocal_fold_weakness_side}` : "")
+      : ""],
+    ["Konstriktorenkontraktion (Glissando)", n.glissando
+      ? n.glissando + (n.glissando === "asymmetrisch" && n.glissando_weakness_side ? ` — Schwäche ${n.glissando_weakness_side}` : "")
+      : ""],
     ["Glottisschluss/Taschenfaltenschluss", n.glottis_closure],
     ["Willkürliches Husten/Räuspern", n.voluntary_cough],
   ];
   const filled = fields.filter(([, v]) => v);
   if (!filled.length) return null;
-  return filled.map(([k, v]) => bullet(`${k}: ${v}`));
+  return filled.map(([k, v]) => labelRow(k, v));
 }
 
 // ============================================================
@@ -221,10 +265,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "examinationId fehlt." }, { status: 400 });
   }
 
-  const [examRes, nativRes, swallowRes] = await Promise.all([
+  const [examRes, nativRes, swallowRes, profileRes] = await Promise.all([
     supabase.from("examinations").select("*").eq("id", examinationId).single(),
     supabase.from("native_findings").select("*").eq("examination_id", examinationId).maybeSingle(),
     supabase.from("swallow_tests").select("*").eq("examination_id", examinationId),
+    supabase.from("profiles").select("first_name, last_name, title").eq("id", user.id).maybeSingle(),
   ]);
 
   if (examRes.error || !examRes.data) {
@@ -233,19 +278,50 @@ export async function POST(req: NextRequest) {
 
   const exam = examRes.data;
   const nativ = nativRes.data;
+  const profile = profileRes.data;
   const testedTests = (swallowRes.data ?? [])
     .filter((t) => !t.not_tested)
     .sort((a, b) => CONSISTENCY_ORDER.indexOf(a.consistency) - CONSISTENCY_ORDER.indexOf(b.consistency));
 
   const displayName = patientName?.trim() || "[Patient/in]";
-  const dateFormatted = new Date(exam.examination_date).toLocaleDateString("de-DE", {
+  const examDate = new Date(exam.examination_date);
+  const dateFormatted = examDate.toLocaleDateString("de-DE", {
     day: "2-digit", month: "2-digit", year: "numeric",
   });
+  const yy = String(examDate.getFullYear()).slice(-2);
+  const mm = String(examDate.getMonth() + 1).padStart(2, "0");
+  const dd = String(examDate.getDate()).padStart(2, "0");
+  const patNr = String(exam.patient_nr ?? 0).padStart(4, "0");
+  const docxFilename = `${yy}${mm}${dd}_FEES-Bericht_${patNr}.docx`;
+
   const statusLabel = exam.status === "erstdiagnostik" ? "Erstbefund" : "Verlaufskontrolle";
   const rassLabel = RASS_OPTIONS.find((o) => o.value === exam.rass_score)?.label ?? String(exam.rass_score);
   const bodsI = nativ?.bods_saliva;
   const bodsII = exam.bods_nutrition;
   const bodsTotal = bodsI != null && bodsII != null ? bodsI + bodsII : null;
+
+  const authorName = [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") || "Logopädie";
+  const authorTitle = profile?.title || "";
+
+  // ============================================================
+  // Kopfzeile (erscheint auf jeder Seite)
+  // ============================================================
+
+  const pageHeader = new Header({
+    children: [
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: `FEES-Bericht  |  Patient-ID: ${patNr}  |  ${dateFormatted}`,
+            font: FONT,
+            size: 18, // 9pt
+            color: "888888",
+          }),
+        ],
+        spacing: { after: 0 },
+      }),
+    ],
+  });
 
   // ============================================================
   // Dokument aufbauen
@@ -261,58 +337,51 @@ export async function POST(req: NextRequest) {
         text: "Funktionelle endoskopische (Kontroll-) Untersuchung des Schluckaktes",
         font: FONT, size: SIZE_TITLE, bold: true,
       })],
-      spacing: { after: 240 },
+      spacing: { after: SP_AFTER_SECTION },
     })
   );
 
   // --- Patient/in (Platzhalter, nie vorausgefüllt) ---
-  children.push(
-    new Paragraph({
-      children: [
-        new TextRun({ text: "Patient/in: ", font: FONT, size: SIZE_BODY, bold: true }),
-        new TextRun({ text: displayName, font: FONT, size: SIZE_BODY }),
-      ],
-      spacing: { after: SP_AFTER },
-    })
-  );
+  children.push(labelRow("Patient/in", displayName));
   children.push(gap());
 
-  // --- Kopfdaten ---
-  children.push(bullet(`Status: ${statusLabel} vom ${dateFormatted}`));
-  children.push(bullet(`RASS (Richmond Agitation Sedation Scale): ${rassLabel}`));
-  if (exam.communication) {
-    children.push(bullet(`Kommunikation/Verständigung: ${exam.communication}`));
+  // --- Stammdaten ---
+  children.push(labelRow("Status", `${statusLabel} vom ${dateFormatted}`));
+  children.push(labelRow("RASS", rassLabel));
+  if (exam.communication) children.push(labelRow("Verständigung", exam.communication));
+  children.push(labelRow("Trachealkanüle", exam.has_tracheostomy ? "Ja" : "Nein"));
+  if (exam.has_tracheostomy) {
+    if (exam.cannula_type) children.push(labelRow("Kanülentyp", exam.cannula_type));
+    if (exam.cuff_status) children.push(labelRow("Cuff-Status", exam.cuff_status === "geblockt" ? "Geblockt" : "Entblockt"));
+    if (exam.speaking_valve) children.push(labelRow("Sprechventil", exam.speaking_valve === "vorhanden" ? "Vorhanden" : "Nicht vorhanden"));
   }
-  children.push(bullet(`Trachealkanüle: ${exam.has_tracheostomy ? "Ja" : "Nein"}`));
-  if (exam.procedure_description) {
-    children.push(bullet(`Angewandtes Verfahren: ${exam.procedure_description}`));
-  }
+  if (exam.procedure_description) children.push(labelRow("Verfahren", exam.procedure_description));
   children.push(gap());
 
   // --- Medizinische Diagnose + Anamnese ---
   if (exam.medical_diagnosis || exam.dysphagia_question || exam.medical_history) {
     children.push(heading("Medizinische Diagnose / Anamnese"));
-    if (exam.medical_diagnosis) children.push(bullet(`Diagnose: ${exam.medical_diagnosis}`));
-    if (exam.dysphagia_question) children.push(bullet(`Fragestellung: ${exam.dysphagia_question}`));
-    if (exam.medical_history) children.push(bullet(`Vorerkrankungen/Ausgangslage: ${exam.medical_history}`));
+    if (exam.medical_diagnosis) children.push(labelRow("Diagnose", exam.medical_diagnosis));
+    if (exam.dysphagia_question) children.push(labelRow("Fragestellung", exam.dysphagia_question));
+    if (exam.medical_history) children.push(labelRow("Vorerkrankungen", exam.medical_history));
     children.push(gap());
   }
 
   // --- Nativbefund transstomatal (nur bei TK) ---
-  if (exam.has_tracheostomy) {
+  if (exam.has_tracheostomy && nativ) {
     children.push(heading("Inspektion/Nativbefund transstomatal"));
-    children.push(body("(Befund transstomatal – bitte manuell ergänzen)", { italic: true }));
+    children.push(...transstomatalRows(nativ));
     children.push(gap());
   }
 
   // --- Nativbefund ---
   if (nativ) {
     children.push(heading("Inspektion/Nativbefund"));
-    children.push(...nativbefundBullets(nativ));
+    children.push(...nativbefundRows(nativ));
     children.push(gap());
 
     // Phonationskontrolle
-    const phonation = phonationBullets(nativ);
+    const phonation = phonationRows(nativ);
     if (phonation) {
       children.push(heading("Phonationskontrolle"));
       children.push(...phonation);
@@ -322,7 +391,7 @@ export async function POST(req: NextRequest) {
     // Langmore
     if (nativ.langmore_score != null) {
       children.push(heading("Graduierung der hypopharyngealen Speichelansammlung (Langmore 2001)"));
-      children.push(bullet(LANGMORE_LABELS[nativ.langmore_score as number] ?? `Grad ${nativ.langmore_score}`));
+      children.push(labelRow("Grad", LANGMORE_LABELS[nativ.langmore_score as number] ?? `Grad ${nativ.langmore_score}`));
       children.push(gap());
     }
   }
@@ -355,15 +424,7 @@ export async function POST(req: NextRequest) {
   children.push(heading("Befund/Zusammenfassende Beurteilung"));
 
   if (bodsTotal != null) {
-    children.push(
-      new Paragraph({
-        children: [new TextRun({
-          text: `BODS I (Score ${bodsI}) + BODS II (Score ${bodsII}) = ${bodsTotal}`,
-          font: FONT, size: SIZE_BODY, bold: true,
-        })],
-        spacing: { after: SP_AFTER },
-      })
-    );
+    children.push(labelRow("BODS-Score", `BODS I: ${bodsI}  |  BODS II: ${bodsII}  |  Gesamt: ${bodsTotal}`));
   }
 
   if (exam.assessment_text) {
@@ -371,7 +432,6 @@ export async function POST(req: NextRequest) {
   } else {
     children.push(body("(Beurteilungstext – bitte KI-Beurteilung generieren oder manuell ergänzen)", { italic: true }));
   }
-
   if (exam.pathophysiology_text) {
     children.push(body(exam.pathophysiology_text));
   }
@@ -379,24 +439,18 @@ export async function POST(req: NextRequest) {
 
   // --- Kostformempfehlung ---
   children.push(heading("Kostformempfehlung"));
-  const kostParts: string[] = [];
-  if (exam.dys_level) kostParts.push(`DYS ${exam.dys_level}`);
+  if (exam.dys_level) children.push(labelRow("Kost (DYS)", exam.dys_level));
   if (exam.iddsi_level != null) {
-    kostParts.push(IDDSI_LABELS[exam.iddsi_level as number] ?? `IDDSI Level ${exam.iddsi_level}`);
-  }
-  if (kostParts.length) {
-    children.push(bullet(`Kost: ${kostParts.join(" / ")}`));
+    children.push(labelRow("Kost (IDDSI)", IDDSI_LABELS[exam.iddsi_level as number] ?? `IDDSI Level ${exam.iddsi_level}`));
   }
   if (exam.beverage_iddsi != null) {
-    children.push(bullet(`Getränke: ${BEVERAGE_LABELS[exam.beverage_iddsi as number] ?? `IDDSI ${exam.beverage_iddsi}`}`));
+    children.push(labelRow("Getränke", BEVERAGE_LABELS[exam.beverage_iddsi as number] ?? `IDDSI ${exam.beverage_iddsi}`));
   }
-  if (!kostParts.length && exam.beverage_iddsi == null) {
-    children.push(bullet("(Kostformempfehlung – bitte manuell ergänzen)", ));
+  if (!exam.dys_level && exam.iddsi_level == null && exam.beverage_iddsi == null) {
+    children.push(body("(Kostformempfehlung – bitte manuell ergänzen)", { italic: true }));
   }
-
-  // TK-Empfehlung
   if (exam.has_tracheostomy && exam.tracheostomy_recommendation) {
-    children.push(bullet(`Trachealkanüle: ${exam.tracheostomy_recommendation}`));
+    children.push(labelRow("Trachealkanüle", exam.tracheostomy_recommendation));
   }
   children.push(gap());
 
@@ -413,7 +467,7 @@ export async function POST(req: NextRequest) {
       children.push(bullet(item));
     }
   } else {
-    children.push(bullet("(Therapieempfehlungen – bitte manuell ergänzen)", ));
+    children.push(body("(Therapieempfehlungen – bitte manuell ergänzen)", { italic: true }));
   }
   children.push(gap());
   children.push(gap());
@@ -423,14 +477,8 @@ export async function POST(req: NextRequest) {
   children.push(gap());
   children.push(body("Mit freundlichen Grüßen"));
   children.push(gap());
-  children.push(gap());
-  children.push(
-    new Paragraph({
-      children: [new TextRun({ text: "________________________________", font: FONT, size: SIZE_BODY })],
-      spacing: { after: SP_AFTER },
-    })
-  );
-  children.push(body("Logopädie", { italic: true }));
+  children.push(body(authorName));
+  if (authorTitle) children.push(body(authorTitle, { italic: true }));
 
   // ============================================================
   // DOCX generieren
@@ -439,7 +487,12 @@ export async function POST(req: NextRequest) {
   const doc = new Document({
     sections: [{
       properties: {
-        page: { margin: PAGE_MARGIN },
+        page: {
+          margin: { top: 1417, bottom: 1417, left: 1134, right: 1134 },
+        },
+      },
+      headers: {
+        default: pageHeader,
       },
       children,
     }],
@@ -451,7 +504,7 @@ export async function POST(req: NextRequest) {
     status: 200,
     headers: {
       "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      "Content-Disposition": `attachment; filename="FEES-Bericht.docx"`,
+      "Content-Disposition": `attachment; filename="${docxFilename}"`,
     },
   });
 }

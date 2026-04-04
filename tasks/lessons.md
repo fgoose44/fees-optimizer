@@ -51,5 +51,17 @@ BODS I (Speichelbewältigung) und BODS II (Ernährungsstatus) sind beide 1–8 S
 ## Bedingte Blöcke: has_tracheostomy aus examinations in befund laden
 Die `befund`-Seite lädt `has_tracheostomy` aus der `examinations`-Tabelle, um den transstomatal-Block bedingt anzuzeigen. Neue Seiten, die patientenspezifische Felder brauchen, müssen ähnlich vorgehen.
 
+## DOCX Tab-Stop-Zeilen mit docx-js
+Tab-Stop-Zeilen (Label + Wert in zwei Spalten) in docx-js: `tabStops: [{ type: TabStopType.LEFT, position: 3500 }]` im Paragraph, dann `children: [TextRun(label), TextRun({ children: [new Tab()] }), TextRun(value)]`. Position 3500 DXA ≈ 6 cm.
+
+## DOCX-Seitenkopf auf jeder Seite (docx-js)
+`Header` aus `docx` importieren. Im `Document`-Konstruktor: `sections: [{ properties: {}, headers: { default: pageHeader }, children: [...] }]`. Der Header muss VOR dem Body-Content als Section-Property gesetzt werden, nicht danach.
+
+## router.refresh() vor router.push() bei Navigation
+Nach `handleSave` in Examination-Seiten: `router.refresh()` vor `router.push()` aufrufen, damit Next.js den App-Router-Cache invalidiert und die nächste Seite frische Daten lädt. Ohne `refresh()` kann es passieren, dass beim Zurücknavigieren veraltete (leere) Daten angezeigt werden.
+
+## Fehlende Route als Ursache für Navigations-Bug
+Wenn eine Route in `ExaminationNav` verlinkt wird (z.B. `/stammdaten`), aber keine `page.tsx` existiert, führt das zu einem 404 und kann den App-Router-Cache korrumpieren. Neue Nav-Links immer sofort mit einer Seite hinterlegen.
+
 ## MCP-Setup: Stitch + Claude Desktop
 MCP-Server in `~/Library/Application Support/Claude/claude_desktop_config.json` unter `mcpServers` eintragen (`command`, `args`, ggf. `env`). npx-basierte MCPs brauchen Node.js im PATH — bei nvm: sicherstellen dass `~/.zshrc` den nvm-Pfad setzt und Claude Desktop nach Shell-Login startet. Stitch MCP: Design-System vor Screen-Generierung anlegen (`create_design_system`), damit Farben mit `tailwind.config.ts` übereinstimmen.

@@ -9,6 +9,7 @@ export default function AccountPage() {
   const router = useRouter();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [title, setTitle] = useState("");
   const [email, setEmail] = useState("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -24,13 +25,14 @@ export default function AccountPage() {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("first_name, last_name")
+        .select("first_name, last_name, title")
         .eq("id", user.id)
         .maybeSingle();
 
       if (profile) {
         setFirstName(profile.first_name ?? "");
         setLastName(profile.last_name ?? "");
+        setTitle(profile.title ?? "");
       }
     }
     load();
@@ -48,7 +50,7 @@ export default function AccountPage() {
     const { error: dbError } = await supabase
       .from("profiles")
       .upsert(
-        { id: user.id, first_name: firstName.trim() || null, last_name: lastName.trim() || null, updated_at: new Date().toISOString() },
+        { id: user.id, first_name: firstName.trim() || null, last_name: lastName.trim() || null, title: title.trim() || null, updated_at: new Date().toISOString() },
         { onConflict: "id" }
       );
 
@@ -107,6 +109,16 @@ export default function AccountPage() {
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
               placeholder="z.B. Müller"
+              className="w-full bg-surface-container-highest border border-[#e5e7eb] focus:border-primary focus:outline-none px-3 py-2.5 text-sm rounded-lg text-on-surface placeholder:text-outline/60 transition-colors"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="block text-sm font-medium text-on-surface-variant">Titel / Funktion</label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="z.B. Logopädin B.Sc., fachliche Leitung"
               className="w-full bg-surface-container-highest border border-[#e5e7eb] focus:border-primary focus:outline-none px-3 py-2.5 text-sm rounded-lg text-on-surface placeholder:text-outline/60 transition-colors"
             />
           </div>

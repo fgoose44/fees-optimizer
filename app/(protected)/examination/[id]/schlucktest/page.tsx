@@ -395,6 +395,7 @@ export default function SchlucktestPage() {
     }
 
     const qs = patientName ? `?patientName=${encodeURIComponent(patientName)}` : "";
+    router.refresh();
     router.push(`/examination/${id}/export${qs}`);
   }
 

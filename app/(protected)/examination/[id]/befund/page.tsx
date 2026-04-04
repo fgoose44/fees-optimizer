@@ -354,6 +354,7 @@ export default function BefundPage() {
     }
 
     const qs = patientName ? `?patientName=${encodeURIComponent(patientName)}` : "";
+    router.refresh();
     router.push(`/examination/${id}/schlucktest${qs}`);
   }
 
