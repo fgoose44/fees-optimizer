@@ -825,27 +825,49 @@ export default function BefundPage() {
           <h3 className="text-xs font-bold text-primary tracking-widest uppercase font-label">
             BODS I — SPEICHELBEWÄLTIGUNG
           </h3>
-          <span className="text-xs text-on-surface-variant">0–3</span>
+          <span className="text-xs text-on-surface-variant">1–8</span>
         </div>
-        {/* Legende */}
+
+        {/* Legende mit Gruppierung nach TK-Status */}
         <div className="space-y-1">
+          {/* Gruppe: ohne TK (1–3) */}
+          <p className={`text-[10px] font-bold uppercase tracking-widest mt-1 ${hasTracheostomy ? "text-outline/50" : "text-on-surface-variant"}`}>
+            Ohne Trachealkanüle
+          </p>
           {[
-            { score: 0, desc: "Kein Speichelmanagement nötig" },
-            { score: 1, desc: "Gelegentliches Abwischen" },
-            { score: 2, desc: "Häufiges Abwischen / Absaugen nötig" },
-            { score: 3, desc: "Kontinuierliches Absaugen, orale Sekretmenge nicht beherrschbar" },
+            { score: 1, desc: "Keine Störung: effizientes Speichelschlucken" },
+            { score: 2, desc: "Leichte Störung: ineffizient, gelegentlich gurgelnder Stimmklang / Expektoration (>1 Std.)" },
+            { score: 3, desc: "Mäßige Störung: ineffizient, häufig gurgelnder Stimmklang / Expektoration (<1 Std.)" },
           ].map(({ score, desc }) => (
-            <p key={score} className="text-[11px] text-on-surface-variant">
+            <p key={score} className={`text-[11px] transition-opacity ${hasTracheostomy ? "opacity-40" : "text-on-surface-variant"}`}>
+              <span className="font-bold text-on-surface">{score}</span> — {desc}
+            </p>
+          ))}
+
+          {/* Gruppe: mit TK (4–8) */}
+          <p className={`text-[10px] font-bold uppercase tracking-widest mt-2 ${!hasTracheostomy ? "text-outline/50" : "text-on-surface-variant"}`}>
+            Mit Trachealkanüle
+          </p>
+          {[
+            { score: 4, desc: "Mittelschwere Störung: TK dauerhaft entblockt oder Sprechkanüle/Platzhalter" },
+            { score: 5, desc: "Mittelschwere Störung: TK länger entblockt (>12–24 Std.)" },
+            { score: 6, desc: "Schwere Störung: TK länger entblockt (>1 Std., ≤12 Std.)" },
+            { score: 7, desc: "Schwere Störung: TK kurzzeitig entblockt (≤1 Std.)" },
+            { score: 8, desc: "Schwerste Störung: TK dauerhaft geblockt" },
+          ].map(({ score, desc }) => (
+            <p key={score} className={`text-[11px] transition-opacity ${!hasTracheostomy ? "opacity-40" : "text-on-surface-variant"}`}>
               <span className="font-bold text-on-surface">{score}</span> — {desc}
             </p>
           ))}
         </div>
+
+        {/* Slider */}
         <div className="flex items-center gap-3">
           <div className="flex-1">
             <input
               type="range"
-              min={0}
-              max={3}
+              min={1}
+              max={8}
               value={data.bods_saliva ?? suggestedBods}
               onChange={(e) => {
                 setBodsOverride(true);
@@ -854,21 +876,22 @@ export default function BefundPage() {
               className="w-full accent-primary"
             />
             <div className="flex justify-between text-[10px] text-outline mt-0.5 px-0.5">
-              {[0, 1, 2, 3].map((n) => (
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
                 <span key={n}>{n}</span>
               ))}
             </div>
           </div>
           <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-extrabold text-lg ${
-            (data.bods_saliva ?? suggestedBods) <= 1
+            (data.bods_saliva ?? suggestedBods) <= 2
               ? "bg-secondary-container text-secondary"
-              : (data.bods_saliva ?? suggestedBods) === 2
+              : (data.bods_saliva ?? suggestedBods) <= 5
               ? "bg-primary-fixed text-primary"
               : "bg-tertiary-fixed text-tertiary"
           }`}>
             {data.bods_saliva ?? suggestedBods}
           </div>
         </div>
+
         {bodsOverride && (
           <button
             type="button"

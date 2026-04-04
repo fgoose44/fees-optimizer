@@ -797,15 +797,19 @@ export default function SchlucktestPage() {
             <p className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">
               BODS II — Ernährungsstatus
             </p>
-            <span className="text-xs text-on-surface-variant">0–3</span>
+            <span className="text-xs text-on-surface-variant">1–8</span>
           </div>
           {/* Legende */}
           <div className="space-y-1 mb-3">
             {[
-              { score: 0, desc: "Vollständige orale Ernährung möglich" },
-              { score: 1, desc: "Orale Ernährung mit Einschränkungen" },
-              { score: 2, desc: "Orale Ernährung mit erheblichen Einschränkungen / supplementär" },
-              { score: 3, desc: "Keine orale Ernährung möglich" },
+              { score: 1, desc: "Voll oral ohne Einschränkung" },
+              { score: 2, desc: "Voll oral mit geringen Einschränkungen: mehrere Konsistenzen ohne Kompensation oder Kompensation ohne Diäteinschränkung" },
+              { score: 3, desc: "Voll oral mit mäßigen Einschränkungen: mehrere Konsistenzen mit Kompensation" },
+              { score: 4, desc: "Voll oral mit gravierenden Einschränkungen: nur eine Konsistenz mit oder ohne Kompensation" },
+              { score: 5, desc: "Überwiegend oral, ergänzend Sonde/parenteral" },
+              { score: 6, desc: "Partiell oral (>10 TL täglich), überwiegend Sonde/parenteral" },
+              { score: 7, desc: "Geringfügig oral (≤10 TL täglich), hauptsächlich Sonde/parenteral" },
+              { score: 8, desc: "Ausschließlich Sonde/parenteral" },
             ].map(({ score, desc }) => (
               <p key={score} className="text-[11px] text-on-surface-variant">
                 <span className="font-bold text-on-surface">{score}</span> — {desc}
@@ -816,8 +820,8 @@ export default function SchlucktestPage() {
             <div className="flex-1">
               <input
                 type="range"
-                min={0}
-                max={3}
+                min={1}
+                max={8}
                 value={summary.bods_nutrition ?? suggestedBodsII}
                 onChange={(e) => {
                   setBodsOverride(true);
@@ -826,16 +830,16 @@ export default function SchlucktestPage() {
                 className="w-full accent-primary"
               />
               <div className="flex justify-between text-[10px] text-outline mt-0.5 px-0.5">
-                {[0, 1, 2, 3].map((n) => (
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
                   <span key={n}>{n}</span>
                 ))}
               </div>
             </div>
             <div
               className={`w-10 h-10 rounded-xl flex items-center justify-center font-extrabold text-lg ${
-                (summary.bods_nutrition ?? suggestedBodsII) <= 1
+                (summary.bods_nutrition ?? suggestedBodsII) <= 2
                   ? "bg-secondary-container text-secondary"
-                  : (summary.bods_nutrition ?? suggestedBodsII) === 2
+                  : (summary.bods_nutrition ?? suggestedBodsII) <= 5
                   ? "bg-primary-fixed text-primary"
                   : "bg-tertiary-fixed text-tertiary"
               }`}

@@ -42,8 +42,8 @@ Alle Examination-Seiten (befund, schlucktest, export) laden per useEffect alle r
 ## patient_nr: immer aus DB laden, nie als URL-Param
 patient_nr wird in jeder Examination-Seite direkt aus `examinations` geladen. Neue Seiten müssen das ebenfalls tun. Nur `new/page.tsx` hat noch keinen patient_nr vor dem ersten Speichern → zeigt patientName als Fallback.
 
-## BODS I + II: Skala ist 0–3, nicht 1–8
-Bogenhausener Dysphagie Score hat zwei Subskalen (Speichel, Ernährung), beide 0–3. Die ursprüngliche 1–8-Implementierung war falsch. Auto-Suggest-Funktionen in `lib/bods.ts` und Slider-Range in `befund/page.tsx` / `schlucktest/page.tsx` müssen 0–3 reflektieren.
+## BODS I + II: Skala ist 1–8 (Quelle: Bartolome & Schröter-Morasch, 2006)
+BODS I (Speichelbewältigung) und BODS II (Ernährungsstatus) sind beide 1–8 Skalen, Gesamtscore 2–16. Stufen 1–3 von BODS I sind nur ohne TK relevant, Stufen 4–8 nur mit TK. Slider-Range in `befund/page.tsx` (BODS I) und `schlucktest/page.tsx` (BODS II) immer `min=1 max=8`.
 
 ## Langmore-Autovorschlag: beide Retentions-Blöcke auslesen
 `suggestLangmore()` in `befund/page.tsx` liest `valleculae.selected` UND `sinus_piriformes.selected`. Wenn Valleculae und Sinus getrennte Blöcke sind, müssen Änderungen an der Retention-Logik immer beide Blöcke berücksichtigen.
