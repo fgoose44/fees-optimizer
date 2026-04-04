@@ -201,7 +201,7 @@ function nativbefundRows(n: any): Paragraph[] {
     addRow("Sinus piriformes", n.sinus_piriformes, n.sinus_piriformes_side);
   }
   if (!n.valleculae?.length && !n.sinus_piriformes?.length) {
-    items.push(labelRow("Valleculae/Sinus pir.", ["keine Retentionen"]));
+    items.push(labelRow("Valleculae/Sinus pir.", "keine Retentionen"));
   }
 
   if (n.cough_reflex) items.push(labelRow("Hustenstoß spontan", n.cough_reflex));
