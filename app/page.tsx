@@ -33,35 +33,28 @@ export default async function LandingPage() {
         {/* CSS-Fallback (sofort sichtbar, immer auf Mobile) */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary-fixed via-primary-fixed-dim to-primary-container/30" />
 
-        {/* ShaderGradient — nur Desktop, lädt async; scale-125 schiebt Kanten hinter overflow:hidden */}
-        <div className="absolute inset-0 hidden md:block scale-150">
+        {/* ShaderGradient — nur Desktop, lädt async; fov=10 füllt Plane vollständig */}
+        <div className="absolute inset-0 hidden md:block">
           <ShaderBackground />
         </div>
 
-        {/* Overlay: Gradient von unten — Text lesbar, Gradient oben sichtbar */}
-        <div className="absolute inset-0 bg-gradient-to-t from-white via-white/60 to-transparent" />
+        {/* Overlay: minimaler Farbübergang nach unten für Sektionsübergang */}
+        <div className="absolute inset-0 bg-gradient-to-t from-white/30 via-transparent to-transparent" />
 
         {/* Hero-Content */}
         <div className="relative z-10 pt-36 pb-28 px-6 max-w-4xl mx-auto">
           {/* Overline */}
-          <p className="font-label text-xs font-semibold tracking-[0.2em] uppercase text-secondary mb-5">
+          <p className="font-label text-xs font-semibold tracking-[0.2em] uppercase text-white/80 mb-5">
             Für Logopädinnen in der Schluckdiagnostik
           </p>
 
           {/* Headline */}
           <h1
-            className="font-headline font-bold leading-[1.05] tracking-tight text-on-surface mb-8"
+            className="font-headline font-bold leading-[1.05] tracking-tight text-white mb-8"
             style={{ fontSize: "clamp(2.5rem, 6vw, 4rem)", letterSpacing: "-0.025em" }}
           >
             FEES-Bericht in{" "}
-            <span
-              style={{
-                background: "linear-gradient(135deg, #005280 0%, #106ba3 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
-              }}
-            >
+            <span className="text-primary-fixed">
               10 Minuten
             </span>
             <br />
@@ -69,7 +62,7 @@ export default async function LandingPage() {
           </h1>
 
           {/* Subheadline */}
-          <p className="font-body text-lg text-on-surface-variant max-w-2xl leading-relaxed mb-10">
+          <p className="font-body text-lg text-white/70 max-w-2xl leading-relaxed mb-10">
             Strukturierte Eingabe, KI-Beurteilung, fertiger DOCX-Bericht —
             direkt nach der Untersuchung.
           </p>
@@ -88,7 +81,7 @@ export default async function LandingPage() {
             </Link>
             <a
               href="#how-it-works"
-              className="font-body text-sm font-medium text-primary hover:text-primary-container transition-colors"
+              className="font-body text-sm font-medium text-white hover:text-white/80 transition-colors"
             >
               So funktioniert&apos;s ↓
             </a>

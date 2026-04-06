@@ -13,9 +13,9 @@ export default function ShaderBackgroundInner() {
         animate="on"
         axesHelper="off"
         brightness={1}
-        cAzimuthAngle={202}
+        cAzimuthAngle={201}
         cDistance={14}
-        cPolarAngle={95}
+        cPolarAngle={76}
         cameraZoom={5}
         color1="#95CCFF"
         color2="#106BA3"
@@ -24,7 +24,7 @@ export default function ShaderBackgroundInner() {
         embedMode="off"
         envPreset="city"
         format="gif"
-        fov={40}
+        fov={10}
         frameRate={10}
         gizmoHelper="hide"
         grain="off"
