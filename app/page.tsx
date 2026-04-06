@@ -33,16 +33,19 @@ export default async function LandingPage() {
         {/* CSS-Fallback (sofort sichtbar, immer auf Mobile) */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary-fixed via-primary-fixed-dim to-primary-container/30" />
 
-        {/* ShaderGradient — nur Desktop, lädt async; inset-[-20%] schiebt Kanten hinter overflow:hidden */}
-        <div className="absolute inset-[-20%] w-[140%] h-[140%] hidden md:block">
+        {/* ShaderGradient — nur Desktop, lädt async; 200% Canvas schiebt Kanten weit hinter overflow:hidden */}
+        <div className="absolute inset-[-50%] w-[200%] h-[200%] hidden md:block">
           <ShaderBackground />
         </div>
 
-        {/* Overlay: minimaler Farbübergang nach unten für Sektionsübergang */}
-        <div className="absolute inset-0 bg-gradient-to-t from-white/30 via-transparent to-transparent" />
+        {/* Vignette — kaschiert verbleibende Kanten mit weichem Inset-Shadow */}
+        <div className="absolute inset-0 z-[1] pointer-events-none shadow-[inset_0_0_80px_40px_rgba(255,255,255,0.8)]" />
+
+        {/* Overlay: Farbübergang nach unten für Sektionsübergang */}
+        <div className="absolute inset-0 z-[2] bg-gradient-to-t from-white/30 via-transparent to-transparent" />
 
         {/* Hero-Content */}
-        <div className="relative z-10 pt-36 pb-28 px-6 max-w-4xl mx-auto">
+        <div className="relative z-[3] pt-36 pb-28 px-6 max-w-4xl mx-auto">
           {/* Overline */}
           <p className="font-label text-xs font-semibold tracking-[0.2em] uppercase text-white/80 mb-5">
             Für Logopädinnen in der Schluckdiagnostik
