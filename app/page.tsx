@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
+import ShaderBackground from "@/components/landing/ShaderBackground";
 
 export default async function LandingPage() {
   const supabase = await createClient();
@@ -27,56 +28,71 @@ export default async function LandingPage() {
       </nav>
 
       {/* ── SECTION 1: HERO ────────────────────────────────────────── */}
-      <section className="pt-36 pb-28 px-6 max-w-4xl mx-auto">
-        {/* Overline */}
-        <p className="font-label text-xs font-semibold tracking-[0.2em] uppercase text-secondary mb-5">
-          Für Logopädinnen in der Schluckdiagnostik
-        </p>
+      <section className="relative min-h-[600px] overflow-hidden">
 
-        {/* Headline */}
-        <h1
-          className="font-headline font-bold leading-[1.05] tracking-tight text-on-surface mb-8"
-          style={{ fontSize: "clamp(2.5rem, 6vw, 4rem)", letterSpacing: "-0.025em" }}
-        >
-          FEES-Bericht in{" "}
-          <span
-            style={{
-              background: "linear-gradient(135deg, #005280 0%, #0369a1 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-            }}
-          >
-            10 Minuten
-          </span>
-          <br />
-          statt 2 Stunden.
-        </h1>
+        {/* CSS-Fallback (sofort sichtbar, immer auf Mobile) */}
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-blue-100 to-blue-200" />
 
-        {/* Subheadline */}
-        <p className="font-body text-lg text-on-surface-variant max-w-2xl leading-relaxed mb-10">
-          Strukturierte Eingabe, KI-Beurteilung, fertiger DOCX-Bericht —
-          direkt nach der Untersuchung.
-        </p>
+        {/* ShaderGradient — nur Desktop, lädt async */}
+        <div className="absolute inset-0 hidden md:block">
+          <ShaderBackground />
+        </div>
 
-        {/* CTAs */}
-        <div className="flex flex-wrap items-center gap-4">
-          <Link
-            href="/login"
-            className="inline-flex items-center justify-center px-8 min-h-[48px] rounded-card font-headline font-bold text-sm text-on-primary transition-opacity hover:opacity-90"
-            style={{
-              background: "linear-gradient(135deg, #005280 0%, #0369a1 100%)",
-              boxShadow: "0 4px 24px rgba(0, 82, 128, 0.28)",
-            }}
+        {/* Overlay: Gradient von unten — Gradient oben sichtbar, Text unten lesbar */}
+        <div className="absolute inset-0 bg-gradient-to-t from-white via-white/75 to-white/20" />
+
+        {/* Hero-Content */}
+        <div className="relative z-10 pt-36 pb-28 px-6 max-w-4xl mx-auto">
+          {/* Overline */}
+          <p className="font-label text-xs font-semibold tracking-[0.2em] uppercase text-secondary mb-5">
+            Für Logopädinnen in der Schluckdiagnostik
+          </p>
+
+          {/* Headline */}
+          <h1
+            className="font-headline font-bold leading-[1.05] tracking-tight text-on-surface mb-8"
+            style={{ fontSize: "clamp(2.5rem, 6vw, 4rem)", letterSpacing: "-0.025em" }}
           >
-            Jetzt kostenlos testen
-          </Link>
-          <a
-            href="#how-it-works"
-            className="font-body text-sm font-medium text-primary hover:text-primary-container transition-colors"
-          >
-            So funktioniert&apos;s ↓
-          </a>
+            FEES-Bericht in{" "}
+            <span
+              style={{
+                background: "linear-gradient(135deg, #005280 0%, #0369a1 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              10 Minuten
+            </span>
+            <br />
+            statt 2 Stunden.
+          </h1>
+
+          {/* Subheadline */}
+          <p className="font-body text-lg text-on-surface-variant max-w-2xl leading-relaxed mb-10">
+            Strukturierte Eingabe, KI-Beurteilung, fertiger DOCX-Bericht —
+            direkt nach der Untersuchung.
+          </p>
+
+          {/* CTAs */}
+          <div className="flex flex-wrap items-center gap-4">
+            <Link
+              href="/login"
+              className="inline-flex items-center justify-center px-8 min-h-[48px] rounded-card font-headline font-bold text-sm text-on-primary transition-opacity hover:opacity-90"
+              style={{
+                background: "linear-gradient(135deg, #005280 0%, #0369a1 100%)",
+                boxShadow: "0 4px 24px rgba(0, 82, 128, 0.28)",
+              }}
+            >
+              Jetzt kostenlos testen
+            </Link>
+            <a
+              href="#how-it-works"
+              className="font-body text-sm font-medium text-primary hover:text-primary-container transition-colors"
+            >
+              So funktioniert&apos;s ↓
+            </a>
+          </div>
         </div>
       </section>
 

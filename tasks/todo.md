@@ -44,10 +44,21 @@ Phase 8 umfasste (4 Punkte):
 
 ---
 
+### Phase 10 — ShaderGradient Hero-Hintergrund ✅ (2026-04-06)
+
+- [x] [A] Dependencies: `@shadergradient/react three @react-three/fiber` installiert
+- [x] [B] `components/landing/ShaderBackgroundInner.tsx` (Client, @ts-nocheck + eslint-disable) + `ShaderBackground.tsx` (dynamic wrapper, ssr:false)
+- [x] [C] Hero-Section umgebaut: relative Container, CSS-Fallback, Shader-Layer, Gradient-Overlay from-white, Content z-10
+- [x] [D] Overlay `bg-gradient-to-t from-white via-white/75 to-white/20` — Text lesbar, Gradient oben sichtbar
+- [x] [E] Mobile: `hidden md:block` — ShaderGradient nur ≥768px, CSS-Fallback immer aktiv
+- [x] [F] Build lokal geprüft ✓, deployed
+
+---
+
 ## Offen — Backlog
 
 - [ ] Stammdaten editierbar für gespeicherte Untersuchungen (aktuell nur read-only)
 - [ ] Passwort-Änderung für User (/account Seite erweitern)
 
 ---
-_Zuletzt aktualisiert: 2026-04-06 — Phase 9 abgeschlossen_
+_Zuletzt aktualisiert: 2026-04-06 — Phase 10 abgeschlossen_
