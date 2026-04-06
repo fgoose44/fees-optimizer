@@ -48,10 +48,11 @@ Phase 8 umfasste (4 Punkte):
 
 - [x] [A] Dependencies: `@shadergradient/react three @react-three/fiber` installiert
 - [x] [B] `components/landing/ShaderBackgroundInner.tsx` (Client, @ts-nocheck + eslint-disable) + `ShaderBackground.tsx` (dynamic wrapper, ssr:false)
-- [x] [C] Hero-Section umgebaut: relative Container, CSS-Fallback, Shader-Layer, Gradient-Overlay from-white, Content z-10
-- [x] [D] Overlay `bg-gradient-to-t from-white via-white/75 to-white/20` — Text lesbar, Gradient oben sichtbar
-- [x] [E] Mobile: `hidden md:block` — ShaderGradient nur ≥768px, CSS-Fallback immer aktiv
-- [x] [F] Build lokal geprüft ✓, deployed
+- [x] [C] Hero-Section umgebaut: relative Container, CSS-Fallback, Shader-Layer, Gradient-Overlay, Content z-10
+- [x] [D] Mobile: `hidden md:block` — ShaderGradient nur ≥768px, CSS-Fallback immer aktiv
+- [x] [E] Kantenfix: `scale-150` auf Canvas-Container; CSS-Fallback auf primary-fixed-Töne (nahtloser Übergang)
+- [x] [F] Design-System-Audit: 6 Abweichungen korrigiert (Footer border-t, CTA-Gradient, Accent Bar, Fallback-Farben, rounded-card, py-20)
+- [x] [G] Build lokal geprüft ✓, deployed
 
 ---
 
@@ -61,4 +62,4 @@ Phase 8 umfasste (4 Punkte):
 - [ ] Passwort-Änderung für User (/account Seite erweitern)
 
 ---
-_Zuletzt aktualisiert: 2026-04-06 — Phase 10 abgeschlossen_
+_Zuletzt aktualisiert: 2026-04-06 — Phase 10 abgeschlossen, Design-Audit + ShaderGradient-Bugfixes_

@@ -63,5 +63,23 @@ Nach `handleSave` in Examination-Seiten: `router.refresh()` vor `router.push()` 
 ## Fehlende Route als Ursache für Navigations-Bug
 Wenn eine Route in `ExaminationNav` verlinkt wird (z.B. `/stammdaten`), aber keine `page.tsx` existiert, führt das zu einem 404 und kann den App-Router-Cache korrumpieren. Neue Nav-Links immer sofort mit einer Seite hinterlegen.
 
+## ShaderGradient / Three.js in Next.js App Router
+`@shadergradient/react` braucht zwingend `ssr: false` via `next/dynamic`. Die Komponente selbst mit `// @ts-nocheck` und `/* eslint-disable */` markieren, da die Props-Typen unvollständig sind (z.B. `axesHelper` fehlt). Struktur: `ShaderBackgroundInner.tsx` (Client Component mit den Props) + `ShaderBackground.tsx` (dynamic wrapper).
+
+## ShaderGradient: Canvas-Kanten bei animierten Planes
+`type="plane"` rendert eine endliche 3D-Ebene — bei Animation rotiert sie aus dem sichtbaren Bereich und zeigt Kanten gegen den Hintergrund. Fix: Canvas-Container mit `scale-150` skalieren; der Parent mit `overflow-hidden` schneidet die Ränder ab. `scale-125` reicht für statische Ansicht, aber nicht für alle Rotationsphasen der Animation.
+
+## ShaderGradient: CSS-Fallback farblich an WebGL angleichen
+Den CSS-Fallback-Gradient (der vor/ohne WebGL sichtbar ist) auf Farben setzen, die dem ShaderGradient ähneln (`from-primary-fixed via-primary-fixed-dim`). Sonst blitzt bei durchscheinenden Kanten ein andersfarbiger Hintergrund durch.
+
+## Claude Code Preview Tool: Node.js nicht im PATH
+Das Preview-Tool führt `runtimeExecutable` ohne Shell-PATH aus. `npm` und `node` aus nvm sind daher nicht verfügbar. In `.claude/launch.json` den vollen Pfad angeben: `"runtimeExecutable": "/usr/local/bin/node"` + `"runtimeArgs": ["node_modules/.bin/next", "dev"]`.
+
+## Claude Code Preview Tool: Viewport-Breakpoints
+Das Preview-Tool startet standardmäßig mit ~650px Viewport-Breite — unter dem Tailwind `md`-Breakpoint (768px). Für Komponenten mit `hidden md:block` muss der Viewport explizit auf ≥768px gesetzt werden: `preview_resize` mit `width: 1280`.
+
+## Design-System-Konsistenz: Tailwind-Token statt Hex-Werte
+Landing Pages und nicht-protected Seiten sollten dieselben Tailwind-Token verwenden wie der geschützte Bereich (`font-headline`, `text-primary`, `bg-surface-container-low`, `rounded-card`). Hex-Werte direkt im JSX sind ein Signal für fehlende Token-Nutzung. `primary-container` = `#106ba3`, nicht `#0369a1`.
+
 ## MCP-Setup: Stitch + Claude Desktop
 MCP-Server in `~/Library/Application Support/Claude/claude_desktop_config.json` unter `mcpServers` eintragen (`command`, `args`, ggf. `env`). npx-basierte MCPs brauchen Node.js im PATH — bei nvm: sicherstellen dass `~/.zshrc` den nvm-Pfad setzt und Claude Desktop nach Shell-Login startet. Stitch MCP: Design-System vor Screen-Generierung anlegen (`create_design_system`), damit Farben mit `tailwind.config.ts` übereinstimmen.
