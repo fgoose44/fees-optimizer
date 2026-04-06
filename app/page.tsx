@@ -31,10 +31,10 @@ export default async function LandingPage() {
       <section className="relative min-h-[600px] overflow-hidden">
 
         {/* CSS-Fallback (sofort sichtbar, immer auf Mobile) */}
-        <div className="absolute inset-0 bg-gradient-to-br from-surface via-primary-fixed to-primary-fixed-dim" />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary-fixed via-primary-fixed-dim to-primary-container/30" />
 
         {/* ShaderGradient — nur Desktop, lädt async; scale-125 schiebt Kanten hinter overflow:hidden */}
-        <div className="absolute inset-0 hidden md:block scale-125">
+        <div className="absolute inset-0 hidden md:block scale-150">
           <ShaderBackground />
         </div>
 
