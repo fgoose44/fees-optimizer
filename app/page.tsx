@@ -33,8 +33,8 @@ export default async function LandingPage() {
         {/* CSS-Fallback (sofort sichtbar, immer auf Mobile) */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary-fixed via-primary-fixed-dim to-primary-container/30" />
 
-        {/* ShaderGradient — nur Desktop, lädt async; fov=10 füllt Plane vollständig */}
-        <div className="absolute inset-0 hidden md:block">
+        {/* ShaderGradient — nur Desktop, lädt async; inset-[-20%] schiebt Kanten hinter overflow:hidden */}
+        <div className="absolute inset-[-20%] w-[140%] h-[140%] hidden md:block">
           <ShaderBackground />
         </div>
 

@@ -24,7 +24,7 @@ export default function ShaderBackgroundInner() {
         embedMode="off"
         envPreset="city"
         format="gif"
-        fov={10}
+        fov={40}
         frameRate={10}
         gizmoHelper="hide"
         grain="off"
