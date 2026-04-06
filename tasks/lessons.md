@@ -66,8 +66,12 @@ Wenn eine Route in `ExaminationNav` verlinkt wird (z.B. `/stammdaten`), aber kei
 ## ShaderGradient / Three.js in Next.js App Router
 `@shadergradient/react` braucht zwingend `ssr: false` via `next/dynamic`. Die Komponente selbst mit `// @ts-nocheck` und `/* eslint-disable */` markieren, da die Props-Typen unvollständig sind (z.B. `axesHelper` fehlt). Struktur: `ShaderBackgroundInner.tsx` (Client Component mit den Props) + `ShaderBackground.tsx` (dynamic wrapper).
 
-## ShaderGradient: Canvas-Kanten bei animierten Planes
-`type="plane"` rendert eine endliche 3D-Ebene — bei Animation rotiert sie aus dem sichtbaren Bereich und zeigt Kanten gegen den Hintergrund. Fix: Canvas-Container mit `scale-150` skalieren; der Parent mit `overflow-hidden` schneidet die Ränder ab. `scale-125` reicht für statische Ansicht, aber nicht für alle Rotationsphasen der Animation.
+## ShaderGradient: Canvas-Kanten bei animierten Planes — radikaler Fix
+`type="plane"` rendert eine endliche 3D-Ebene — bei Animation rotiert sie aus dem sichtbaren Bereich und zeigt harte Kanten. Kamera-Props allein (`cameraZoom`, `fov`, `cDistance`) reichen nicht aus, um die Kanten vollständig zu eliminieren.
+
+**Robuste Lösung:** `type="sphere"` verwenden (keine Ecken-Geometrie), plus CSS `transform: scale(1.4)` auf dem Container-Div, kombiniert mit `overflow: hidden` auf Container UND übergeordnetem Element. Props: `cDistance={5}`, `cameraZoom={10}`, `positionX={0}`.
+
+Tailwind-`scale-150` als Klasse funktioniert ebenfalls, Inline-Style `scale(1.4)` ist minimal genug ohne Überschneidung mit anderen Elementen.
 
 ## ShaderGradient: CSS-Fallback farblich an WebGL angleichen
 Den CSS-Fallback-Gradient (der vor/ohne WebGL sichtbar ist) auf Farben setzen, die dem ShaderGradient ähneln (`from-primary-fixed via-primary-fixed-dim`). Sonst blitzt bei durchscheinenden Kanten ein andersfarbiger Hintergrund durch.

@@ -50,9 +50,10 @@ Phase 8 umfasste (4 Punkte):
 - [x] [B] `components/landing/ShaderBackgroundInner.tsx` (Client, @ts-nocheck + eslint-disable) + `ShaderBackground.tsx` (dynamic wrapper, ssr:false)
 - [x] [C] Hero-Section umgebaut: relative Container, CSS-Fallback, Shader-Layer, Gradient-Overlay, Content z-10
 - [x] [D] Mobile: `hidden md:block` — ShaderGradient nur ≥768px, CSS-Fallback immer aktiv
-- [x] [E] Kantenfix: `scale-150` auf Canvas-Container; CSS-Fallback auf primary-fixed-Töne (nahtloser Übergang)
-- [x] [F] Design-System-Audit: 6 Abweichungen korrigiert (Footer border-t, CTA-Gradient, Accent Bar, Fallback-Farben, rounded-card, py-20)
-- [x] [G] Build lokal geprüft ✓, deployed
+- [x] [E] Kantenfix v1: `scale-150` + inset-[-50%]/200%-Canvas; CSS-Fallback auf primary-fixed-Töne
+- [x] [F] Design-System-Audit: 6 Abweichungen korrigiert
+- [x] [G] Kantenfix v2 (radikaler): `type="sphere"`, `cDistance=5`, `cameraZoom=10`, `positionX=0`, CSS `scale(1.4)`-Wrapper + `overflow:hidden` → keine Kanten mehr sichtbar
+- [x] [H] Build lokal geprüft ✓, deployed
 
 ---
 
@@ -62,4 +63,4 @@ Phase 8 umfasste (4 Punkte):
 - [ ] Passwort-Änderung für User (/account Seite erweitern)
 
 ---
-_Zuletzt aktualisiert: 2026-04-06 — Phase 10 abgeschlossen, Design-Audit + ShaderGradient-Bugfixes_
+_Zuletzt aktualisiert: 2026-04-06 — ShaderGradient Kantenfix v2 (type=sphere + scale(1.4)) deployed_
