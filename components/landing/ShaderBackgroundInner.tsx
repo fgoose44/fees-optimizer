@@ -12,14 +12,14 @@ export default function ShaderBackgroundInner() {
       <ShaderGradient
         animate="on"
         axesHelper="off"
-        brightness={1.2}
-        cAzimuthAngle={180}
-        cDistance={5.9}
-        cPolarAngle={90}
-        cameraZoom={1}
-        color1="#F8F9FA"
+        brightness={1}
+        cAzimuthAngle={202}
+        cDistance={14}
+        cPolarAngle={95}
+        cameraZoom={5}
+        color1="#95CCFF"
         color2="#106BA3"
-        color3="#D32F2F"
+        color3="#FFB3AC"
         destination="onCanvas"
         embedMode="off"
         envPreset="city"
@@ -29,7 +29,7 @@ export default function ShaderBackgroundInner() {
         gizmoHelper="hide"
         grain="off"
         lightType="3d"
-        pixelDensity={0.9}
+        pixelDensity={1.7}
         positionX={-1.4}
         positionY={0}
         positionZ={0}
@@ -43,10 +43,11 @@ export default function ShaderBackgroundInner() {
         shader="defaults"
         type="plane"
         uAmplitude={1}
-        uDensity={0.8}
+        uDensity={1}
         uFrequency={5.5}
         uSpeed={0.2}
-        uStrength={1}
+        uStrength={3.5}
+        zoomOut={true}
         uTime={0}
         wireframe={false}
       />
