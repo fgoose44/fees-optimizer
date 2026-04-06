@@ -31,7 +31,7 @@ export default async function LandingPage() {
       <section className="relative min-h-[600px] overflow-hidden">
 
         {/* CSS-Fallback (sofort sichtbar, immer auf Mobile) */}
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-blue-100 to-blue-200" />
+        <div className="absolute inset-0 bg-gradient-to-br from-surface via-primary-fixed to-primary-fixed-dim" />
 
         {/* ShaderGradient — nur Desktop, lädt async */}
         <div className="absolute inset-0 hidden md:block">
@@ -56,7 +56,7 @@ export default async function LandingPage() {
             FEES-Bericht in{" "}
             <span
               style={{
-                background: "linear-gradient(135deg, #005280 0%, #0369a1 100%)",
+                background: "linear-gradient(135deg, #005280 0%, #106ba3 100%)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",
@@ -80,7 +80,7 @@ export default async function LandingPage() {
               href="/login"
               className="inline-flex items-center justify-center px-8 min-h-[48px] rounded-card font-headline font-bold text-sm text-on-primary transition-opacity hover:opacity-90"
               style={{
-                background: "linear-gradient(135deg, #005280 0%, #0369a1 100%)",
+                background: "linear-gradient(135deg, #005280 0%, #106ba3 100%)",
                 boxShadow: "0 4px 24px rgba(0, 82, 128, 0.28)",
               }}
             >
@@ -126,7 +126,7 @@ export default async function LandingPage() {
       </section>
 
       {/* ── SECTION 3: SO FUNKTIONIERT'S ───────────────────────────── */}
-      <section id="how-it-works" className="py-24 px-6 bg-surface">
+      <section id="how-it-works" className="py-20 px-6 bg-surface">
         <div className="max-w-4xl mx-auto">
           <h2
             className="font-headline font-bold text-on-surface mb-16"
@@ -182,7 +182,7 @@ export default async function LandingPage() {
                   {item.step}
                 </span>
                 {/* Icon */}
-                <div className="w-11 h-11 rounded-[10px] bg-primary/[0.07] flex items-center justify-center">
+                <div className="w-11 h-11 rounded-card bg-primary/[0.07] flex items-center justify-center">
                   {item.icon}
                 </div>
                 <div>
@@ -204,7 +204,7 @@ export default async function LandingPage() {
       </section>
 
       {/* ── SECTION 4: BENEFITS ────────────────────────────────────── */}
-      <section className="bg-surface-container-low py-24 px-6">
+      <section className="bg-surface-container-low py-20 px-6">
         <div className="max-w-4xl mx-auto">
           <h2
             className="font-headline font-bold text-on-surface mb-14"
@@ -256,13 +256,12 @@ export default async function LandingPage() {
             ].map((card, i) => (
               <div
                 key={i}
-                className="bg-surface-container-lowest rounded-card p-7 flex flex-col gap-4 shadow-[0_4px_24px_rgba(25,28,29,0.06)]"
+                className="relative bg-surface-container-lowest rounded-card p-7 flex flex-col gap-4 shadow-[0_4px_24px_rgba(25,28,29,0.06)] overflow-hidden"
               >
-                {/* Accent bar (DESIGN.md: vertical 4px left bar) */}
-                <div className="flex items-start gap-4">
-                  <div className={`w-11 h-11 rounded-[10px] flex-shrink-0 flex items-center justify-center ${card.iconBg}`}>
-                    {card.icon}
-                  </div>
+                {/* 4px vertical accent bar — DESIGN.md: Anatomical Data Cards */}
+                <div className={`absolute left-0 top-0 bottom-0 w-1 ${card.accentBg}`} />
+                <div className={`w-11 h-11 rounded-card flex-shrink-0 flex items-center justify-center ${card.iconBg}`}>
+                  {card.icon}
                 </div>
                 <div>
                   <h3 className="font-headline font-semibold text-on-surface mb-2">
@@ -279,13 +278,13 @@ export default async function LandingPage() {
       </section>
 
       {/* ── SECTION 5: VERTRAUEN ───────────────────────────────────── */}
-      <section className="bg-surface py-24 px-6">
+      <section className="bg-surface py-20 px-6">
         <div className="max-w-4xl mx-auto">
           <div className="grid sm:grid-cols-3 gap-5">
 
             {/* Trust 1: Klinische Expertise */}
             <div className="bg-surface-container-lowest rounded-card p-7 flex flex-col gap-4 shadow-[0_4px_24px_rgba(25,28,29,0.06)]">
-              <div className="w-11 h-11 rounded-[10px] bg-primary/[0.07] flex items-center justify-center">
+              <div className="w-11 h-11 rounded-card bg-primary/[0.07] flex items-center justify-center">
                 <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
                   <circle cx="11" cy="9" r="4" stroke="#005280" strokeWidth="1.75" />
                   <path d="M4 19c0-3 3.134-5 7-5s7 2 7 5" stroke="#005280" strokeWidth="1.75" strokeLinecap="round" />
@@ -305,7 +304,7 @@ export default async function LandingPage() {
 
             {/* Trust 2: Datenschutz */}
             <div className="bg-surface-container-lowest rounded-card p-7 flex flex-col gap-4 shadow-[0_4px_24px_rgba(25,28,29,0.06)]">
-              <div className="w-11 h-11 rounded-[10px] bg-secondary/[0.07] flex items-center justify-center">
+              <div className="w-11 h-11 rounded-card bg-secondary/[0.07] flex items-center justify-center">
                 <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
                   <rect x="5" y="10" width="12" height="9" rx="2" stroke="#006e1c" strokeWidth="1.75" />
                   <path d="M8 10V7a3 3 0 016 0v3" stroke="#006e1c" strokeWidth="1.75" strokeLinecap="round" />
@@ -325,7 +324,7 @@ export default async function LandingPage() {
 
             {/* Trust 3: Testimonial-Platzhalter */}
             <div className="bg-surface-container-lowest rounded-card p-7 flex flex-col gap-4 shadow-[0_4px_24px_rgba(25,28,29,0.06)]">
-              <div className="w-11 h-11 rounded-[10px] bg-primary/[0.07] flex items-center justify-center">
+              <div className="w-11 h-11 rounded-card bg-primary/[0.07] flex items-center justify-center">
                 <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
                   <path d="M4 13c0-3 1.5-5.5 4-7l1 1.5C7.5 8.5 7 10 7 11h3v5H4v-3zM13 13c0-3 1.5-5.5 4-7l1 1.5C16.5 8.5 16 10 16 11h3v5h-6v-3z" fill="#005280" fillOpacity="0.12" stroke="#005280" strokeWidth="1" strokeLinejoin="round" />
                 </svg>
@@ -353,7 +352,7 @@ export default async function LandingPage() {
       </section>
 
       {/* ── SECTION 6: ABSCHLUSS-CTA ───────────────────────────────── */}
-      <section className="bg-surface-container-low py-24 px-6">
+      <section className="bg-surface-container-low py-20 px-6">
         <div className="max-w-2xl mx-auto text-center">
           <h2
             className="font-headline font-bold text-on-surface mb-4"
@@ -370,7 +369,7 @@ export default async function LandingPage() {
               href="/login"
               className="inline-flex items-center justify-center px-10 min-h-[48px] rounded-card font-headline font-bold text-sm text-on-primary transition-opacity hover:opacity-90"
               style={{
-                background: "linear-gradient(135deg, #005280 0%, #0369a1 100%)",
+                background: "linear-gradient(135deg, #005280 0%, #106ba3 100%)",
                 boxShadow: "0 4px 32px rgba(0, 82, 128, 0.30)",
               }}
             >
@@ -387,7 +386,7 @@ export default async function LandingPage() {
       </section>
 
       {/* ── SECTION 7: FOOTER ──────────────────────────────────────── */}
-      <footer className="bg-surface py-10 px-6 border-t border-outline-variant/20">
+      <footer className="bg-surface py-10 px-6">
         <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="font-label text-xs text-outline">
             FEES Optimizer · Klinik-intern
