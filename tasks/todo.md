@@ -57,10 +57,27 @@ Phase 8 umfasste (4 Punkte):
 
 ---
 
+### Phase 11 — Landing Page Update + Wartelisten-Formular ✅ (2026-04-06)
+
+- [x] [A] Supabase `waitlist`-Tabelle erstellt (id, name, title, email, created_at); RLS mit INSERT-only für anon
+- [x] [B] `components/landing/WaitlistForm.tsx` — Client Component, Supabase INSERT, Success/Duplicate/Error-States inline
+- [x] [C] `app/page.tsx` — neuer Content 1:1 aus Copy-Vorgabe, ShaderGradient-Hero unverändert
+- [x] [D] Hero-CTAs: "Jetzt kostenlos testen (Beta)" → /login, "Auf die Warteliste setzen" → #waitlist scroll
+- [x] [E] Build lokal geprüft ✓
+
+### Phase 12 — Landing Page Feinschliff ✅ (2026-04-06)
+
+- [x] [A] ShaderGradient: Vignette + Gradient-Overlay entfernt — volle Farbintensität bis Kante
+- [x] [B] Heading Schmerzpunkt: "Der Schmerz:" entfernt
+- [x] [C] Schritt-Nummern: Kontrast erhöht (`text-on-surface-variant/60`)
+- [x] [D] "UI" → "Eingabemaske" im Tap-Process-Abschnitt
+
+---
+
 ## Offen — Backlog
 
 - [ ] Stammdaten editierbar für gespeicherte Untersuchungen (aktuell nur read-only)
 - [ ] Passwort-Änderung für User (/account Seite erweitern)
 
 ---
-_Zuletzt aktualisiert: 2026-04-06 — ShaderGradient Kantenfix v2 (type=sphere + scale(1.4)) deployed_
+_Zuletzt aktualisiert: 2026-04-06 — Landing Page + Warteliste deployed_
