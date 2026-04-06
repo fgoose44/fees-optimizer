@@ -33,13 +33,13 @@ export default async function LandingPage() {
         {/* CSS-Fallback (sofort sichtbar, immer auf Mobile) */}
         <div className="absolute inset-0 bg-gradient-to-br from-surface via-primary-fixed to-primary-fixed-dim" />
 
-        {/* ShaderGradient — nur Desktop, lädt async */}
-        <div className="absolute inset-0 hidden md:block">
+        {/* ShaderGradient — nur Desktop, lädt async; scale-125 schiebt Kanten hinter overflow:hidden */}
+        <div className="absolute inset-0 hidden md:block scale-125">
           <ShaderBackground />
         </div>
 
-        {/* Overlay: Gradient von unten — Gradient oben sichtbar, Text unten lesbar */}
-        <div className="absolute inset-0 bg-gradient-to-t from-white via-white/75 to-white/20" />
+        {/* Overlay: Gradient von unten — Text lesbar, Gradient oben sichtbar */}
+        <div className="absolute inset-0 bg-gradient-to-t from-white via-white/60 to-transparent" />
 
         {/* Hero-Content */}
         <div className="relative z-10 pt-36 pb-28 px-6 max-w-4xl mx-auto">
