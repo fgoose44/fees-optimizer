@@ -15,7 +15,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "FEES Dokumentation",
+  title: "FEES Optimizer",
   description: "Workflow-Tool für FEES-Befunddokumentation",
 };
 
@@ -25,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="de">
+    <html lang="de" className="scroll-smooth">
       <body
         className={`${manrope.variable} ${inter.variable} bg-surface text-on-surface font-body antialiased`}
       >

@@ -32,10 +32,22 @@ Phase 8 umfasste (4 Punkte):
 
 ---
 
+### Phase 9 — Landing Page Überarbeitung (conversion-optimiert) ✅ (2026-04-06)
+
+**Ziel:** `app/page.tsx` durch 7-Section conversion-optimierte Landing Page ersetzen. Branding "FEES Optimizer" überall konsistent.
+
+- [x] [A] `app/page.tsx` komplett neu — 7 Sections (Hero, Schmerzpunkt, So funktioniert's, Benefits, Vertrauen, Abschluss-CTA, Footer)
+- [x] [B] Branding "FEES Doku/Dokumentation" → "FEES Optimizer" in layout.tsx, login/page.tsx, page.tsx
+- [x] [C] Placeholder-Seiten `/impressum` und `/datenschutz` angelegt
+- [x] [D] Middleware: `/impressum` und `/datenschutz` als public pages freigegeben
+- [x] [E] Inline SVG-Icons (kein neues Package)
+
+---
+
 ## Offen — Backlog
 
 - [ ] Stammdaten editierbar für gespeicherte Untersuchungen (aktuell nur read-only)
 - [ ] Passwort-Änderung für User (/account Seite erweitern)
 
 ---
-_Zuletzt aktualisiert: 2026-04-04 — Phase 8 abgeschlossen_
+_Zuletzt aktualisiert: 2026-04-06 — Phase 9 abgeschlossen_
