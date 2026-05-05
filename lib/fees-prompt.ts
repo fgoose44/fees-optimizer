@@ -92,6 +92,8 @@ export interface SwallowTestRow {
   retention_sinus_l: string;
   retention_sinus_r: string;
   retention_pharynx: string;
+  retention_hintere_kommissur: string;
+  retention_oesophagussphinkter: string;
   pen_asp: string;
   pas_score: number | null;
   clearing: string[];
@@ -179,6 +181,8 @@ function formatRetentions(t: SwallowTestRow): string {
   if (t.retention_sinus_l) parts.push(`Sinus pir. links: ${t.retention_sinus_l}`);
   if (t.retention_sinus_r) parts.push(`Sinus pir. rechts: ${t.retention_sinus_r}`);
   if (t.retention_pharynx) parts.push(`Pharynxwand: ${t.retention_pharynx}`);
+  if (t.retention_hintere_kommissur) parts.push(`Hintere Kommissur: ${t.retention_hintere_kommissur}`);
+  if (t.retention_oesophagussphinkter) parts.push(`Oberer Ösophagussphinkter: ${t.retention_oesophagussphinkter}`);
   return parts.length ? `Retentionen: ${parts.join("; ")}` : "keine Retentionen";
 }
 

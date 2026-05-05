@@ -101,6 +101,8 @@ export interface ConsistencyData {
   retention_sinus_l: string;
   retention_sinus_r: string;
   retention_pharynx: string;
+  retention_hintere_kommissur: string;
+  retention_oesophagussphinkter: string;
   pen_asp: string; // 'keine' | 'penetration' | 'aspiration' | ''
   pas_score: number | null; // 1–8
   clearing: string[];
@@ -117,6 +119,8 @@ export const EMPTY_CONSISTENCY_DATA: ConsistencyData = {
   retention_sinus_l: "",
   retention_sinus_r: "",
   retention_pharynx: "",
+  retention_hintere_kommissur: "",
+  retention_oesophagussphinkter: "",
   pen_asp: "",
   pas_score: null,
   clearing: [],

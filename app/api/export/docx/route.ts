@@ -149,6 +149,8 @@ function swallowTestToProse(t: any): Paragraph {
   if (t.retention_sinus_l) retentions.push(`Sinus piriformes links ${t.retention_sinus_l}`);
   if (t.retention_sinus_r) retentions.push(`Sinus piriformes rechts ${t.retention_sinus_r}`);
   if (t.retention_pharynx) retentions.push(`Pharynxwand ${t.retention_pharynx}`);
+  if (t.retention_hintere_kommissur) retentions.push(`Hintere Kommissur ${t.retention_hintere_kommissur}`);
+  if (t.retention_oesophagussphinkter) retentions.push(`Oberer Ösophagussphinkter ${t.retention_oesophagussphinkter}`);
   if (retentions.length) {
     parts.push(`postdeglutitiv Retentionen in ${retentions.join(", ")}`);
   } else {

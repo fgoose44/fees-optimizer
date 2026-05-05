@@ -214,7 +214,7 @@ export default function SchlucktestPage() {
       const { data: swallowRows } = await supabase
         .from("swallow_tests")
         .select(
-          "consistency, not_tested, praedeglutitiv, schluckakt, retention_valleculae_l, retention_valleculae_r, retention_sinus_l, retention_sinus_r, retention_pharynx, pen_asp, pas_score, clearing, kompensation, kompensation_notes"
+          "consistency, not_tested, praedeglutitiv, schluckakt, retention_valleculae_l, retention_valleculae_r, retention_sinus_l, retention_sinus_r, retention_pharynx, retention_hintere_kommissur, retention_oesophagussphinkter, pen_asp, pas_score, clearing, kompensation, kompensation_notes"
         )
         .eq("examination_id", id);
 
@@ -236,11 +236,13 @@ export default function SchlucktestPage() {
                 not_tested: false,
                 praedeglutitiv:         row.praedeglutitiv ?? [],
                 schluckakt:             row.schluckakt ?? [],
-                retention_valleculae_l: row.retention_valleculae_l ?? "",
-                retention_valleculae_r: row.retention_valleculae_r ?? "",
-                retention_sinus_l:      row.retention_sinus_l ?? "",
-                retention_sinus_r:      row.retention_sinus_r ?? "",
-                retention_pharynx:      row.retention_pharynx ?? "",
+                retention_valleculae_l:       row.retention_valleculae_l ?? "",
+                retention_valleculae_r:       row.retention_valleculae_r ?? "",
+                retention_sinus_l:            row.retention_sinus_l ?? "",
+                retention_sinus_r:            row.retention_sinus_r ?? "",
+                retention_pharynx:            row.retention_pharynx ?? "",
+                retention_hintere_kommissur:  row.retention_hintere_kommissur ?? "",
+                retention_oesophagussphinkter: row.retention_oesophagussphinkter ?? "",
                 pen_asp:                row.pen_asp ?? "",
                 pas_score:              row.pas_score ?? null,
                 clearing:               row.clearing ?? [],
@@ -353,11 +355,13 @@ export default function SchlucktestPage() {
         not_tested: !isSelected,
         praedeglutitiv: isSelected ? c.praedeglutitiv : [],
         schluckakt: isSelected ? c.schluckakt : [],
-        retention_valleculae_l: isSelected ? c.retention_valleculae_l : "",
-        retention_valleculae_r: isSelected ? c.retention_valleculae_r : "",
-        retention_sinus_l: isSelected ? c.retention_sinus_l : "",
-        retention_sinus_r: isSelected ? c.retention_sinus_r : "",
-        retention_pharynx: isSelected ? c.retention_pharynx : "",
+        retention_valleculae_l:       isSelected ? c.retention_valleculae_l : "",
+        retention_valleculae_r:       isSelected ? c.retention_valleculae_r : "",
+        retention_sinus_l:            isSelected ? c.retention_sinus_l : "",
+        retention_sinus_r:            isSelected ? c.retention_sinus_r : "",
+        retention_pharynx:            isSelected ? c.retention_pharynx : "",
+        retention_hintere_kommissur:  isSelected ? c.retention_hintere_kommissur : "",
+        retention_oesophagussphinkter: isSelected ? c.retention_oesophagussphinkter : "",
         pen_asp: isSelected ? c.pen_asp : "",
         pas_score: isSelected ? c.pas_score : null,
         clearing: isSelected ? c.clearing : [],
@@ -610,6 +614,16 @@ export default function SchlucktestPage() {
             label="Pharynxwand"
             value={current.retention_pharynx}
             onChange={(v) => updateCurrent({ retention_pharynx: v })}
+          />
+          <RetentionRow
+            label="Hint. Kommissur"
+            value={current.retention_hintere_kommissur}
+            onChange={(v) => updateCurrent({ retention_hintere_kommissur: v })}
+          />
+          <RetentionRow
+            label="Ösophagussph."
+            value={current.retention_oesophagussphinkter}
+            onChange={(v) => updateCurrent({ retention_oesophagussphinkter: v })}
           />
         </div>
       </section>
