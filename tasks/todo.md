@@ -80,4 +80,183 @@ Phase 8 umfasste (4 Punkte):
 - [ ] Passwort-Änderung für User (/account Seite erweitern)
 
 ---
-_Zuletzt aktualisiert: 2026-04-06 — Landing Page + Warteliste deployed_
+
+## Phase 13 — Clara-Feedback Runde 2 (klinische Korrekturen + KI-Output) 🔜
+
+> **Warte auf OK vor Implementierung.**
+
+### TASK 1 — Langmore Graduierung Wortlaut ✅
+**Dateien:** `befund/page.tsx` (LANGMORE_LABELS), `lib/fees-prompt.ts` (formatNativbefund), `app/api/export/docx/route.ts` (LANGMORE_LABELS)
+
+Aktuell:
+- Grad 0: `"Keine sichtbaren Sekrete oder nur transiente Bläschen in Valleculae/Sinus"`
+- Grad 1: `"Beidseits oder tief gepoolt in Valleculae/Sinus, kein Larynxeingang betroffen"`
+
+Neu:
+- Grad 0: `"Normal (feucht)"` — in allen drei Dateien
+- Grad 1: `"Ansammlung in Valleculae/Sinus piriformes"` — in allen drei Dateien
+
+Grad 2 + 3: unverändert.
+
+- [x] T1-A: `LANGMORE_LABELS` in `befund/page.tsx` anpassen
+- [x] T1-B: `formatNativbefund` in `lib/fees-prompt.ts` anpassen (Inline-Array Grad 0 + 1)
+- [x] T1-C: `LANGMORE_LABELS` in `app/api/export/docx/route.ts` anpassen
+
+---
+
+### TASK 2 — BODS II Prüfung + BODS I Fix ✅
+**Datei:** `schlucktest/page.tsx` (Legende Zeilen 806–814)
+
+Zu prüfen: Stufenbeschreibungen gegen Bartolome & Schröter-Morasch 2006 Standard.
+
+Gefundene Abweichungen (BEVOR Fix):
+- Stufe 3: Aktuell `"mehrere Konsistenzen mit Kompensation"` — korrekt laut Standard: _"Voll oral mit mäßigen Einschränkungen: ggf. Kompensation erforderlich, Nahrungsumstellung"_
+- Stufe 4: Aktuell `"nur eine Konsistenz mit oder ohne Kompensation"` — korrekt: _"Voll oral mit gravierenden Einschränkungen: auf eine Konsistenz reduziert"_
+- Stufe 5: Aktuell `"Überwiegend oral, ergänzend Sonde/parenteral"` — korrekt: _"Kombinierte Ernährung: vorwiegend oral, jedoch ergänzend enteral/parenteral"_
+- Stufe 6: Aktuell `"Partiell oral (>10 TL täglich)"` — korrekt: _"Kombinierte Ernährung: vorwiegend enteral/parenteral, geringe orale Anteile (>10 TL)"_
+- Stufe 7: Aktuell `"Geringfügig oral (≤10 TL täglich)"` — korrekt: _"Nahezu ausschließlich enteral/parenteral, minimale orale Anteile (≤10 TL)"_
+- Stufe 8: Aktuell `"Ausschließlich Sonde/parenteral"` — korrekt: _"Ausschließlich enteral oder parenteral"_
+
+- [x] T2-A: BODS II bereits korrekt — keine Änderung nötig
+- [x] T2-B: BODS I: Stufen 1/2/3/5/6 korrigiert in `befund/page.tsx`
+
+---
+
+### TASK 3 — Kostformempfehlung neu strukturieren
+
+**DB-Änderung nötig** — SQL wird vor Ausführung gezeigt.
+
+Aktuelle Struktur: `iddsi_level` (integer, nullable) in `examinations`.
+Neue Struktur: `nutrition_mode` + `nutrition_route` + `dys_stufe` + `iddsi_food_level` + `iddsi_drink_level` + `tablets`.
+
+**SQL (zur Bestätigung):**
+```sql
+ALTER TABLE examinations
+  ADD COLUMN IF NOT EXISTS nutrition_mode text CHECK (nutrition_mode IN ('npo','adaption','vollkost')),
+  ADD COLUMN IF NOT EXISTS nutrition_route text,
+  ADD COLUMN IF NOT EXISTS nutrition_notes text,
+  ADD COLUMN IF NOT EXISTS dys_stufe text CHECK (dys_stufe IN ('DYS I','DYS IIa','DYS IIb','DYS III')),
+  ADD COLUMN IF NOT EXISTS iddsi_food_level integer,
+  ADD COLUMN IF NOT EXISTS iddsi_drink_level integer,
+  ADD COLUMN IF NOT EXISTS tablets text CHECK (tablets IN ('crushed','normal'));
+```
+_`iddsi_level` bleibt bestehen (kein breaking change für alte Daten)._
+
+- [ ] T3-A: **SQL zeigen + auf OK warten** ← bereits oben
+- [ ] T3-B: DB-Migration ausführen
+- [ ] T3-C: `schlucktest/page.tsx` — IDDSI-Sektion ersetzen durch Drei-Wege-Radio (npo / adaption / vollkost) mit bedingten Sub-Feldern
+- [ ] T3-D: `lib/fees-prompt.ts` — ExamData-Interface + formatKostform() erweitern
+- [ ] T3-E: `app/api/export/docx/route.ts` — Kostform-Block im DOCX anpassen
+- [ ] T3-F: `app/api/generate-assessment/route.ts` — Prompt-Payload um nutrition_mode erweitern
+
+---
+
+### TASK 4 — Speichel: Prädeglutitiv ausblenden ✅
+
+**Dateien:** `schlucktest/page.tsx`, `lib/fees-prompt.ts`, `app/api/export/docx/route.ts`
+
+- [x] T4-A: UI: `{activeTab !== "speichel" && ...}` in `schlucktest/page.tsx`
+- [x] T4-B: DOCX: `swallowTestToProse()` — Speichel überspringt Prädeglutitiv-Satz
+- [x] T4-C: Prompt: `formatConsistency()` — Speichel kein Prädeglutitiv-Block
+
+---
+
+### TASK 5 — Retentionen um 2 Lokalisationen erweitern
+
+**DB-Änderung nötig** — SQL zur Bestätigung:
+```sql
+ALTER TABLE swallow_tests
+  ADD COLUMN IF NOT EXISTS retention_hintere_kommissur text DEFAULT '',
+  ADD COLUMN IF NOT EXISTS retention_oesophagussphinkter text DEFAULT '';
+```
+
+- [ ] T5-A: **SQL zeigen + auf OK warten** ← bereits oben
+- [ ] T5-B: DB-Migration ausführen
+- [ ] T5-C: `schlucktest/page.tsx` — 2 neue `<RetentionRow>`-Einträge + State + UPSERT-Felder
+- [ ] T5-D: `lib/fees-prompt.ts` — `formatRetentions()` um beide Felder erweitern
+- [ ] T5-E: `app/api/export/docx/route.ts` — Retentions-Rendering erweitern
+
+---
+
+### TASK 6 — TK Kanülenlage-Felder
+
+**DB-Änderung nötig** — SQL zur Bestätigung:
+```sql
+ALTER TABLE native_findings
+  ADD COLUMN IF NOT EXISTS cannula_changed boolean DEFAULT false,
+  ADD COLUMN IF NOT EXISTS cannula_position_before text CHECK (cannula_position_before IN ('mittig','nicht_mittig')),
+  ADD COLUMN IF NOT EXISTS cannula_note_before text,
+  ADD COLUMN IF NOT EXISTS cannula_position_after text CHECK (cannula_position_after IN ('mittig','nicht_mittig')),
+  ADD COLUMN IF NOT EXISTS cannula_note_after text;
+```
+
+- [ ] T6-A: **SQL zeigen + auf OK warten** ← bereits oben
+- [ ] T6-B: DB-Migration ausführen
+- [ ] T6-C: `befund/page.tsx` — Kanülenlage-Block im TK-Bereich (nur wenn `has_tracheostomy`)
+- [ ] T6-D: `lib/fees-prompt.ts` — NativData-Interface + formatNativbefund() erweitern
+- [ ] T6-E: `app/api/export/docx/route.ts` — Kanülenlage-Block im transstomatalen Befund
+
+---
+
+### TASK 7 — DOCX Kopfzeile entfernen ✅
+
+**Datei:** `app/api/export/docx/route.ts`
+
+Aktuelle Kopfzeile: `"FEES-Bericht  |  Patient-ID: ${patNr}  |  ${dateFormatted}"`
+
+- [x] T7-A+B: `pageHeader`-Definition + `headers`-Property + `Header`-Import entfernt
+
+---
+
+### TASK 8 — Telefonnummer im User-Profil + DOCX-Footer
+
+**DB-Änderung nötig** — SQL zur Bestätigung:
+```sql
+ALTER TABLE profiles
+  ADD COLUMN IF NOT EXISTS phone text;
+```
+
+- [ ] T8-A: **SQL zeigen + auf OK warten** ← bereits oben
+- [ ] T8-B: DB-Migration ausführen
+- [ ] T8-C: `account/page.tsx` — phone-Feld hinzufügen (load + save + UI)
+- [ ] T8-D: `app/api/export/docx/route.ts` — DOCX-Footer-Block am Ende des Dokuments
+  - Satz: `"Für Rückfragen stehen wir gerne zur Verfügung."`
+  - Name + Rolle + Tel. (Tel.-Zeile nur wenn phone vorhanden)
+
+---
+
+### TASK 9 — KI-Output: Freitexte verpflichtend einbauen ✅
+
+**Datei:** `lib/fees-prompt.ts`
+
+Aktuell: `kompensation_notes` wird eingebaut (Zeile 182), aber andere Freitextfelder (velum_notes, pharynx_notes, etc.) fehlen im Prompt.
+
+- [x] T9-A: NativData-Interface erweitert (alle notes-Felder + sinus_piriformes)
+- [x] T9-B: `formatNativbefund()` — `withNote()` Helfer, Freitexte als [Freitext: ...] Marker eingebettet
+- [x] T9-C: Prompt-Anweisung "FREITEXTE — PFLICHT" eingefügt
+- [x] T9-D: Route nutzt bereits `select("*")` — kein DB-Change nötig
+
+---
+
+### TASK 10 — KI-Output: Repetitive Formulierungen reduzieren ✅
+
+**Datei:** `lib/fees-prompt.ts`
+
+- [x] T10-A: Stilanweisung "SPRACHLICHE REGELN" mit Satzvariations-Pflicht eingefügt
+- [x] T10-B: Strukturreihenfolge im Prompt explizit genannt
+- [x] T10-C: `prompts/vorlage_fees_*.txt` existieren (5 Dateien) — Few-Shot-Block bleibt, Anweisung davor geschärft
+
+---
+
+### TASK 11 — KI-Output: Umlaut-Problem diagnostizieren + fixen ✅ (Prompt-Fix)
+
+**Dateien:** `app/api/generate-assessment/route.ts`, `lib/fees-prompt.ts`, `app/api/export/docx/route.ts`
+
+- [x] T11-A: Diagnose: swallow_tests/native_findings haben keine Encoding-Probleme (UTF-8 DB, UTF-8 JSON)
+  Wahrscheinlichste Ursache: Claude API schreibt gelegentlich ae/oe/ue statt ä/ö/ü
+- [x] T11-B: Fix: Explizite Umlaut-Pflicht-Anweisung im Prompt ("niemals ae/oe/ue/ss schreiben")
+- [ ] T11-C: Verifizieren nach nächstem Test-Export (kein Logging nötig, da Ursache auf KI-Seite)
+
+---
+
+_Zuletzt aktualisiert: 2026-05-05 — Phase 13 geplant (Clara-Feedback Runde 2)_

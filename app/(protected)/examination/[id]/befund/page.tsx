@@ -153,8 +153,8 @@ const PHONATION_FIELDS: { key: keyof Pick<NativbefundData, "vp_closure" | "vocal
 ];
 
 const LANGMORE_LABELS: Record<number, string> = {
-  0: "Grad 0: Keine sichtbaren Sekrete oder nur transiente Bläschen in Valleculae/Sinus",
-  1: "Grad 1: Beidseits oder tief gepoolt in Valleculae/Sinus, kein Larynxeingang betroffen",
+  0: "Grad 0: Normal (feucht)",
+  1: "Grad 1: Ansammlung in Valleculae/Sinus piriformes",
   2: "Grad 2: Transiente Ansammlung im Larynxeingang",
   3: "Grad 3: Permanente Ansammlung im Larynxeingang",
 };
@@ -836,9 +836,9 @@ export default function BefundPage() {
             Ohne Trachealkanüle
           </p>
           {[
-            { score: 1, desc: "Keine Störung: effizientes Speichelschlucken" },
-            { score: 2, desc: "Leichte Störung: ineffizient, gelegentlich gurgelnder Stimmklang / Expektoration (>1 Std.)" },
-            { score: 3, desc: "Mäßige Störung: ineffizient, häufig gurgelnder Stimmklang / Expektoration (<1 Std.)" },
+            { score: 1, desc: "Keine Störung: normale Speichelbewältigung" },
+            { score: 2, desc: "Leichte Störung: gelegentlich gurgelnde Stimmqualität oder gelegentliches Husten/Räuspern durch Speichel (>1 × pro Stunde)" },
+            { score: 3, desc: "Mäßige Störung: häufig gurgelnde Stimmqualität oder häufiges Husten/Räuspern durch Speichel (<1 × pro Stunde)" },
           ].map(({ score, desc }) => (
             <p key={score} className={`text-[11px] transition-opacity ${hasTracheostomy ? "opacity-40" : "text-on-surface-variant"}`}>
               <span className="font-bold text-on-surface">{score}</span> — {desc}
@@ -851,8 +851,8 @@ export default function BefundPage() {
           </p>
           {[
             { score: 4, desc: "Mittelschwere Störung: TK dauerhaft entblockt oder Sprechkanüle/Platzhalter" },
-            { score: 5, desc: "Mittelschwere Störung: TK länger entblockt (>12–24 Std.)" },
-            { score: 6, desc: "Schwere Störung: TK länger entblockt (>1 Std., ≤12 Std.)" },
+            { score: 5, desc: "Mittelschwere Störung: TK vorwiegend entblockt (>12–24 Std./Tag)" },
+            { score: 6, desc: "Schwere Störung: TK zeitweise entblockt (>1–12 Std./Tag)" },
             { score: 7, desc: "Schwere Störung: TK kurzzeitig entblockt (≤1 Std.)" },
             { score: 8, desc: "Schwerste Störung: TK dauerhaft geblockt" },
           ].map(({ score, desc }) => (

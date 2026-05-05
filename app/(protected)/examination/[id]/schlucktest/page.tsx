@@ -540,24 +540,26 @@ export default function SchlucktestPage() {
         ))}
       </div>
 
-      {/* ---- PRÄDEGLUTITIV ---- */}
-      <section className="bg-surface-container-low rounded-card p-4 border-l-4 border-primary">
-        <h3 className="text-[11px] font-bold text-primary mb-3 tracking-widest uppercase font-label">
-          Prädeglutitiv
-        </h3>
-        <div className="flex flex-wrap gap-2">
-          {PRAEDEGLUTITIV_OPTIONS.map(({ key, label }) => (
-            <ChipButton
-              key={key}
-              active={current.praedeglutitiv.includes(key)}
-              onClick={() => toggleArray("praedeglutitiv", key)}
-              variant={key === "kein_leaking" ? "wnl" : "path"}
-            >
-              {label}
-            </ChipButton>
-          ))}
-        </div>
-      </section>
+      {/* ---- PRÄDEGLUTITIV (nicht bei Speichel) ---- */}
+      {activeTab !== "speichel" && (
+        <section className="bg-surface-container-low rounded-card p-4 border-l-4 border-primary">
+          <h3 className="text-[11px] font-bold text-primary mb-3 tracking-widest uppercase font-label">
+            Prädeglutitiv
+          </h3>
+          <div className="flex flex-wrap gap-2">
+            {PRAEDEGLUTITIV_OPTIONS.map(({ key, label }) => (
+              <ChipButton
+                key={key}
+                active={current.praedeglutitiv.includes(key)}
+                onClick={() => toggleArray("praedeglutitiv", key)}
+                variant={key === "kein_leaking" ? "wnl" : "path"}
+              >
+                {label}
+              </ChipButton>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ---- SCHLUCKAKT ---- */}
       <section className="bg-surface-container-low rounded-card p-4 border-l-4 border-secondary">

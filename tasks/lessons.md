@@ -85,5 +85,26 @@ Das Preview-Tool startet standardmäßig mit ~650px Viewport-Breite — unter de
 ## Design-System-Konsistenz: Tailwind-Token statt Hex-Werte
 Landing Pages und nicht-protected Seiten sollten dieselben Tailwind-Token verwenden wie der geschützte Bereich (`font-headline`, `text-primary`, `bg-surface-container-low`, `rounded-card`). Hex-Werte direkt im JSX sind ein Signal für fehlende Token-Nutzung. `primary-container` = `#106ba3`, nicht `#0369a1`.
 
+## BODS I: korrekte Wortlaute (Bartolome & Schröter-Morasch 2006)
+Stufe 1: "Keine Störung: normale Speichelbewältigung"
+Stufe 2: "Leichte Störung: gelegentlich gurgelnde Stimmqualität oder gelegentliches Husten/Räuspern durch Speichel (>1 × pro Stunde)"
+Stufe 3: "Mäßige Störung: häufig gurgelnde Stimmqualität oder häufiges Husten/Räuspern durch Speichel (<1 × pro Stunde)"
+Stufe 5: "Mittelschwere Störung: TK vorwiegend entblockt (>12–24 Std./Tag)"
+Stufe 6: "Schwere Störung: TK zeitweise entblockt (>1–12 Std./Tag)"
+Häufige Fehler: "Expektoration" ist nicht im Original, "Stimmklang" statt "Stimmqualität", Zeitangaben als Stundenintervalle statt Frequenz.
+
+## Langmore: neue korrekte Wortlaute (Clara-Feedback Runde 2)
+Grad 0: "Normal (feucht)" — früher: "Keine sichtbaren Sekrete..."
+Grad 1: "Ansammlung in Valleculae/Sinus piriformes" — früher: "Beidseits oder tief gepoolt..."
+
+## Speichel: keine prädeglutitive Phase dokumentieren
+Bei Konsistenz "speichel" wird der Prädeglutitiv-Block UI-seitig, im DOCX und im KI-Prompt ausgeblendet/übersprungen.
+Klinisch korrekt: Speichelschlucken hat keine boluspräparative Phase.
+
+## KI-Prompt: Umlaut-Fehler
+"prädeglutitiver Übertritt" wurde zu "praedeglutitiv uebertritt" — Ursache: Claude API schreibt gelegentlich ae/oe/ue.
+Fix: Explizite Anweisung im Prompt: "Verwende deutsche Umlaute korrekt: ä, ö, ü — niemals ae, oe, ue, ss."
+Kein Encoding-Problem im DB/JSON-Layer (Next.js + Supabase verwenden UTF-8 durchgehend).
+
 ## MCP-Setup: Stitch + Claude Desktop
 MCP-Server in `~/Library/Application Support/Claude/claude_desktop_config.json` unter `mcpServers` eintragen (`command`, `args`, ggf. `env`). npx-basierte MCPs brauchen Node.js im PATH — bei nvm: sicherstellen dass `~/.zshrc` den nvm-Pfad setzt und Claude Desktop nach Shell-Login startet. Stitch MCP: Design-System vor Screen-Generierung anlegen (`create_design_system`), damit Farben mit `tailwind.config.ts` übereinstimmen.

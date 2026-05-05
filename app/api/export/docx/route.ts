@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import {
   Document, Packer, Paragraph, TextRun, AlignmentType,
-  Header, Tab, TabStopType, TabStopPosition,
+  Tab, TabStopType, TabStopPosition,
 } from "docx";
 import { RASS_OPTIONS } from "@/lib/constants";
 
@@ -56,8 +56,8 @@ const BEVERAGE_LABELS: Record<number, string> = {
 };
 
 const LANGMORE_LABELS: Record<number, string> = {
-  0: "Grad 0 – Keine sichtbaren Sekrete oder nur transiente Bläschen in Valleculae/Sinus",
-  1: "Grad 1 – Beidseits oder tief gepoolt in Valleculae/Sinus, kein Larynxeingang betroffen",
+  0: "Grad 0 – Normal (feucht)",
+  1: "Grad 1 – Ansammlung in Valleculae/Sinus piriformes",
   2: "Grad 2 – Transiente Ansammlung im Larynxeingang",
   3: "Grad 3 – Permanente Ansammlung im Larynxeingang",
 };
@@ -131,10 +131,12 @@ function swallowTestToProse(t: any): Paragraph {
   const label = CONSISTENCY_LABELS[t.consistency] ?? t.consistency;
   const parts: string[] = [];
 
-  if (t.praedeglutitiv?.length) {
-    parts.push(`prädeglutitiv ${(t.praedeglutitiv as string[]).join(", ")}`);
-  } else {
-    parts.push("prädeglutitiv kein Leaking beobachtbar");
+  if (t.consistency !== "speichel") {
+    if (t.praedeglutitiv?.length) {
+      parts.push(`prädeglutitiv ${(t.praedeglutitiv as string[]).join(", ")}`);
+    } else {
+      parts.push("prädeglutitiv kein Leaking beobachtbar");
+    }
   }
 
   if (t.schluckakt?.length) {
@@ -303,25 +305,6 @@ export async function POST(req: NextRequest) {
   const authorName = [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") || "Logopädie";
   const authorTitle = profile?.title || "";
 
-  // ============================================================
-  // Kopfzeile (erscheint auf jeder Seite)
-  // ============================================================
-
-  const pageHeader = new Header({
-    children: [
-      new Paragraph({
-        children: [
-          new TextRun({
-            text: `FEES-Bericht  |  Patient-ID: ${patNr}  |  ${dateFormatted}`,
-            font: FONT,
-            size: 18, // 9pt
-            color: "888888",
-          }),
-        ],
-        spacing: { after: 0 },
-      }),
-    ],
-  });
 
   // ============================================================
   // Dokument aufbauen
@@ -490,9 +473,6 @@ export async function POST(req: NextRequest) {
         page: {
           margin: { top: 1417, bottom: 1417, left: 1134, right: 1134 },
         },
-      },
-      headers: {
-        default: pageHeader,
       },
       children,
     }],

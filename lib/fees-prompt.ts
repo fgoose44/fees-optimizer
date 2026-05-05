@@ -50,16 +50,27 @@ export interface ExamData {
 
 export interface NativData {
   mucosa: string[];
+  mucosa_notes: string;
   velum: string[];
   velum_side: string;
+  velum_notes: string;
   tongue_base: string[];
+  tongue_base_notes: string;
   epiglottis: string[];
+  epiglottis_notes: string;
   pharynx: string[];
   pharynx_side: string;
+  pharynx_notes: string;
   larynx: string[];
   larynx_side: string;
+  larynx_notes: string;
   valleculae: string[];
   valleculae_side: string;
+  valleculae_notes: string;
+  sinus_piriformes: string[];
+  sinus_piriformes_side: string;
+  sinus_piriformes_notes: string;
+  trachea_structures_notes: string;
   cough_reflex: string;
   swallow_reflex: string;
   vp_closure: string;
@@ -124,16 +135,22 @@ function sideLabel(side: string): string {
   return "";
 }
 
+function withNote(base: string, note: string): string {
+  return note ? `${base} [Freitext: ${note}]` : base;
+}
+
 function formatNativbefund(n: NativData): string {
   const lines: string[] = [];
 
-  if (n.mucosa.length) lines.push(`Schleimhäute: ${n.mucosa.join(", ")}`);
-  if (n.velum.length) lines.push(`Velum: ${n.velum.join(", ")}${sideLabel(n.velum_side)}`);
-  if (n.tongue_base.length) lines.push(`Zungenbasis: ${n.tongue_base.join(", ")}`);
-  if (n.epiglottis.length) lines.push(`Epiglottis: ${n.epiglottis.join(", ")}`);
-  if (n.pharynx.length) lines.push(`Pharynx: ${n.pharynx.join(", ")}${sideLabel(n.pharynx_side)}`);
-  if (n.larynx.length) lines.push(`Larynx/Kehlkopf: ${n.larynx.join(", ")}${sideLabel(n.larynx_side)}`);
-  if (n.valleculae.length) lines.push(`Valleculae/Sinus piriformes: ${n.valleculae.join(", ")}${sideLabel(n.valleculae_side)}`);
+  if (n.mucosa.length) lines.push(withNote(`Schleimhäute: ${n.mucosa.join(", ")}`, n.mucosa_notes));
+  if (n.velum.length) lines.push(withNote(`Velum: ${n.velum.join(", ")}${sideLabel(n.velum_side)}`, n.velum_notes));
+  if (n.tongue_base.length) lines.push(withNote(`Zungenbasis: ${n.tongue_base.join(", ")}`, n.tongue_base_notes));
+  if (n.epiglottis.length) lines.push(withNote(`Epiglottis: ${n.epiglottis.join(", ")}`, n.epiglottis_notes));
+  if (n.pharynx.length) lines.push(withNote(`Pharynx: ${n.pharynx.join(", ")}${sideLabel(n.pharynx_side)}`, n.pharynx_notes));
+  if (n.larynx.length) lines.push(withNote(`Larynx/Kehlkopf: ${n.larynx.join(", ")}${sideLabel(n.larynx_side)}`, n.larynx_notes));
+  if (n.valleculae.length) lines.push(withNote(`Valleculae: ${n.valleculae.join(", ")}${sideLabel(n.valleculae_side)}`, n.valleculae_notes));
+  if (n.sinus_piriformes?.length) lines.push(withNote(`Sinus piriformes: ${n.sinus_piriformes.join(", ")}${sideLabel(n.sinus_piriformes_side)}`, n.sinus_piriformes_notes));
+  if (n.trachea_structures_notes) lines.push(`Transstomatal (Freitext): ${n.trachea_structures_notes}`);
 
   if (n.cough_reflex) lines.push(`Hustenstoß spontan: ${n.cough_reflex}`);
   if (n.swallow_reflex) lines.push(`Schluckversuch spontan: ${n.swallow_reflex}`);
@@ -149,7 +166,7 @@ function formatNativbefund(n: NativData): string {
 
   if (n.langmore_score !== null) {
     const lLabel = ["Normal (feucht)", "Ansammlung in Valleculae/Sinus piriformes", "Transiente Ansammlung im Larynxeingang", "Permanente Ansammlung im Larynxeingang"][n.langmore_score] ?? "";
-    lines.push(`Langmore-Graduierung: Grad ${n.langmore_score} – ${lLabel}`);
+    lines.push(`Langmore: Grad ${n.langmore_score} – ${lLabel}`);
   }
 
   return lines.join("\n");
@@ -169,7 +186,10 @@ function formatConsistency(t: SwallowTestRow): string {
   const label = CONSISTENCY_LABELS[t.consistency] ?? t.consistency;
   const lines: string[] = [`Schlucken von ${label}:`];
 
-  if (t.praedeglutitiv.length) lines.push(`  Prädeglutitiv: ${t.praedeglutitiv.join(", ")}`);
+  // Speichel hat keine prädeglutitive Phase
+  if (t.consistency !== "speichel") {
+    if (t.praedeglutitiv.length) lines.push(`  Prädeglutitiv: ${t.praedeglutitiv.join(", ")}`);
+  }
   if (t.schluckakt.length) lines.push(`  Schluckakt: ${t.schluckakt.join(", ")}`);
   lines.push(`  Postdeglutitiv: ${formatRetentions(t)}`);
   if (t.pen_asp) {
@@ -219,7 +239,19 @@ export function buildAssessmentPrompt(
 
   return `Du bist eine erfahrene Logopädin in einer stationären Rehabilitationsklinik und erstellst FEES-Befundberichte (Funktionelle Endoskopische Evaluation des Schluckens).
 
-Schreibe den Bericht auf Deutsch in medizinisch präzisem, aber gut lesbarem Stil. Orientiere dich am Formulierungsstil der folgenden Beispielberichte:
+SPRACHLICHE REGELN — ZWINGEND EINZUHALTEN:
+- Schreibe ausschließlich auf Deutsch.
+- Verwende deutsche Umlaute korrekt: ä, ö, ü, Ä, Ö, Ü, ß — niemals ae, oe, ue, ss als Ersatz.
+- Achte auf korrekte deutsche Rechtschreibung: Substantive groß, präziser Satzbau.
+- Variiere Satzanfänge und Satzbau. Beginne NICHT jede Beurteilung mit demselben Muster.
+  Schreibe in einem natürlichen klinischen Stil — nicht formelhaft, nicht erkennbar KI-generiert.
+- Strukturreihenfolge: erst Nativbefund-Synthese, dann Schluckakt, dann Pathophysiologie, dann Empfehlung.
+
+FREITEXTE — PFLICHT:
+Alle Einträge mit dem Marker "[Freitext: ...]" in den Befunddaten MÜSSEN inhaltlich im Bericht erscheinen —
+entweder wörtlich übernommen oder sinngemäß paraphrasiert. Keine Freitext-Information darf fehlen.
+
+Orientiere dich am Formulierungsstil der folgenden Beispielberichte:
 
 ${styleExamples}
 
@@ -253,7 +285,6 @@ BODS II (Ernährungsstatus): ${bodsII}
 BODS Gesamt: ${bodsTotal}
 Langmore: Grad ${nativ?.langmore_score ?? "—"}
 Sensibilität: ${exam.overall_sensitivity || "nicht angegeben"}${exam.sensitivity_side ? ` (${exam.sensitivity_side})` : ""}
-IDDSI: Level ${exam.iddsi_level ?? "—"}
 
 ---
 
