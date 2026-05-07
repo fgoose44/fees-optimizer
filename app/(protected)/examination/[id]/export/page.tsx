@@ -10,25 +10,6 @@ import StickyFooter from "@/components/StickyFooter";
 
 // ---- Konstanten ----
 
-const DYS_OPTIONS = [
-  { value: "I", label: "DYS I — Püriert / IDDSI 4" },
-  { value: "IIa", label: "DYS IIa — Weich-cremig / IDDSI 5" },
-  { value: "IIb", label: "DYS IIb — Weiche Übergangskost / IDDSI 6" },
-  { value: "III", label: "DYS III — Leichte Vollkost / IDDSI 7" },
-];
-
-const IDDSI_OPTIONS = Array.from({ length: 8 }, (_, i) => ({
-  value: i,
-  label: `Level ${i} — ${["Dünnflüssig", "Leicht angedickt", "Nektarähnlich", "Puddingartig", "Püriert", "Gewürfelt/weich", "Weich & mundgerecht", "Normal"][i]}`,
-}));
-
-const BEVERAGE_OPTIONS = [
-  { value: 0, label: "IDDSI 0 — Dünnflüssig (unangedickt)" },
-  { value: 1, label: "IDDSI 1 — Leicht angedickt" },
-  { value: 2, label: "IDDSI 2 — Nektarähnlich (ThickandEasy)" },
-  { value: 3, label: "IDDSI 3 — Stark angedickt" },
-];
-
 const TK_SUGGESTIONS = ["Sprechventil", "Entblockungstraining", "Blockungsschema", "Geblockt nachts / entblockt tagsüber"];
 
 const THERAPY_OPTIONS = [
@@ -57,9 +38,6 @@ interface ExportState {
   bodsII: number | null;
   beurteilung: string;
   pathophysiologie: string;
-  dysLevel: string;
-  iddsiLevel: number | null;
-  beverageIddsi: number | null;
   tracheostomyRec: string;
   therapySelected: string[];
   therapyNotes: string;
@@ -71,9 +49,6 @@ const initialState: ExportState = {
   bodsII: null,
   beurteilung: "",
   pathophysiologie: "",
-  dysLevel: "",
-  iddsiLevel: null,
-  beverageIddsi: null,
   tracheostomyRec: "",
   therapySelected: [],
   therapyNotes: "",
@@ -108,7 +83,7 @@ export default function ExportPage() {
       const supabase = createClient();
       const { data: exam } = await supabase
         .from("examinations")
-        .select("has_tracheostomy, bods_nutrition, iddsi_level, assessment_text, pathophysiology_text, dys_level, beverage_iddsi, therapy_recommendations, therapy_notes, tracheostomy_recommendation, patient_nr")
+        .select("has_tracheostomy, bods_nutrition, assessment_text, pathophysiology_text, therapy_recommendations, therapy_notes, tracheostomy_recommendation, patient_nr")
         .eq("id", id)
         .single();
       const { data: nativ } = await supabase
@@ -123,11 +98,8 @@ export default function ExportPage() {
           bodsI: nativ?.bods_saliva ?? null,
           bodsII: exam.bods_nutrition ?? null,
           hasTracheostomy: exam.has_tracheostomy ?? false,
-          iddsiLevel: exam.iddsi_level ?? null,
           beurteilung: exam.assessment_text ?? "",
           pathophysiologie: exam.pathophysiology_text ?? "",
-          dysLevel: exam.dys_level ?? "",
-          beverageIddsi: exam.beverage_iddsi ?? null,
           therapySelected: exam.therapy_recommendations ?? [],
           therapyNotes: exam.therapy_notes ?? "",
           tracheostomyRec: exam.tracheostomy_recommendation ?? "",
@@ -204,8 +176,6 @@ export default function ExportPage() {
       .update({
         assessment_text: state.beurteilung,
         pathophysiology_text: state.pathophysiologie,
-        dys_level: state.dysLevel,
-        beverage_iddsi: state.beverageIddsi,
         therapy_recommendations: state.therapySelected,
         therapy_notes: state.therapyNotes,
         tracheostomy_recommendation: state.tracheostomyRec,
@@ -391,65 +361,6 @@ export default function ExportPage() {
             className="w-full bg-transparent p-4 text-sm text-on-surface placeholder:text-outline/60 leading-relaxed focus:outline-none resize-none"
           />
           <div className="absolute bottom-0 left-3 right-3 h-[2px] bg-outline-variant group-focus-within:bg-primary transition-colors rounded-full" />
-        </div>
-      </section>
-
-      {/* ---- Kostformempfehlung ---- */}
-      <section className="space-y-3">
-        <h3 className="text-[20px] font-headline font-extrabold text-primary tracking-tight">
-          Kostformempfehlung
-        </h3>
-        <div className="bg-surface-container-low rounded-card p-4 space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-outline uppercase tracking-wider block">
-                DYS-Stufe
-              </label>
-              <select
-                value={state.dysLevel}
-                onChange={(e) => { set("dysLevel", e.target.value); }}
-                onBlur={handleSave}
-                className="w-full bg-surface-container-lowest border-none rounded-lg text-sm px-3 py-2.5 font-medium focus:outline-none focus:ring-2 focus:ring-primary/20"
-              >
-                <option value="">— wählen —</option>
-                {DYS_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
-                ))}
-              </select>
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-outline uppercase tracking-wider block">
-                IDDSI Kost
-              </label>
-              <select
-                value={state.iddsiLevel ?? ""}
-                onChange={(e) => { set("iddsiLevel", e.target.value !== "" ? Number(e.target.value) : null); }}
-                onBlur={handleSave}
-                className="w-full bg-surface-container-lowest border-none rounded-lg text-sm px-3 py-2.5 font-medium focus:outline-none focus:ring-2 focus:ring-primary/20"
-              >
-                <option value="">— wählen —</option>
-                {IDDSI_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-outline uppercase tracking-wider block">
-              Getränke
-            </label>
-            <select
-              value={state.beverageIddsi ?? ""}
-              onChange={(e) => { set("beverageIddsi", e.target.value !== "" ? Number(e.target.value) : null); }}
-              onBlur={handleSave}
-              className="w-full bg-surface-container-lowest border-none rounded-lg text-sm px-3 py-2.5 font-medium focus:outline-none focus:ring-2 focus:ring-primary/20"
-            >
-              <option value="">— wählen —</option>
-              {BEVERAGE_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </select>
-          </div>
         </div>
       </section>
 

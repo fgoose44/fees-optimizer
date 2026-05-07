@@ -10,6 +10,7 @@ export default function AccountPage() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [title, setTitle] = useState("");
+  const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -25,7 +26,7 @@ export default function AccountPage() {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("first_name, last_name, title")
+        .select("first_name, last_name, title, phone")
         .eq("id", user.id)
         .maybeSingle();
 
@@ -33,6 +34,7 @@ export default function AccountPage() {
         setFirstName(profile.first_name ?? "");
         setLastName(profile.last_name ?? "");
         setTitle(profile.title ?? "");
+        setPhone(profile.phone ?? "");
       }
     }
     load();
@@ -50,7 +52,7 @@ export default function AccountPage() {
     const { error: dbError } = await supabase
       .from("profiles")
       .upsert(
-        { id: user.id, first_name: firstName.trim() || null, last_name: lastName.trim() || null, title: title.trim() || null, updated_at: new Date().toISOString() },
+        { id: user.id, first_name: firstName.trim() || null, last_name: lastName.trim() || null, title: title.trim() || null, phone: phone.trim() || null, updated_at: new Date().toISOString() },
         { onConflict: "id" }
       );
 
@@ -121,6 +123,17 @@ export default function AccountPage() {
               placeholder="z.B. Logopädin B.Sc., fachliche Leitung"
               className="w-full bg-surface-container-highest border border-[#e5e7eb] focus:border-primary focus:outline-none px-3 py-2.5 text-sm rounded-lg text-on-surface placeholder:text-outline/60 transition-colors"
             />
+          </div>
+          <div className="space-y-1.5">
+            <label className="block text-sm font-medium text-on-surface-variant">Telefon</label>
+            <input
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="z.B. +49 89 123456-0"
+              className="w-full bg-surface-container-highest border border-[#e5e7eb] focus:border-primary focus:outline-none px-3 py-2.5 text-sm rounded-lg text-on-surface placeholder:text-outline/60 transition-colors"
+            />
+            <p className="text-xs text-on-surface-variant">Erscheint im DOCX-Footer des FEES-Berichts.</p>
           </div>
         </div>
 

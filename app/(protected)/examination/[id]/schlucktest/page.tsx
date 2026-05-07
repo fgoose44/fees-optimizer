@@ -64,16 +64,6 @@ const PAS_OPTIONS = [
   { value: 8, label: "PAS 8 — Unter Stimmlippen, stumm aspiriert" },
 ];
 
-const IDDSI_OPTIONS = [
-  { value: 0, label: "Level 0 — Dünnflüssig" },
-  { value: 1, label: "Level 1 — Leicht angedickt" },
-  { value: 2, label: "Level 2 — Nektarähnlich" },
-  { value: 3, label: "Level 3 — Puddingähnlich" },
-  { value: 4, label: "Level 4 — Püriert" },
-  { value: 5, label: "Level 5 — Gewürfelt / weich" },
-  { value: 6, label: "Level 6 — Weich & mundgerecht" },
-  { value: 7, label: "Level 7 — Normal / keine Einschränkung" },
-];
 
 const OVERALL_ASSESSMENT_OPTIONS = [
   { key: "vollstaendige_reinigung", label: "Vollständige Reinigung" },
@@ -104,7 +94,13 @@ const initialSummary: SchlucktestSummary = {
   overall_sensitivity: "",
   sensitivity_side: "",
   bods_nutrition: null,
-  iddsi_level: null,
+  nutrition_mode: null,
+  nutrition_route: null,
+  nutrition_notes: null,
+  dys_stufe: null,
+  iddsi_food_level: null,
+  iddsi_drink_level: null,
+  tablets: null,
 };
 
 // ============================================================
@@ -258,7 +254,7 @@ export default function SchlucktestPage() {
       // Gesamtbeurteilung + BODS II aus examinations laden
       const { data: exam } = await supabase
         .from("examinations")
-        .select("overall_assessment, overall_sensitivity, sensitivity_side, bods_nutrition, iddsi_level, patient_nr")
+        .select("overall_assessment, overall_sensitivity, sensitivity_side, bods_nutrition, nutrition_mode, nutrition_route, nutrition_notes, dys_stufe, iddsi_food_level, iddsi_drink_level, tablets, patient_nr")
         .eq("id", id)
         .single();
 
@@ -267,8 +263,14 @@ export default function SchlucktestPage() {
           overall_assessment:  exam.overall_assessment ?? [],
           overall_sensitivity: exam.overall_sensitivity ?? "",
           sensitivity_side:    exam.sensitivity_side ?? "",
-          bods_nutrition:      exam.bods_nutrition ?? null,
-          iddsi_level:         exam.iddsi_level ?? null,
+          bods_nutrition:    exam.bods_nutrition ?? null,
+          nutrition_mode:    exam.nutrition_mode ?? null,
+          nutrition_route:   exam.nutrition_route ?? null,
+          nutrition_notes:   exam.nutrition_notes ?? null,
+          dys_stufe:         exam.dys_stufe ?? null,
+          iddsi_food_level:  exam.iddsi_food_level ?? null,
+          iddsi_drink_level: exam.iddsi_drink_level ?? null,
+          tablets:           exam.tablets ?? null,
         });
         if (exam.bods_nutrition !== null) setBodsOverride(true);
         if (exam.patient_nr != null) setPatientNr(exam.patient_nr);
@@ -388,7 +390,13 @@ export default function SchlucktestPage() {
         overall_sensitivity: summary.overall_sensitivity,
         sensitivity_side: summary.sensitivity_side,
         bods_nutrition: summary.bods_nutrition,
-        iddsi_level: summary.iddsi_level,
+        nutrition_mode:    summary.nutrition_mode,
+        nutrition_route:   summary.nutrition_route,
+        nutrition_notes:   summary.nutrition_notes,
+        dys_stufe:         summary.dys_stufe,
+        iddsi_food_level:  summary.iddsi_food_level,
+        iddsi_drink_level: summary.iddsi_drink_level,
+        tablets:           summary.tablets,
       })
       .eq("id", id);
 
@@ -882,28 +890,225 @@ export default function SchlucktestPage() {
           )}
         </div>
 
-        {/* IDDSI */}
+        {/* KOSTFORMEMPFEHLUNG */}
         <div>
-          <label className="block text-xs font-bold text-on-surface-variant mb-1 uppercase tracking-widest">
-            IDDSI — Kostformempfehlung
+          <label className="block text-xs font-bold text-on-surface-variant mb-2 uppercase tracking-widest">
+            Kostformempfehlung
           </label>
-          <select
-            value={summary.iddsi_level ?? ""}
-            onChange={(e) =>
-              setSummary((p) => ({
-                ...p,
-                iddsi_level: e.target.value !== "" ? Number(e.target.value) : null,
-              }))
-            }
-            className="w-full bg-surface-container-lowest border border-outline-variant/40 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-          >
-            <option value="">— IDDSI-Level wählen —</option>
-            {IDDSI_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
+
+          {/* Drei-Wege-Radio */}
+          <div className="flex gap-2 mb-4">
+            {(["npo", "adaption", "vollkost"] as const).map((mode) => {
+              const labels: Record<string, string> = {
+                npo: "Non per os",
+                adaption: "Koststufenadaption",
+                vollkost: "Vollkost",
+              };
+              return (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() =>
+                    setSummary((p) => ({
+                      ...p,
+                      nutrition_mode: p.nutrition_mode === mode ? null : mode,
+                      // reset sub-fields when switching mode
+                      nutrition_route: null,
+                      nutrition_notes: null,
+                      dys_stufe: null,
+                      iddsi_food_level: null,
+                      iddsi_drink_level: null,
+                      tablets: null,
+                    }))
+                  }
+                  className={`flex-1 py-2 px-3 rounded-xl text-sm border transition-colors ${
+                    summary.nutrition_mode === mode
+                      ? "bg-primary text-on-primary border-primary font-medium"
+                      : "bg-surface-container-lowest border-outline-variant/40 text-on-surface-variant"
+                  }`}
+                >
+                  {labels[mode]}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* NPO-Felder */}
+          {summary.nutrition_mode === "npo" && (
+            <div className="space-y-3 pl-2 border-l-2 border-primary/30">
+              <div>
+                <label className="block text-xs text-on-surface-variant mb-1">
+                  Ernährungsweg <span className="text-tertiary">*</span>
+                </label>
+                <select
+                  value={summary.nutrition_route ?? ""}
+                  onChange={(e) =>
+                    setSummary((p) => ({
+                      ...p,
+                      nutrition_route: e.target.value || null,
+                    }))
+                  }
+                  className="w-full bg-surface-container-lowest border border-outline-variant/40 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                >
+                  <option value="">— Ernährungsweg wählen —</option>
+                  <option value="nasogastrale_sonde">Nasogastrale Sonde</option>
+                  <option value="peg">PEG</option>
+                  <option value="parenteral">Parenteral</option>
+                  <option value="sonstige">Sonstige</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs text-on-surface-variant mb-1">
+                  Notiz (optional)
+                </label>
+                <input
+                  type="text"
+                  value={summary.nutrition_notes ?? ""}
+                  onChange={(e) =>
+                    setSummary((p) => ({
+                      ...p,
+                      nutrition_notes: e.target.value || null,
+                    }))
+                  }
+                  placeholder="Freitext…"
+                  className="w-full bg-surface-container-lowest border border-outline-variant/40 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* ADAPTION-Felder */}
+          {summary.nutrition_mode === "adaption" && (
+            <div className="space-y-3 pl-2 border-l-2 border-primary/30">
+              {/* DYS-Stufe */}
+              <div>
+                <label className="block text-xs text-on-surface-variant mb-1">
+                  DYS-Stufe
+                </label>
+                <select
+                  value={summary.dys_stufe ?? ""}
+                  onChange={(e) =>
+                    setSummary((p) => ({
+                      ...p,
+                      dys_stufe: e.target.value || null,
+                    }))
+                  }
+                  className="w-full bg-surface-container-lowest border border-outline-variant/40 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                >
+                  <option value="">— DYS-Stufe wählen —</option>
+                  <option value="DYS I">DYS I</option>
+                  <option value="DYS IIa">DYS IIa</option>
+                  <option value="DYS IIb">DYS IIb</option>
+                  <option value="DYS III">DYS III</option>
+                </select>
+              </div>
+
+              {/* IDDSI Kostlevel */}
+              <div>
+                <label className="block text-xs text-on-surface-variant mb-1">
+                  Kostlevel (IDDSI)
+                </label>
+                <select
+                  value={summary.iddsi_food_level ?? ""}
+                  onChange={(e) =>
+                    setSummary((p) => ({
+                      ...p,
+                      iddsi_food_level: e.target.value !== "" ? Number(e.target.value) : null,
+                    }))
+                  }
+                  className="w-full bg-surface-container-lowest border border-outline-variant/40 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                >
+                  <option value="">— Kostlevel wählen —</option>
+                  <option value={4}>IDDSI 4 — Püriert</option>
+                  <option value={5}>IDDSI 5 — Weich & in Stücken</option>
+                  <option value={6}>IDDSI 6 — Weich & mundgerecht</option>
+                </select>
+              </div>
+
+              {/* Getränkestufe */}
+              <div>
+                <label className="block text-xs text-on-surface-variant mb-1">
+                  Getränkestufe (IDDSI)
+                </label>
+                <select
+                  value={summary.iddsi_drink_level ?? ""}
+                  onChange={(e) =>
+                    setSummary((p) => ({
+                      ...p,
+                      iddsi_drink_level: e.target.value !== "" ? Number(e.target.value) : null,
+                    }))
+                  }
+                  className="w-full bg-surface-container-lowest border border-outline-variant/40 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                >
+                  <option value="">— Getränkestufe wählen —</option>
+                  <option value={0}>IDDSI 0 — Dünnflüssig</option>
+                  <option value={1}>IDDSI 1 — Leicht angedickt</option>
+                  <option value={2}>IDDSI 2 — Mäßig angedickt (nektarartig)</option>
+                  <option value={3}>IDDSI 3 — Stark angedickt (puddingartig)</option>
+                </select>
+              </div>
+
+              {/* Tabletten */}
+              <div>
+                <label className="block text-xs text-on-surface-variant mb-1">
+                  Tabletteneinnahme
+                </label>
+                <div className="flex gap-2">
+                  {(["normal", "crushed"] as const).map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() =>
+                        setSummary((p) => ({
+                          ...p,
+                          tablets: p.tablets === t ? null : t,
+                        }))
+                      }
+                      className={`flex-1 py-2 px-3 rounded-xl text-sm border transition-colors ${
+                        summary.tablets === t
+                          ? "bg-primary text-on-primary border-primary font-medium"
+                          : "bg-surface-container-lowest border-outline-variant/40 text-on-surface-variant"
+                      }`}
+                    >
+                      {t === "normal" ? "Normal" : "Gemörsert"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* VOLLKOST-Felder */}
+          {summary.nutrition_mode === "vollkost" && (
+            <div className="space-y-3 pl-2 border-l-2 border-primary/30">
+              <div>
+                <label className="block text-xs text-on-surface-variant mb-1">
+                  Tabletteneinnahme
+                </label>
+                <div className="flex gap-2">
+                  {(["normal", "crushed"] as const).map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() =>
+                        setSummary((p) => ({
+                          ...p,
+                          tablets: p.tablets === t ? null : t,
+                        }))
+                      }
+                      className={`flex-1 py-2 px-3 rounded-xl text-sm border transition-colors ${
+                        summary.tablets === t
+                          ? "bg-primary text-on-primary border-primary font-medium"
+                          : "bg-surface-container-lowest border-outline-variant/40 text-on-surface-variant"
+                      }`}
+                    >
+                      {t === "normal" ? "Normal" : "Gemörsert"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 

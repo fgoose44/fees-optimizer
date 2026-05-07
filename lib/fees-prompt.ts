@@ -42,7 +42,13 @@ export interface ExamData {
   dysphagia_question: string;
   medical_history: string;
   bods_nutrition: number | null;
-  iddsi_level: number | null;
+  nutrition_mode: string | null;
+  nutrition_route: string | null;
+  nutrition_notes: string | null;
+  dys_stufe: string | null;
+  iddsi_food_level: number | null;
+  iddsi_drink_level: number | null;
+  tablets: string | null;
   overall_sensitivity: string;
   sensitivity_side: string;
   overall_assessment: string[];
@@ -71,6 +77,11 @@ export interface NativData {
   sinus_piriformes_side: string;
   sinus_piriformes_notes: string;
   trachea_structures_notes: string;
+  cannula_changed: boolean;
+  cannula_position_before: string;
+  cannula_note_before: string;
+  cannula_position_after: string;
+  cannula_note_after: string;
   cough_reflex: string;
   swallow_reflex: string;
   vp_closure: string;
@@ -153,6 +164,15 @@ function formatNativbefund(n: NativData): string {
   if (n.valleculae.length) lines.push(withNote(`Valleculae: ${n.valleculae.join(", ")}${sideLabel(n.valleculae_side)}`, n.valleculae_notes));
   if (n.sinus_piriformes?.length) lines.push(withNote(`Sinus piriformes: ${n.sinus_piriformes.join(", ")}${sideLabel(n.sinus_piriformes_side)}`, n.sinus_piriformes_notes));
   if (n.trachea_structures_notes) lines.push(`Transstomatal (Freitext): ${n.trachea_structures_notes}`);
+  if (n.cannula_changed) {
+    const before = n.cannula_position_before
+      ? `${n.cannula_position_before}${n.cannula_note_before ? ` (${n.cannula_note_before})` : ""}`
+      : "nicht dokumentiert";
+    const after = n.cannula_position_after
+      ? `${n.cannula_position_after}${n.cannula_note_after ? ` (${n.cannula_note_after})` : ""}`
+      : "nicht dokumentiert";
+    lines.push(`Kanülenwechsel: Ja — Lage vor Wechsel: ${before}; Lage nach Wechsel: ${after}`);
+  }
 
   if (n.cough_reflex) lines.push(`Hustenstoß spontan: ${n.cough_reflex}`);
   if (n.swallow_reflex) lines.push(`Schluckversuch spontan: ${n.swallow_reflex}`);
@@ -289,6 +309,15 @@ BODS II (Ernährungsstatus): ${bodsII}
 BODS Gesamt: ${bodsTotal}
 Langmore: Grad ${nativ?.langmore_score ?? "—"}
 Sensibilität: ${exam.overall_sensitivity || "nicht angegeben"}${exam.sensitivity_side ? ` (${exam.sensitivity_side})` : ""}
+Kostform: ${
+  exam.nutrition_mode === "npo"
+    ? `Non per os — Ernährungsweg: ${exam.nutrition_route ?? "nicht angegeben"}${exam.nutrition_notes ? ` (${exam.nutrition_notes})` : ""}`
+    : exam.nutrition_mode === "adaption"
+    ? `Koststufenadaption: ${exam.dys_stufe ?? "—"} / IDDSI ${exam.iddsi_food_level ?? "—"} / Getränke IDDSI ${exam.iddsi_drink_level ?? "—"}${exam.tablets ? ` / Tabletten ${exam.tablets === "crushed" ? "gemörsert" : "normal"}` : ""}`
+    : exam.nutrition_mode === "vollkost"
+    ? `Vollkost${exam.tablets ? ` / Tabletten ${exam.tablets === "crushed" ? "gemörsert" : "normal"}` : ""}`
+    : "nicht angegeben"
+}
 
 ---
 

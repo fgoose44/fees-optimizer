@@ -228,6 +228,20 @@ function transstomatalRows(n: any): Paragraph[] {
   if (n.tk_position) {
     items.push(labelRow("TK-Position", n.tk_position === "mittig" ? "Mittig im Lumen" : "Nicht mittig im Lumen"));
   }
+  // Kanülenlage (bei Wechsel)
+  if (n.cannula_changed) {
+    items.push(labelRow("Kanülenwechsel", "Ja"));
+    if (n.cannula_position_before) {
+      const pos = n.cannula_position_before === "mittig" ? "mittig" : "nicht mittig";
+      const note = n.cannula_note_before ? ` (${n.cannula_note_before})` : "";
+      items.push(labelRow("Kanülenlage vor Wechsel", pos + note));
+    }
+    if (n.cannula_position_after) {
+      const pos = n.cannula_position_after === "mittig" ? "mittig" : "nicht mittig";
+      const note = n.cannula_note_after ? ` (${n.cannula_note_after})` : "";
+      items.push(labelRow("Kanülenlage nach Wechsel", pos + note));
+    }
+  }
   return items.length ? items : [body("(Transstomatal-Befund nicht dokumentiert)", { italic: true })];
 }
 
@@ -273,7 +287,7 @@ export async function POST(req: NextRequest) {
     supabase.from("examinations").select("*").eq("id", examinationId).single(),
     supabase.from("native_findings").select("*").eq("examination_id", examinationId).maybeSingle(),
     supabase.from("swallow_tests").select("*").eq("examination_id", examinationId),
-    supabase.from("profiles").select("first_name, last_name, title").eq("id", user.id).maybeSingle(),
+    supabase.from("profiles").select("first_name, last_name, title, phone").eq("id", user.id).maybeSingle(),
   ]);
 
   if (examRes.error || !examRes.data) {
@@ -306,6 +320,7 @@ export async function POST(req: NextRequest) {
 
   const authorName = [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") || "Logopädie";
   const authorTitle = profile?.title || "";
+  const authorPhone = profile?.phone || "";
 
 
   // ============================================================
@@ -424,15 +439,35 @@ export async function POST(req: NextRequest) {
 
   // --- Kostformempfehlung ---
   children.push(heading("Kostformempfehlung"));
-  if (exam.dys_level) children.push(labelRow("Kost (DYS)", exam.dys_level));
-  if (exam.iddsi_level != null) {
-    children.push(labelRow("Kost (IDDSI)", IDDSI_LABELS[exam.iddsi_level as number] ?? `IDDSI Level ${exam.iddsi_level}`));
-  }
-  if (exam.beverage_iddsi != null) {
-    children.push(labelRow("Getränke", BEVERAGE_LABELS[exam.beverage_iddsi as number] ?? `IDDSI ${exam.beverage_iddsi}`));
-  }
-  if (!exam.dys_level && exam.iddsi_level == null && exam.beverage_iddsi == null) {
-    children.push(body("(Kostformempfehlung – bitte manuell ergänzen)", { italic: true }));
+  if (exam.nutrition_mode === "npo") {
+    const route = exam.nutrition_route ?? "nicht angegeben";
+    children.push(labelRow("Ernährungsmodus", "Non per os"));
+    children.push(labelRow("Ernährungsweg", route));
+    if (exam.nutrition_notes) children.push(labelRow("Notiz", exam.nutrition_notes));
+  } else if (exam.nutrition_mode === "adaption") {
+    if (exam.dys_stufe) children.push(labelRow("Kost (DYS)", exam.dys_stufe));
+    if (exam.iddsi_food_level != null) {
+      children.push(labelRow("Kost (IDDSI)", IDDSI_LABELS[exam.iddsi_food_level as number] ?? `IDDSI Level ${exam.iddsi_food_level}`));
+    }
+    if (exam.iddsi_drink_level != null) {
+      children.push(labelRow("Getränke", BEVERAGE_LABELS[exam.iddsi_drink_level as number] ?? `IDDSI ${exam.iddsi_drink_level}`));
+    }
+    if (exam.tablets) children.push(labelRow("Tabletteneinnahme", exam.tablets === "crushed" ? "Gemörsert" : "Normal"));
+  } else if (exam.nutrition_mode === "vollkost") {
+    children.push(labelRow("Ernährungsmodus", "Vollkost"));
+    if (exam.tablets) children.push(labelRow("Tabletteneinnahme", exam.tablets === "crushed" ? "Gemörsert" : "Normal"));
+  } else {
+    // Fallback für Altdaten ohne nutrition_mode
+    if (exam.dys_stufe) children.push(labelRow("Kost (DYS)", exam.dys_stufe));
+    if (exam.iddsi_food_level != null) {
+      children.push(labelRow("Kost (IDDSI)", IDDSI_LABELS[exam.iddsi_food_level as number] ?? `IDDSI Level ${exam.iddsi_food_level}`));
+    }
+    if (exam.iddsi_drink_level != null) {
+      children.push(labelRow("Getränke", BEVERAGE_LABELS[exam.iddsi_drink_level as number] ?? `IDDSI ${exam.iddsi_drink_level}`));
+    }
+    if (!exam.dys_stufe && exam.iddsi_food_level == null && exam.iddsi_drink_level == null) {
+      children.push(body("(Kostformempfehlung – bitte im Schlucktest ergänzen)", { italic: true }));
+    }
   }
   if (exam.has_tracheostomy && exam.tracheostomy_recommendation) {
     children.push(labelRow("Trachealkanüle", exam.tracheostomy_recommendation));
@@ -458,12 +493,13 @@ export async function POST(req: NextRequest) {
   children.push(gap());
 
   // --- Abschlussformel ---
-  children.push(body("Für Folgeuntersuchungen bzw. Rückfragen stehen wir Ihnen zur Verfügung."));
+  children.push(body("Für Rückfragen stehen wir gerne zur Verfügung."));
   children.push(gap());
   children.push(body("Mit freundlichen Grüßen"));
   children.push(gap());
   children.push(body(authorName));
   if (authorTitle) children.push(body(authorTitle, { italic: true }));
+  if (authorPhone) children.push(body(`Tel.: ${authorPhone}`));
 
   // ============================================================
   // DOCX generieren

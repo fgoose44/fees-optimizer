@@ -106,5 +106,17 @@ Klinisch korrekt: Speichelschlucken hat keine boluspräparative Phase.
 Fix: Explizite Anweisung im Prompt: "Verwende deutsche Umlaute korrekt: ä, ö, ü — niemals ae, oe, ue, ss."
 Kein Encoding-Problem im DB/JSON-Layer (Next.js + Supabase verwenden UTF-8 durchgehend).
 
+## Kostformempfehlung: Drei-Wege-Radio (npo / adaption / vollkost)
+Beim Wechsel des Modus alle Sub-Felder zurücksetzen: `nutrition_route: null, nutrition_notes: null, dys_stufe: null, iddsi_food_level: null, iddsi_drink_level: null, tablets: null`. Verhindert inkonsistente DB-Daten wenn Nutzer Modus wechselt.
+DB: `nutrition_mode` mit CHECK-Constraint; `iddsi_level` bleibt bestehen (kein breaking change für Altdaten).
+
+## TK Kanülenlage: bedingte Felder nur bei cannula_changed = true
+`cannula_changed` ist boolean, steuert ob Lage-vor/nach Felder gerendert werden.
+DOCX und Prompt zeigen Kanüle-Abschnitt nur wenn `n.cannula_changed` truthy ist.
+CHECK-Constraints auf `cannula_position_before/after` IN ('mittig','nicht_mittig').
+
+## DOCX-Footer: Telefonnummer nur wenn vorhanden
+`if (authorPhone) children.push(body(`Tel.: ${authorPhone}`))` — Tel.-Zeile erscheint nur wenn in profiles.phone eingetragen.
+
 ## MCP-Setup: Stitch + Claude Desktop
 MCP-Server in `~/Library/Application Support/Claude/claude_desktop_config.json` unter `mcpServers` eintragen (`command`, `args`, ggf. `env`). npx-basierte MCPs brauchen Node.js im PATH — bei nvm: sicherstellen dass `~/.zshrc` den nvm-Pfad setzt und Claude Desktop nach Shell-Login startet. Stitch MCP: Design-System vor Screen-Generierung anlegen (`create_design_system`), damit Farben mit `tailwind.config.ts` übereinstimmen.

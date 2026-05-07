@@ -51,6 +51,13 @@ export interface NativbefundData {
   trachea_structures_notes: string;
   tk_position: string; // 'mittig' | 'nicht_mittig' | ''
 
+  // TK Kanülenlage (nur wenn TK = true)
+  cannula_changed: boolean;
+  cannula_position_before: string; // 'mittig' | 'nicht_mittig' | ''
+  cannula_note_before: string;
+  cannula_position_after: string;  // 'mittig' | 'nicht_mittig' | ''
+  cannula_note_after: string;
+
   // Reflexe
   cough_reflex: string; // 'auslösbar' | 'insuffizient' | 'nicht auslösbar' | ''
   swallow_reflex: string; // 'möglich' | 'verzögert' | 'nicht möglich' | ''
@@ -135,5 +142,12 @@ export interface SchlucktestSummary {
   overall_sensitivity: string; // 'unauffällig' | 'leicht' | 'mittelgradig' | 'stark'
   sensitivity_side: SideFinding;
   bods_nutrition: number | null; // BODS II (1–8), auto-vorgeschlagen, überschreibbar
-  iddsi_level: number | null; // 0–7
+  // Kostformempfehlung (neu ab Phase 13)
+  nutrition_mode: "npo" | "adaption" | "vollkost" | null;
+  nutrition_route: string | null; // nur bei npo
+  nutrition_notes: string | null; // optional bei npo
+  dys_stufe: string | null; // 'DYS I' | 'DYS IIa' | 'DYS IIb' | 'DYS III'
+  iddsi_food_level: number | null; // 4 | 5 | 6
+  iddsi_drink_level: number | null; // 0 | 1 | 2 | 3
+  tablets: "crushed" | "normal" | null;
 }

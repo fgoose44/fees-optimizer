@@ -122,32 +122,13 @@ Gefundene Abweichungen (BEVOR Fix):
 
 ---
 
-### TASK 3 — Kostformempfehlung neu strukturieren
+### TASK 3 — Kostformempfehlung neu strukturieren ✅
 
-**DB-Änderung nötig** — SQL wird vor Ausführung gezeigt.
-
-Aktuelle Struktur: `iddsi_level` (integer, nullable) in `examinations`.
-Neue Struktur: `nutrition_mode` + `nutrition_route` + `dys_stufe` + `iddsi_food_level` + `iddsi_drink_level` + `tablets`.
-
-**SQL (zur Bestätigung):**
-```sql
-ALTER TABLE examinations
-  ADD COLUMN IF NOT EXISTS nutrition_mode text CHECK (nutrition_mode IN ('npo','adaption','vollkost')),
-  ADD COLUMN IF NOT EXISTS nutrition_route text,
-  ADD COLUMN IF NOT EXISTS nutrition_notes text,
-  ADD COLUMN IF NOT EXISTS dys_stufe text CHECK (dys_stufe IN ('DYS I','DYS IIa','DYS IIb','DYS III')),
-  ADD COLUMN IF NOT EXISTS iddsi_food_level integer,
-  ADD COLUMN IF NOT EXISTS iddsi_drink_level integer,
-  ADD COLUMN IF NOT EXISTS tablets text CHECK (tablets IN ('crushed','normal'));
-```
-_`iddsi_level` bleibt bestehen (kein breaking change für alte Daten)._
-
-- [ ] T3-A: **SQL zeigen + auf OK warten** ← bereits oben
-- [ ] T3-B: DB-Migration ausführen
-- [ ] T3-C: `schlucktest/page.tsx` — IDDSI-Sektion ersetzen durch Drei-Wege-Radio (npo / adaption / vollkost) mit bedingten Sub-Feldern
-- [ ] T3-D: `lib/fees-prompt.ts` — ExamData-Interface + formatKostform() erweitern
-- [ ] T3-E: `app/api/export/docx/route.ts` — Kostform-Block im DOCX anpassen
-- [ ] T3-F: `app/api/generate-assessment/route.ts` — Prompt-Payload um nutrition_mode erweitern
+- [x] T3-A+B: DB-Migration: 7 neue Spalten (nutrition_mode, nutrition_route, nutrition_notes, dys_stufe, iddsi_food_level, iddsi_drink_level, tablets) + Altdaten-Migration
+- [x] T3-C: `schlucktest/page.tsx` — Drei-Wege-Radio (npo / adaption / vollkost) mit bedingten Sub-Feldern
+- [x] T3-D: `lib/fees-prompt.ts` — ExamData-Interface + Kostform-Block im Prompt
+- [x] T3-E: `app/api/export/docx/route.ts` — Kostform-Block im DOCX
+- [x] T3-F: `app/api/generate-assessment/route.ts` — nutzt select("*"), kein Änderungsbedarf
 
 ---
 
@@ -161,40 +142,21 @@ _`iddsi_level` bleibt bestehen (kein breaking change für alte Daten)._
 
 ---
 
-### TASK 5 — Retentionen um 2 Lokalisationen erweitern
+### TASK 5 — Retentionen um 2 Lokalisationen erweitern ✅
 
-**DB-Änderung nötig** — SQL zur Bestätigung:
-```sql
-ALTER TABLE swallow_tests
-  ADD COLUMN IF NOT EXISTS retention_hintere_kommissur text DEFAULT '',
-  ADD COLUMN IF NOT EXISTS retention_oesophagussphinkter text DEFAULT '';
-```
-
-- [ ] T5-A: **SQL zeigen + auf OK warten** ← bereits oben
-- [ ] T5-B: DB-Migration ausführen
-- [ ] T5-C: `schlucktest/page.tsx` — 2 neue `<RetentionRow>`-Einträge + State + UPSERT-Felder
-- [ ] T5-D: `lib/fees-prompt.ts` — `formatRetentions()` um beide Felder erweitern
-- [ ] T5-E: `app/api/export/docx/route.ts` — Retentions-Rendering erweitern
+- [x] T5-A+B: DB-Migration: retention_hintere_kommissur + retention_oesophagussphinkter
+- [x] T5-C: `schlucktest/page.tsx` — 2 neue Felder + State + UPSERT
+- [x] T5-D: `lib/fees-prompt.ts` — formatRetentions() erweitert
+- [x] T5-E: `app/api/export/docx/route.ts` — swallowTestToProse() erweitert
 
 ---
 
-### TASK 6 — TK Kanülenlage-Felder
+### TASK 6 — TK Kanülenlage-Felder ✅
 
-**DB-Änderung nötig** — SQL zur Bestätigung:
-```sql
-ALTER TABLE native_findings
-  ADD COLUMN IF NOT EXISTS cannula_changed boolean DEFAULT false,
-  ADD COLUMN IF NOT EXISTS cannula_position_before text CHECK (cannula_position_before IN ('mittig','nicht_mittig')),
-  ADD COLUMN IF NOT EXISTS cannula_note_before text,
-  ADD COLUMN IF NOT EXISTS cannula_position_after text CHECK (cannula_position_after IN ('mittig','nicht_mittig')),
-  ADD COLUMN IF NOT EXISTS cannula_note_after text;
-```
-
-- [ ] T6-A: **SQL zeigen + auf OK warten** ← bereits oben
-- [ ] T6-B: DB-Migration ausführen
-- [ ] T6-C: `befund/page.tsx` — Kanülenlage-Block im TK-Bereich (nur wenn `has_tracheostomy`)
-- [ ] T6-D: `lib/fees-prompt.ts` — NativData-Interface + formatNativbefund() erweitern
-- [ ] T6-E: `app/api/export/docx/route.ts` — Kanülenlage-Block im transstomatalen Befund
+- [x] T6-A+B: DB-Migration: 5 neue Spalten (cannula_changed, cannula_position_before/after, cannula_note_before/after)
+- [x] T6-C: `befund/page.tsx` — Toggle "Kanüle gewechselt" + Lage vor/nach mit Freitext (nur bei TK)
+- [x] T6-D: `lib/fees-prompt.ts` — NativData + formatNativbefund() mit Kanülenwechsel-Block
+- [x] T6-E: `app/api/export/docx/route.ts` — transstomatalRows() mit Kanülenlage-Zeilen
 
 ---
 
@@ -208,20 +170,11 @@ Aktuelle Kopfzeile: `"FEES-Bericht  |  Patient-ID: ${patNr}  |  ${dateFormatted}
 
 ---
 
-### TASK 8 — Telefonnummer im User-Profil + DOCX-Footer
+### TASK 8 — Telefonnummer im User-Profil + DOCX-Footer ✅
 
-**DB-Änderung nötig** — SQL zur Bestätigung:
-```sql
-ALTER TABLE profiles
-  ADD COLUMN IF NOT EXISTS phone text;
-```
-
-- [ ] T8-A: **SQL zeigen + auf OK warten** ← bereits oben
-- [ ] T8-B: DB-Migration ausführen
-- [ ] T8-C: `account/page.tsx` — phone-Feld hinzufügen (load + save + UI)
-- [ ] T8-D: `app/api/export/docx/route.ts` — DOCX-Footer-Block am Ende des Dokuments
-  - Satz: `"Für Rückfragen stehen wir gerne zur Verfügung."`
-  - Name + Rolle + Tel. (Tel.-Zeile nur wenn phone vorhanden)
+- [x] T8-A+B: DB-Migration: profiles.phone (text, nullable)
+- [x] T8-C: `account/page.tsx` — Telefon-Feld mit Hinweis "Erscheint im DOCX-Footer"
+- [x] T8-D: `app/api/export/docx/route.ts` — Footer: Satz + Name + Titel + Tel. (Tel. nur wenn vorhanden)
 
 ---
 
@@ -259,4 +212,4 @@ Aktuell: `kompensation_notes` wird eingebaut (Zeile 182), aber andere Freitextfe
 
 ---
 
-_Zuletzt aktualisiert: 2026-05-05 — Phase 13 geplant (Clara-Feedback Runde 2)_
+_Zuletzt aktualisiert: 2026-05-07 — Phase 13 vollständig implementiert ✅_

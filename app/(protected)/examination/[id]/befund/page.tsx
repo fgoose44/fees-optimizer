@@ -28,6 +28,11 @@ const initialData: NativbefundData = {
   trachea_structures: [],
   trachea_structures_notes: "",
   tk_position: "",
+  cannula_changed: false,
+  cannula_position_before: "",
+  cannula_note_before: "",
+  cannula_position_after: "",
+  cannula_note_after: "",
   cough_reflex: "",
   swallow_reflex: "",
   vp_closure: "",
@@ -208,7 +213,7 @@ export default function BefundPage() {
       const { data: nativ } = await supabase
         .from("native_findings")
         .select(
-          "mucosa, mucosa_notes, velum, velum_side, velum_notes, tongue_base, tongue_base_notes, epiglottis, epiglottis_notes, pharynx, pharynx_side, pharynx_notes, larynx, larynx_side, larynx_notes, valleculae, valleculae_side, valleculae_notes, sinus_piriformes, sinus_piriformes_side, sinus_piriformes_notes, trachea_mucosa, trachea_structures, trachea_structures_notes, tk_position, cough_reflex, swallow_reflex, vp_closure, vocal_fold_mobility, vocal_fold_weakness_side, glissando, glissando_weakness_side, glottis_closure, voluntary_cough, langmore_score, bods_saliva"
+          "mucosa, mucosa_notes, velum, velum_side, velum_notes, tongue_base, tongue_base_notes, epiglottis, epiglottis_notes, pharynx, pharynx_side, pharynx_notes, larynx, larynx_side, larynx_notes, valleculae, valleculae_side, valleculae_notes, sinus_piriformes, sinus_piriformes_side, sinus_piriformes_notes, trachea_mucosa, trachea_structures, trachea_structures_notes, tk_position, cannula_changed, cannula_position_before, cannula_note_before, cannula_position_after, cannula_note_after, cough_reflex, swallow_reflex, vp_closure, vocal_fold_mobility, vocal_fold_weakness_side, glissando, glissando_weakness_side, glottis_closure, voluntary_cough, langmore_score, bods_saliva"
         )
         .eq("examination_id", id)
         .maybeSingle();
@@ -227,6 +232,11 @@ export default function BefundPage() {
           trachea_structures:       nativ.trachea_structures ?? [],
           trachea_structures_notes: nativ.trachea_structures_notes ?? "",
           tk_position:              nativ.tk_position ?? "",
+          cannula_changed:          nativ.cannula_changed ?? false,
+          cannula_position_before:  nativ.cannula_position_before ?? "",
+          cannula_note_before:      nativ.cannula_note_before ?? "",
+          cannula_position_after:   nativ.cannula_position_after ?? "",
+          cannula_note_after:       nativ.cannula_note_after ?? "",
           cough_reflex:       nativ.cough_reflex ?? "",
           swallow_reflex:     nativ.swallow_reflex ?? "",
           vp_closure:               nativ.vp_closure ?? "",
@@ -329,6 +339,11 @@ export default function BefundPage() {
       trachea_structures: data.trachea_structures,
       trachea_structures_notes: data.trachea_structures_notes,
       tk_position: data.tk_position,
+      cannula_changed: data.cannula_changed,
+      cannula_position_before: data.cannula_position_before || null,
+      cannula_note_before: data.cannula_note_before || null,
+      cannula_position_after: data.cannula_position_after || null,
+      cannula_note_after: data.cannula_note_after || null,
       cough_reflex: data.cough_reflex,
       swallow_reflex: data.swallow_reflex,
       vp_closure: data.vp_closure,
@@ -514,6 +529,122 @@ export default function BefundPage() {
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* TK Kanülenlage */}
+          <div>
+            <p className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">
+              TK Kanülenlage
+            </p>
+
+            {/* Toggle: Kanüle gewechselt */}
+            <button
+              type="button"
+              onClick={() =>
+                setData((p) => ({
+                  ...p,
+                  cannula_changed: !p.cannula_changed,
+                  // reset sub-fields when unchecking
+                  ...(p.cannula_changed
+                    ? { cannula_position_before: "", cannula_note_before: "", cannula_position_after: "", cannula_note_after: "" }
+                    : {}),
+                }))
+              }
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium border transition-all mb-3 min-h-[44px] ${
+                data.cannula_changed
+                  ? "bg-tertiary text-on-tertiary border-tertiary"
+                  : "bg-surface-container-lowest text-on-surface-variant border-outline-variant/30"
+              }`}
+            >
+              <span className="material-symbols-outlined text-[18px]">
+                {data.cannula_changed ? "check_box" : "check_box_outline_blank"}
+              </span>
+              Kanüle gewechselt
+            </button>
+
+            {data.cannula_changed && (
+              <div className="space-y-3 pl-2 border-l-2 border-tertiary/40">
+                {/* Vor Wechsel */}
+                <div>
+                  <p className="text-[11px] text-on-surface-variant mb-1.5">Lage VOR Wechsel</p>
+                  <div className="flex rounded-xl overflow-hidden bg-surface-container-high p-1 gap-1 mb-2">
+                    {(
+                      [
+                        ["mittig", "Mittig"],
+                        ["nicht_mittig", "Nicht mittig"],
+                      ] as const
+                    ).map(([value, label]) => (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() =>
+                          setData((p) => ({
+                            ...p,
+                            cannula_position_before: p.cannula_position_before === value ? "" : value,
+                          }))
+                        }
+                        className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all min-h-[40px] ${
+                          data.cannula_position_before === value
+                            ? value === "mittig"
+                              ? "bg-secondary text-on-secondary font-bold shadow-sm"
+                              : "bg-tertiary text-on-tertiary font-bold shadow-sm"
+                            : "text-on-surface-variant hover:bg-surface-container-highest"
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                  <input
+                    type="text"
+                    value={data.cannula_note_before}
+                    onChange={(e) => setData((p) => ({ ...p, cannula_note_before: e.target.value }))}
+                    placeholder="Notiz zur Lage vor Wechsel …"
+                    className="w-full bg-surface-container-highest border-b-2 border-outline-variant/50 focus:border-primary focus:outline-none px-3 py-2 text-sm rounded-t-lg placeholder:text-outline/60 transition-colors"
+                  />
+                </div>
+
+                {/* Nach Wechsel */}
+                <div>
+                  <p className="text-[11px] text-on-surface-variant mb-1.5">Lage NACH Wechsel</p>
+                  <div className="flex rounded-xl overflow-hidden bg-surface-container-high p-1 gap-1 mb-2">
+                    {(
+                      [
+                        ["mittig", "Mittig"],
+                        ["nicht_mittig", "Nicht mittig"],
+                      ] as const
+                    ).map(([value, label]) => (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() =>
+                          setData((p) => ({
+                            ...p,
+                            cannula_position_after: p.cannula_position_after === value ? "" : value,
+                          }))
+                        }
+                        className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all min-h-[40px] ${
+                          data.cannula_position_after === value
+                            ? value === "mittig"
+                              ? "bg-secondary text-on-secondary font-bold shadow-sm"
+                              : "bg-tertiary text-on-tertiary font-bold shadow-sm"
+                            : "text-on-surface-variant hover:bg-surface-container-highest"
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                  <input
+                    type="text"
+                    value={data.cannula_note_after}
+                    onChange={(e) => setData((p) => ({ ...p, cannula_note_after: e.target.value }))}
+                    placeholder="Notiz zur Lage nach Wechsel …"
+                    className="w-full bg-surface-container-highest border-b-2 border-outline-variant/50 focus:border-primary focus:outline-none px-3 py-2 text-sm rounded-t-lg placeholder:text-outline/60 transition-colors"
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
