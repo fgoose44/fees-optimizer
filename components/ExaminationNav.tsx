@@ -1,6 +1,7 @@
 "use client";
 
-import Link from "next/link";
+import { useCallback } from "react";
+import { useRouter } from "next/navigation";
 
 type Step = "stammdaten" | "befund" | "schlucktest" | "export";
 
@@ -8,6 +9,12 @@ interface ExaminationNavProps {
   examinationId: string;
   patientName: string;
   activeStep: Step;
+  /**
+   * Optional async callback called before every navigation.
+   * Typically triggers an immediate save (saveNow).
+   * If it throws, the user is asked whether to navigate anyway.
+   */
+  onBeforeNavigate?: () => Promise<boolean>;
 }
 
 const steps: { key: Step; label: string; icon: string; href: (id: string, pn: string) => string }[] = [
@@ -41,16 +48,44 @@ export default function ExaminationNav({
   examinationId,
   patientName,
   activeStep,
+  onBeforeNavigate,
 }: ExaminationNavProps) {
+  const router = useRouter();
+
+  const handleNavigate = useCallback(
+    async (href: string) => {
+      if (onBeforeNavigate) {
+        try {
+          const success = await onBeforeNavigate();
+          if (!success) {
+            const proceed = window.confirm(
+              "Speichern fehlgeschlagen. Trotzdem wechseln?\n\nUngespeicherte Änderungen gehen verloren."
+            );
+            if (!proceed) return;
+          }
+        } catch {
+          const proceed = window.confirm(
+            "Speichern fehlgeschlagen. Trotzdem wechseln?\n\nUngespeicherte Änderungen gehen verloren."
+          );
+          if (!proceed) return;
+        }
+      }
+      router.push(href);
+    },
+    [onBeforeNavigate, router]
+  );
+
   return (
     <nav className="fixed bottom-0 left-0 w-full z-50 bg-white/80 backdrop-blur-md rounded-t-2xl shadow-[0_-4px_12px_rgba(0,0,0,0.05)] lg:hidden">
       <div className="flex justify-around items-center px-4 pb-4 pt-2 w-full max-w-[900px] mx-auto">
         {steps.map((step) => {
           const isActive = step.key === activeStep;
+          const href = step.href(examinationId, patientName);
           return (
-            <Link
+            <button
               key={step.key}
-              href={step.href(examinationId, patientName)}
+              type="button"
+              onClick={() => handleNavigate(href)}
               className={`flex flex-col items-center justify-center px-3 py-1.5 min-h-[44px] min-w-[44px] rounded-xl transition-all active:scale-90 duration-200 ${
                 isActive
                   ? "bg-sky-100 text-sky-900"
@@ -70,7 +105,7 @@ export default function ExaminationNav({
               <span className="font-label text-[10px] font-semibold uppercase tracking-wider mt-1">
                 {step.label}
               </span>
-            </Link>
+            </button>
           );
         })}
       </div>

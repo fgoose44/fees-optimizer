@@ -8,7 +8,8 @@ import { createClient } from "@/lib/supabase/client";
 interface ExamRow {
   id: string;
   examination_date: string;
-  status: string;
+  examination_type: string;
+  status: string | null; // 'draft' | 'completed'
   medical_diagnosis: string | null;
   assessment_text: string | null;
   has_nativbefund: boolean;
@@ -45,7 +46,7 @@ export default function DashboardPage() {
 
       const { data: examData } = await supabase
         .from("examinations")
-        .select("id, examination_date, status, medical_diagnosis, assessment_text, user_id, patient_nr")
+        .select("id, examination_date, examination_type, status, medical_diagnosis, assessment_text, user_id, patient_nr")
         .order("examination_date", { ascending: false });
 
       if (!examData) { setLoading(false); return; }
@@ -115,6 +116,21 @@ export default function DashboardPage() {
       a.download = "FEES-Bericht.docx";
       a.click();
       URL.revokeObjectURL(url);
+
+      // Befund als abgeschlossen markieren (failure-tolerant)
+      try {
+        const supabase = createClient();
+        await supabase
+          .from("examinations")
+          .update({ status: "completed" })
+          .eq("id", id);
+        // Update local state so badge refreshes without reload
+        setExams((prev) =>
+          prev.map((e) => (e.id === id ? { ...e, status: "completed" } : e))
+        );
+      } catch {
+        // Nicht kritisch — Status wird beim nächsten Download gesetzt
+      }
     } catch {
       alert("DOCX-Download fehlgeschlagen.");
     }
@@ -203,8 +219,15 @@ export default function DashboardPage() {
             Letzte Untersuchungen
           </p>
 
-          {exams.map((exam) => {
-            const done = !!(exam.assessment_text && exam.assessment_text.length > 10);
+          {[...exams]
+            .sort((a, b) => {
+              // Drafts first, then completed; within each group: newest first (already ordered by DB)
+              const aCompleted = a.status === "completed" ? 1 : 0;
+              const bCompleted = b.status === "completed" ? 1 : 0;
+              return aCompleted - bCompleted;
+            })
+            .map((exam) => {
+            const done = exam.status === "completed";
             const diagDisplay = exam.medical_diagnosis
               ? exam.medical_diagnosis.length > 55
                 ? exam.medical_diagnosis.slice(0, 52) + "…"
@@ -242,7 +265,7 @@ export default function DashboardPage() {
                       {formatDate(exam.examination_date)}
                     </p>
                     <span className="text-[10px] font-semibold px-2 py-0.5 bg-surface-container-highest text-on-surface-variant rounded-full">
-                      {statusLabel(exam.status)}
+                      {statusLabel(exam.examination_type)}
                     </span>
 
                     {/* Aktionen — rechts bündig */}

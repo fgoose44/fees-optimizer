@@ -22,7 +22,7 @@ export default function StammdatenPage() {
       const supabase = createClient();
       const { data } = await supabase
         .from("examinations")
-        .select("patient_nr, examination_date, status, rass_score, communication, has_tracheostomy, cannula_type, cuff_status, speaking_valve, procedure_description, medical_diagnosis, dysphagia_question, medical_history")
+        .select("patient_nr, examination_date, examination_type, rass_score, communication, has_tracheostomy, cannula_type, cuff_status, speaking_valve, procedure_description, medical_diagnosis, dysphagia_question, medical_history")
         .eq("id", id)
         .single();
       if (data) {
@@ -68,7 +68,7 @@ export default function StammdatenPage() {
       <div className="bg-white rounded-card p-5 space-y-3">
         {[
           ["Datum", dateFormatted],
-          ["Status", exam?.status === "erstdiagnostik" ? "Erstdiagnostik" : "Verlaufsdiagnostik"],
+          ["Status", exam?.examination_type === "erstdiagnostik" ? "Erstdiagnostik" : "Verlaufsdiagnostik"],
           ["RASS", rassLabel],
           ["Verständigung", exam?.communication as string || "—"],
           ["Trachealkanüle", exam?.has_tracheostomy ? "Ja" : "Nein"],

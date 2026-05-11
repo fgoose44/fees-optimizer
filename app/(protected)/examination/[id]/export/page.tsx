@@ -207,6 +207,18 @@ export default function ExportPage() {
     a.download = "FEES-Bericht.docx";
     a.click();
     URL.revokeObjectURL(url);
+
+    // Befund als abgeschlossen markieren (failure-tolerant — kein Block bei Fehler)
+    try {
+      const supabase = createClient();
+      await supabase
+        .from("examinations")
+        .update({ status: "completed" })
+        .eq("id", id);
+    } catch {
+      // Nicht kritisch — Status bleibt 'draft', nächster Download setzt ihn
+    }
+
     setDownloading(false);
     setDownloaded(true);
   }

@@ -17,7 +17,7 @@ const today = new Date().toISOString().split("T")[0];
 const initialForm: ExaminationFormData = {
   patientName: "",
   examinationDate: today,
-  status: "erstdiagnostik",
+  examination_type: "erstdiagnostik",
   rassScore: 0,
   communication: "",
   hasTracheostomy: false,
@@ -61,7 +61,7 @@ export default function NewExaminationPage() {
       .insert({
         user_id: user.id,
         examination_date: form.examinationDate,
-        status: form.status,
+        examination_type: form.examination_type,
         rass_score: form.rassScore,
         communication: form.communication,
         has_tracheostomy: form.hasTracheostomy,
@@ -146,9 +146,9 @@ export default function NewExaminationPage() {
               <button
                 key={value}
                 type="button"
-                onClick={() => set("status", value)}
+                onClick={() => set("examination_type", value)}
                 className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all min-h-[44px] ${
-                  form.status === value
+                  form.examination_type === value
                     ? "bg-primary text-on-primary font-bold shadow-sm"
                     : "text-on-surface-variant hover:bg-surface-container-highest"
                 }`}

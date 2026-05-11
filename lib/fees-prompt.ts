@@ -33,7 +33,7 @@ function loadStyleExamples(): string {
 
 export interface ExamData {
   examination_date: string;
-  status: string;
+  examination_type: string;
   rass_score: number;
   communication: string;
   has_tracheostomy: boolean;
@@ -240,7 +240,7 @@ export function buildAssessmentPrompt(
 ): string {
   const styleExamples = loadStyleExamples();
 
-  const statusLabel = exam.status === "erstdiagnostik" ? "Erstdiagnostik" : "Verlaufsdiagnostik";
+  const statusLabel = exam.examination_type === "erstdiagnostik" ? "Erstdiagnostik" : "Verlaufsdiagnostik";
   const dateFormatted = new Date(exam.examination_date).toLocaleDateString("de-DE", {
     day: "2-digit", month: "2-digit", year: "numeric",
   });

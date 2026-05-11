@@ -2,12 +2,12 @@
 // Stammdaten (Phase 1)
 // ============================================================
 
-export type ExaminationStatus = "erstdiagnostik" | "verlaufsdiagnostik";
+export type ExaminationType = "erstdiagnostik" | "verlaufsdiagnostik";
 
 export interface ExaminationFormData {
   patientName: string; // NUR Browser-State, wird NICHT gespeichert
   examinationDate: string; // ISO date string
-  status: ExaminationStatus;
+  examination_type: ExaminationType;
   rassScore: number;
   communication: string;
   hasTracheostomy: boolean;

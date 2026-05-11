@@ -312,7 +312,7 @@ export async function POST(req: NextRequest) {
   const patNr = String(exam.patient_nr ?? 0).padStart(4, "0");
   const docxFilename = `${yy}${mm}${dd}_FEES-Bericht_${patNr}.docx`;
 
-  const statusLabel = exam.status === "erstdiagnostik" ? "Erstbefund" : "Verlaufskontrolle";
+  const statusLabel = exam.examination_type === "erstdiagnostik" ? "Erstbefund" : "Verlaufskontrolle";
   const rassLabel = RASS_OPTIONS.find((o) => o.value === exam.rass_score)?.label ?? String(exam.rass_score);
   const bodsI = nativ?.bods_saliva;
   const bodsII = exam.bods_nutrition;
