@@ -78,7 +78,7 @@ Phase 8 umfasste (4 Punkte):
 
 - [ ] Stammdaten editierbar für gespeicherte Untersuchungen (aktuell nur read-only)
 - [ ] Passwort-Änderung für User (/account Seite erweitern)
-- [ ] IDDSI-CHECK-Constraint nachholen (Reminder ~3 Tage nach 2026-05-07):
+- [ ] IDDSI-CHECK-Constraint nachholen (Reminder ~3 Tage nach 2026-05-07, also ca. 2026-05-10 — jetzt überfällig, bald prüfen):
       `SELECT id FROM examinations WHERE iddsi_food_level IS NOT NULL AND iddsi_food_level NOT IN (4, 5, 6);`
       Wenn leer:
       `ALTER TABLE examinations ADD CONSTRAINT iddsi_food_level_check CHECK (iddsi_food_level IS NULL OR iddsi_food_level IN (4, 5, 6));`
@@ -529,7 +529,7 @@ Bereits eingetragen im Backlog (oben) ✅
 
 ---
 
-_Zuletzt aktualisiert: 2026-05-11 — Phase 14 Session B geplant_
+_Zuletzt aktualisiert: 2026-05-12 — Phase 14 Session B vollständig implementiert, committed, gepusht ✅_
 
 ---
 
