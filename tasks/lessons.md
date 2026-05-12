@@ -1,5 +1,20 @@
 # Lessons Learned
 
+## Phase 14 Session B Pitfall (12.05.2026)
+Claude Code meldete "Implementierung abgeschlossen ✅" mit
+"TypeScript: Zero Errors", aber Commit und Push fehlten.
+Konsequenz: alter Code auf Prod, Tests scheiterten unerklärlich.
+
+Lehre: "Fertig" bedeutet nicht "Build grün". Fertig bedeutet:
+1. Build grün
+2. Committed
+3. Gepusht
+4. Vercel-Deploy Ready
+5. Hard-Reload + sichtbar in Browser
+
+In zukünftigen Session-End-Prompts explizit alle 5 Schritte
+verlangen.
+
 ## Next.js 15: params als Promise
 In Next.js 15 müssen `params` und `searchParams` in Server Components als `Promise<{...}>` deklariert werden:
 ```ts
