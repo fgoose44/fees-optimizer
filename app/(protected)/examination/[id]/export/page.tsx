@@ -1,12 +1,15 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { flushSync } from "react-dom";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import ExaminationNav from "@/components/ExaminationNav";
 import PatientBanner from "@/components/PatientBanner";
 import StickyFooter from "@/components/StickyFooter";
+import SaveIndicator from "@/components/SaveIndicator";
+import { useAutoSave } from "@/hooks/useAutoSave";
 
 // ---- Konstanten ----
 
@@ -68,13 +71,12 @@ export default function ExportPage() {
   );
 
   const [patientNr, setPatientNr] = useState<number | null>(null);
+  const [completionStatus, setCompletionStatus] = useState<string | null>(null);
   const [state, setState] = useState<ExportState>(initialState);
   const [generating, setGenerating] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [downloaded, setDownloaded] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [genError, setGenError] = useState<string | null>(null);
-  const [saveError, setSaveError] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
 
   // ---- Daten laden ----
@@ -83,7 +85,7 @@ export default function ExportPage() {
       const supabase = createClient();
       const { data: exam } = await supabase
         .from("examinations")
-        .select("has_tracheostomy, bods_nutrition, assessment_text, pathophysiology_text, therapy_recommendations, therapy_notes, tracheostomy_recommendation, patient_nr")
+        .select("has_tracheostomy, bods_nutrition, assessment_text, pathophysiology_text, therapy_recommendations, therapy_notes, tracheostomy_recommendation, patient_nr, status")
         .eq("id", id)
         .single();
       const { data: nativ } = await supabase
@@ -105,15 +107,45 @@ export default function ExportPage() {
           tracheostomyRec: exam.tracheostomy_recommendation ?? "",
         }));
         if (exam.patient_nr != null) setPatientNr(exam.patient_nr);
+        setCompletionStatus(exam.status ?? null);
       }
       setLoaded(true);
     }
     loadData();
   }, [id]);
 
+  // ---- Auto-Save ----
+
+  const saveFn = useCallback(async (signal: AbortSignal) => {
+    if (signal.aborted) return;
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("examinations")
+      .update({
+        assessment_text: state.beurteilung,
+        pathophysiology_text: state.pathophysiologie,
+        therapy_recommendations: state.therapySelected,
+        therapy_notes: state.therapyNotes,
+        tracheostomy_recommendation: state.tracheostomyRec,
+      })
+      .eq("id", id);
+    if (signal.aborted) return;
+    if (error) throw new Error(error.message);
+  }, [state, id]);
+
+  const autoSave = useAutoSave(saveFn);
+  const { scheduleAutoSave, saveNow } = autoSave;
+
+  // Helper: update state key without triggering auto-save (for display-only fields)
   const set = useCallback(<K extends keyof ExportState>(key: K, value: ExportState[K]) => {
     setState((prev) => ({ ...prev, [key]: value }));
   }, []);
+
+  // Helper: update state key AND schedule auto-save (for persisted fields)
+  const setAndSave = useCallback(<K extends keyof ExportState>(key: K, value: ExportState[K]) => {
+    setState((prev) => ({ ...prev, [key]: value }));
+    scheduleAutoSave();
+  }, [scheduleAutoSave]);
 
   function toggleTherapy(item: string) {
     setState((prev) => ({
@@ -122,6 +154,7 @@ export default function ExportPage() {
         ? prev.therapySelected.filter((t) => t !== item)
         : [...prev.therapySelected, item],
     }));
+    scheduleAutoSave();
   }
 
   // ---- KI generieren ----
@@ -140,12 +173,12 @@ export default function ExportPage() {
         throw new Error((body.error ?? "Unbekannter Fehler") + detail);
       }
       const data = await res.json();
-      setState((prev) => ({
-        ...prev,
-        beurteilung: data.beurteilung ?? prev.beurteilung,
-        pathophysiologie: data.pathophysiologie ?? prev.pathophysiologie,
-      }));
-      // Therapieempfehlungen aus KI-Antwort zuordnen
+
+      // Compute new values before flushSync so we have them ready
+      const newBeurteilung = data.beurteilung ?? state.beurteilung;
+      const newPathophysiologie = data.pathophysiologie ?? state.pathophysiologie;
+      let newTherapySelected = state.therapySelected;
+      let newTherapyNotes = state.therapyNotes;
       if (Array.isArray(data.therapieempfehlungen) && data.therapieempfehlungen.length > 0) {
         const matched = data.therapieempfehlungen.filter((t: string) =>
           THERAPY_OPTIONS.some((opt) => t.toLowerCase().includes(opt.toLowerCase().split(" ")[0]))
@@ -153,11 +186,31 @@ export default function ExportPage() {
         const unmatched = data.therapieempfehlungen.filter(
           (t: string) => !matched.includes(t)
         );
+        newTherapySelected = [...new Set([...state.therapySelected, ...matched])];
+        newTherapyNotes = unmatched.join("\n");
+      }
+
+      // flushSync forces React to re-render synchronously so saveFnRef.current
+      // captures the new state before we call saveNow()
+      flushSync(() => {
         setState((prev) => ({
           ...prev,
-          therapySelected: [...new Set([...prev.therapySelected, ...matched])],
-          therapyNotes: unmatched.join("\n"),
+          beurteilung: newBeurteilung,
+          pathophysiologie: newPathophysiologie,
+          therapySelected: newTherapySelected,
+          therapyNotes: newTherapyNotes,
         }));
+      });
+
+      // Persist KI output immediately — don't risk losing it before user navigates
+      const saveSuccess = await saveNow();
+      if (!saveSuccess) {
+        const proceed = window.confirm(
+          "Speichern fehlgeschlagen. Trotzdem weiter und Änderungen verlieren?"
+        );
+        if (!proceed) {
+          setGenError("KI-Inhalt konnte nicht gespeichert werden. Bitte manuell speichern.");
+        }
       }
     } catch (e) {
       setGenError((e as Error).message);
@@ -166,28 +219,17 @@ export default function ExportPage() {
     }
   }
 
-  // ---- Zwischenspeichern ----
-  async function handleSave() {
-    setSaving(true);
-    setSaveError(null);
-    const supabase = createClient();
-    const { error } = await supabase
-      .from("examinations")
-      .update({
-        assessment_text: state.beurteilung,
-        pathophysiology_text: state.pathophysiologie,
-        therapy_recommendations: state.therapySelected,
-        therapy_notes: state.therapyNotes,
-        tracheostomy_recommendation: state.tracheostomyRec,
-      })
-      .eq("id", id);
-    if (error) setSaveError("Fehler beim Speichern: " + error.message);
-    setSaving(false);
-  }
-
   // ---- DOCX Download ----
   async function handleDownload() {
-    await handleSave();
+    // Save first — use saveNow with confirm fallback on failure
+    const saveSuccess = await saveNow();
+    if (!saveSuccess) {
+      const proceed = window.confirm(
+        "Speichern fehlgeschlagen. Trotzdem exportieren und Änderungen verlieren?"
+      );
+      if (!proceed) return;
+    }
+
     setDownloading(true);
     const res = await fetch("/api/export/docx", {
       method: "POST",
@@ -196,7 +238,7 @@ export default function ExportPage() {
     });
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
-      setSaveError(body.error ?? "Fehler beim DOCX-Export.");
+      setGenError(body.error ?? "Fehler beim DOCX-Export.");
       setDownloading(false);
       return;
     }
@@ -245,8 +287,28 @@ export default function ExportPage() {
         badgeClass="bg-secondary-container text-on-secondary-container"
       />
 
+      {/* Seiten-Header mit SaveIndicator */}
+      <header className="flex items-center justify-between -mt-2">
+        <h2 className="text-[20px] font-headline font-extrabold text-primary tracking-tight">
+          Export
+        </h2>
+        <SaveIndicator status={autoSave.status} />
+      </header>
+
+      {/* Abgeschlossen-Banner */}
+      {completionStatus === "completed" && (
+        <div className="flex items-center gap-2 px-4 py-3 bg-[#006e1c]/10 rounded-card border border-[#006e1c]/20">
+          <span className="material-symbols-outlined text-[#006e1c] text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>
+            check_circle
+          </span>
+          <p className="text-sm font-medium text-[#006e1c]">
+            Diese Untersuchung wurde bereits abgeschlossen. Änderungen werden automatisch gespeichert.
+          </p>
+        </div>
+      )}
+
       {/* Name für DOCX — wird NICHT gespeichert */}
-      <div className="flex items-center gap-2 px-1 -mt-2">
+      <div className="flex items-center gap-2 px-1">
         <span className="material-symbols-outlined text-outline text-[16px]">lock</span>
         <span className="text-xs text-outline">Name für DOCX:</span>
         <input
@@ -347,8 +409,7 @@ export default function ExportPage() {
         <div className="relative bg-surface-container-highest rounded-card group">
           <textarea
             value={state.beurteilung}
-            onChange={(e) => set("beurteilung", e.target.value)}
-            onBlur={handleSave}
+            onChange={(e) => setAndSave("beurteilung", e.target.value)}
             rows={6}
             placeholder="KI-generierter Text erscheint hier nach dem Klick auf 'KI-Beurteilung generieren' — oder direkt eingeben…"
             className="w-full bg-transparent p-4 text-sm text-on-surface placeholder:text-outline/60 leading-relaxed focus:outline-none resize-none"
@@ -366,8 +427,7 @@ export default function ExportPage() {
         <div className="relative bg-surface-container-highest rounded-card group">
           <textarea
             value={state.pathophysiologie}
-            onChange={(e) => set("pathophysiologie", e.target.value)}
-            onBlur={handleSave}
+            onChange={(e) => setAndSave("pathophysiologie", e.target.value)}
             rows={4}
             placeholder="Pathophysiologische Erklärung (optional — nur wenn klinisch relevant)…"
             className="w-full bg-transparent p-4 text-sm text-on-surface placeholder:text-outline/60 leading-relaxed focus:outline-none resize-none"
@@ -391,7 +451,7 @@ export default function ExportPage() {
                 onClick={() => {
                   const current = state.tracheostomyRec;
                   const has = current.includes(s);
-                  set("tracheostomyRec", has ? current.replace(s, "").replace(/\n\n/g, "\n").trim() : current ? current + "\n" + s : s);
+                  setAndSave("tracheostomyRec", has ? current.replace(s, "").replace(/\n\n/g, "\n").trim() : current ? current + "\n" + s : s);
                 }}
                 className={`px-3 py-2 min-h-[44px] rounded-lg text-xs font-medium transition-all ${
                   state.tracheostomyRec.includes(s)
@@ -405,8 +465,7 @@ export default function ExportPage() {
           </div>
           <textarea
             value={state.tracheostomyRec}
-            onChange={(e) => set("tracheostomyRec", e.target.value)}
-            onBlur={handleSave}
+            onChange={(e) => setAndSave("tracheostomyRec", e.target.value)}
             rows={3}
             placeholder="Freitext TK-Empfehlung…"
             className="w-full bg-surface-container-highest rounded-card px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
@@ -450,31 +509,22 @@ export default function ExportPage() {
         </div>
         <textarea
           value={state.therapyNotes}
-          onChange={(e) => set("therapyNotes", e.target.value)}
-          onBlur={handleSave}
+          onChange={(e) => setAndSave("therapyNotes", e.target.value)}
           rows={4}
           placeholder="Weitere Therapieempfehlungen (Freitext)…"
           className="w-full bg-surface-container-highest rounded-card px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-y"
         />
       </section>
 
-      {/* Fehler */}
-      {saveError && (
-        <p className="text-sm text-tertiary bg-tertiary-fixed/40 rounded-xl px-4 py-3 flex items-center gap-2">
-          <span className="material-symbols-outlined text-lg">error</span>
-          {saveError}
-        </p>
-      )}
-
       {/* ---- Zwischenspeichern ---- */}
       <button
         type="button"
-        onClick={handleSave}
-        disabled={saving}
+        onClick={() => saveNow()}
+        disabled={autoSave.status === "saving"}
         className="w-full py-3 border border-outline-variant text-on-surface-variant rounded-xl text-sm font-medium flex items-center justify-center gap-2 hover:bg-surface-container-low transition-colors disabled:opacity-50"
       >
         <span className="material-symbols-outlined text-lg">save</span>
-        {saving ? "Speichern…" : "Zwischenspeichern"}
+        {autoSave.status === "saving" ? "Speichern…" : "Zwischenspeichern"}
       </button>
 
       {/* ---- Erfolgs-Hinweis nach Download ---- */}
@@ -512,6 +562,7 @@ export default function ExportPage() {
         examinationId={id}
         patientName={patientName}
         activeStep="export"
+        onBeforeNavigate={saveNow}
       />
 
       <StickyFooter

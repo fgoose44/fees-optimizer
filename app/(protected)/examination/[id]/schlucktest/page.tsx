@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import ExaminationNav from "@/components/ExaminationNav";
 import PatientBanner from "@/components/PatientBanner";
 import StickyFooter from "@/components/StickyFooter";
+import SaveIndicator from "@/components/SaveIndicator";
+import { useAutoSave } from "@/hooks/useAutoSave";
 import { suggestBodsII } from "@/lib/bods";
 import {
   CONSISTENCIES,
@@ -188,6 +190,7 @@ export default function SchlucktestPage() {
   const patientName = searchParams.get("patientName") ?? "";
 
   const [patientNr, setPatientNr] = useState<number | null>(null);
+  const [completionStatus, setCompletionStatus] = useState<string | null>(null);
 
   // Welche Konsistenzen wurden ausgewählt
   const [selected, setSelected] = useState<Consistency[]>([]);
@@ -198,8 +201,6 @@ export default function SchlucktestPage() {
   const [consistencies, setConsistencies] = useState<ConsistencyMap>(buildInitialConsistencies);
   const [summary, setSummary] = useState<SchlucktestSummary>(initialSummary);
   const [bodsOverride, setBodsOverride] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   // Beim Laden: bestehende Daten aus DB holen
   useEffect(() => {
@@ -254,7 +255,7 @@ export default function SchlucktestPage() {
       // Gesamtbeurteilung + BODS II aus examinations laden
       const { data: exam } = await supabase
         .from("examinations")
-        .select("overall_assessment, overall_sensitivity, sensitivity_side, bods_nutrition, nutrition_mode, nutrition_route, nutrition_notes, dys_stufe, iddsi_food_level, iddsi_drink_level, tablets, patient_nr")
+        .select("overall_assessment, overall_sensitivity, sensitivity_side, bods_nutrition, nutrition_mode, nutrition_route, nutrition_notes, dys_stufe, iddsi_food_level, iddsi_drink_level, tablets, patient_nr, status")
         .eq("id", id)
         .single();
 
@@ -274,6 +275,7 @@ export default function SchlucktestPage() {
         });
         if (exam.bods_nutrition !== null) setBodsOverride(true);
         if (exam.patient_nr != null) setPatientNr(exam.patient_nr);
+        setCompletionStatus(exam.status ?? null);
       }
 
       setLoadingSelection(false);
@@ -282,7 +284,7 @@ export default function SchlucktestPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  // BODS II auto-suggestion
+  // BODS II auto-suggestion (calls setSummary directly — no save trigger intentional)
   const suggestedBodsII = suggestBodsII(consistencies);
   useEffect(() => {
     if (!bodsOverride) {
@@ -290,63 +292,14 @@ export default function SchlucktestPage() {
     }
   }, [suggestedBodsII, bodsOverride]);
 
-  function toggleSelected(key: Consistency) {
-    setSelected((prev) =>
-      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
-    );
-  }
+  // ---- Auto-Save ----
 
-  function startTesting() {
-    if (selected.length === 0) return;
-    // Reihenfolge gemäß CONSISTENCIES-Reihenfolge
-    const ordered = CONSISTENCIES.map((c) => c.key).filter((k) =>
-      selected.includes(k)
-    ) as Consistency[];
-    setSelected(ordered);
-    setActiveTab(ordered[0]);
-    setView("testing");
-  }
-
-  // Updater für aktuelle Konsistenz
-  function updateCurrent(patch: Partial<ConsistencyData>) {
-    setConsistencies((prev) => ({
-      ...prev,
-      [activeTab]: { ...prev[activeTab], ...patch },
-    }));
-  }
-
-  function toggleArray(
-    field: keyof Pick<ConsistencyData, "praedeglutitiv" | "schluckakt" | "clearing" | "kompensation">,
-    value: string
-  ) {
-    const arr = consistencies[activeTab][field] as string[];
-    const updated = arr.includes(value)
-      ? arr.filter((v) => v !== value)
-      : [...arr, value];
-    updateCurrent({ [field]: updated });
-  }
-
-  function toggleSummaryAssessment(key: string) {
-    const arr = summary.overall_assessment;
-    setSummary((p) => ({
-      ...p,
-      overall_assessment: arr.includes(key)
-        ? arr.filter((v) => v !== key)
-        : [...arr, key],
-    }));
-  }
-
-  const current = consistencies[activeTab];
-
-  // Speichern
-  async function handleSave() {
-    setSaving(true);
-    setError(null);
+  const saveFn = useCallback(async (signal: AbortSignal) => {
+    if (signal.aborted) return;
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setError("Nicht angemeldet."); setSaving(false); return; }
+    if (signal.aborted || !user) return;
 
-    // Alle 7 Konsistenzen als Rows — not_tested=true für nicht ausgewählte
     const rows = CONSISTENCIES.map(({ key }) => {
       const isSelected = selected.includes(key);
       const c = consistencies[key];
@@ -377,11 +330,8 @@ export default function SchlucktestPage() {
       .from("swallow_tests")
       .upsert(rows, { onConflict: "examination_id,consistency" });
 
-    if (swError) {
-      setError("Fehler beim Speichern der Schlucktests: " + swError.message);
-      setSaving(false);
-      return;
-    }
+    if (signal.aborted) return;
+    if (swError) throw new Error(swError.message);
 
     const { error: exError } = await supabase
       .from("examinations")
@@ -400,16 +350,84 @@ export default function SchlucktestPage() {
       })
       .eq("id", id);
 
-    if (exError) {
-      setError("Fehler beim Speichern: " + exError.message);
-      setSaving(false);
-      return;
-    }
+    if (signal.aborted) return;
+    if (exError) throw new Error(exError.message);
+  }, [selected, consistencies, summary, id]);
 
-    const qs = patientName ? `?patientName=${encodeURIComponent(patientName)}` : "";
+  const autoSave = useAutoSave(saveFn);
+  const { scheduleAutoSave, saveNow } = autoSave;
+
+  const setSummaryAndSave = useCallback(
+    (updater: SchlucktestSummary | ((prev: SchlucktestSummary) => SchlucktestSummary)) => {
+      setSummary(updater);
+      scheduleAutoSave();
+    },
+    [scheduleAutoSave]
+  );
+
+  const navigateSafely = useCallback(async (href: string) => {
+    const success = await saveNow();
+    if (!success) {
+      const proceed = window.confirm(
+        "Speichern fehlgeschlagen. Trotzdem weiter und Änderungen verlieren?"
+      );
+      if (!proceed) return;
+    }
     router.refresh();
-    router.push(`/examination/${id}/export${qs}`);
+    router.push(href);
+  }, [saveNow, router]);
+
+  function toggleSelected(key: Consistency) {
+    setSelected((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+    );
+    scheduleAutoSave();
   }
+
+  function startTesting() {
+    if (selected.length === 0) return;
+    // Reihenfolge gemäß CONSISTENCIES-Reihenfolge
+    const ordered = CONSISTENCIES.map((c) => c.key).filter((k) =>
+      selected.includes(k)
+    ) as Consistency[];
+    setSelected(ordered);
+    setActiveTab(ordered[0]);
+    setView("testing");
+  }
+
+  // Updater für aktuelle Konsistenz
+  function updateCurrent(patch: Partial<ConsistencyData>) {
+    setConsistencies((prev) => ({
+      ...prev,
+      [activeTab]: { ...prev[activeTab], ...patch },
+    }));
+    scheduleAutoSave();
+  }
+
+  function toggleArray(
+    field: keyof Pick<ConsistencyData, "praedeglutitiv" | "schluckakt" | "clearing" | "kompensation">,
+    value: string
+  ) {
+    const arr = consistencies[activeTab][field] as string[];
+    const updated = arr.includes(value)
+      ? arr.filter((v) => v !== value)
+      : [...arr, value];
+    updateCurrent({ [field]: updated });
+  }
+
+  function toggleSummaryAssessment(key: string) {
+    const arr = summary.overall_assessment;
+    setSummaryAndSave((p) => ({
+      ...p,
+      overall_assessment: arr.includes(key)
+        ? arr.filter((v) => v !== key)
+        : [...arr, key],
+    }));
+  }
+
+  const current = consistencies[activeTab];
+
+  const qs = patientName ? `?patientName=${encodeURIComponent(patientName)}` : "";
 
   if (loadingSelection) {
     return (
@@ -436,13 +454,28 @@ export default function SchlucktestPage() {
 
         {/* Seiten-Header */}
         <header className="space-y-1">
-          <h2 className="text-[20px] font-headline font-extrabold text-primary tracking-tight">
-            Schlucktest
-          </h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-[20px] font-headline font-extrabold text-primary tracking-tight">
+              Schlucktest
+            </h2>
+            <SaveIndicator status={autoSave.status} />
+          </div>
           <p className="text-on-surface-variant text-[14px] font-medium">
             Welche Konsistenzen wurden getestet?
           </p>
         </header>
+
+        {/* Abgeschlossen-Banner */}
+        {completionStatus === "completed" && (
+          <div className="flex items-center gap-2 px-4 py-3 bg-[#006e1c]/10 rounded-card border border-[#006e1c]/20">
+            <span className="material-symbols-outlined text-[#006e1c] text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>
+              check_circle
+            </span>
+            <p className="text-sm font-medium text-[#006e1c]">
+              Diese Untersuchung wurde bereits abgeschlossen. Änderungen werden automatisch gespeichert.
+            </p>
+          </div>
+        )}
 
         <p className="text-on-surface-variant text-sm -mt-2">
           Nur ausgewählte Konsistenzen werden dokumentiert und im Bericht aufgeführt.
@@ -488,6 +521,7 @@ export default function SchlucktestPage() {
           examinationId={id}
           patientName={patientName}
           activeStep="schlucktest"
+          onBeforeNavigate={saveNow}
         />
 
         <StickyFooter
@@ -510,6 +544,7 @@ export default function SchlucktestPage() {
     <div className="px-4 pt-6 pb-32 space-y-4">
       {/* Patient-Banner */}
       <PatientBanner
+        patientNr={patientNr}
         patientName={patientName}
         stepLabel="Schlucktest"
         badgeClass="bg-primary-fixed text-on-primary-fixed-variant"
@@ -525,14 +560,29 @@ export default function SchlucktestPage() {
             {selectedOrdered.find((c) => c.key === activeTab)?.label} · {selected.length} Konsistenzen
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setView("selection")}
-          className="text-xs text-primary underline font-medium"
-        >
-          Auswahl ändern
-        </button>
+        <div className="flex items-center gap-2">
+          <SaveIndicator status={autoSave.status} />
+          <button
+            type="button"
+            onClick={() => setView("selection")}
+            className="text-xs text-primary underline font-medium"
+          >
+            Auswahl ändern
+          </button>
+        </div>
       </header>
+
+      {/* Abgeschlossen-Banner */}
+      {completionStatus === "completed" && (
+        <div className="flex items-center gap-2 px-4 py-3 bg-[#006e1c]/10 rounded-card border border-[#006e1c]/20">
+          <span className="material-symbols-outlined text-[#006e1c] text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>
+            check_circle
+          </span>
+          <p className="text-sm font-medium text-[#006e1c]">
+            Diese Untersuchung wurde bereits abgeschlossen. Änderungen werden automatisch gespeichert.
+          </p>
+        </div>
+      )}
 
       {/* Konsistenz-Tabs */}
       <div className="flex overflow-x-auto no-scrollbar gap-2 pb-1">
@@ -773,7 +823,7 @@ export default function SchlucktestPage() {
                 key={key}
                 type="button"
                 onClick={() =>
-                  setSummary((p) => ({
+                  setSummaryAndSave((p) => ({
                     ...p,
                     overall_sensitivity: p.overall_sensitivity === key ? "" : key,
                   }))
@@ -798,7 +848,7 @@ export default function SchlucktestPage() {
                     key={s}
                     type="button"
                     onClick={() =>
-                      setSummary((p) => ({
+                      setSummaryAndSave((p) => ({
                         ...p,
                         sensitivity_side: p.sensitivity_side === s ? "" : s,
                       }))
@@ -850,7 +900,7 @@ export default function SchlucktestPage() {
                 value={summary.bods_nutrition ?? suggestedBodsII}
                 onChange={(e) => {
                   setBodsOverride(true);
-                  setSummary((p) => ({ ...p, bods_nutrition: Number(e.target.value) }));
+                  setSummaryAndSave((p) => ({ ...p, bods_nutrition: Number(e.target.value) }));
                 }}
                 className="w-full accent-primary"
               />
@@ -877,7 +927,7 @@ export default function SchlucktestPage() {
               type="button"
               onClick={() => {
                 setBodsOverride(false);
-                setSummary((p) => ({ ...p, bods_nutrition: suggestedBodsII }));
+                setSummaryAndSave((p) => ({ ...p, bods_nutrition: suggestedBodsII }));
               }}
               className="text-xs text-primary underline mt-1"
             >
@@ -909,7 +959,7 @@ export default function SchlucktestPage() {
                   key={mode}
                   type="button"
                   onClick={() =>
-                    setSummary((p) => ({
+                    setSummaryAndSave((p) => ({
                       ...p,
                       nutrition_mode: p.nutrition_mode === mode ? null : mode,
                       // reset sub-fields when switching mode
@@ -943,7 +993,7 @@ export default function SchlucktestPage() {
                 <select
                   value={summary.nutrition_route ?? ""}
                   onChange={(e) =>
-                    setSummary((p) => ({
+                    setSummaryAndSave((p) => ({
                       ...p,
                       nutrition_route: e.target.value || null,
                     }))
@@ -965,7 +1015,7 @@ export default function SchlucktestPage() {
                   type="text"
                   value={summary.nutrition_notes ?? ""}
                   onChange={(e) =>
-                    setSummary((p) => ({
+                    setSummaryAndSave((p) => ({
                       ...p,
                       nutrition_notes: e.target.value || null,
                     }))
@@ -988,7 +1038,7 @@ export default function SchlucktestPage() {
                 <select
                   value={summary.dys_stufe ?? ""}
                   onChange={(e) =>
-                    setSummary((p) => ({
+                    setSummaryAndSave((p) => ({
                       ...p,
                       dys_stufe: e.target.value || null,
                     }))
@@ -1011,7 +1061,7 @@ export default function SchlucktestPage() {
                 <select
                   value={summary.iddsi_food_level ?? ""}
                   onChange={(e) =>
-                    setSummary((p) => ({
+                    setSummaryAndSave((p) => ({
                       ...p,
                       iddsi_food_level: e.target.value !== "" ? Number(e.target.value) : null,
                     }))
@@ -1033,7 +1083,7 @@ export default function SchlucktestPage() {
                 <select
                   value={summary.iddsi_drink_level ?? ""}
                   onChange={(e) =>
-                    setSummary((p) => ({
+                    setSummaryAndSave((p) => ({
                       ...p,
                       iddsi_drink_level: e.target.value !== "" ? Number(e.target.value) : null,
                     }))
@@ -1059,7 +1109,7 @@ export default function SchlucktestPage() {
                       key={t}
                       type="button"
                       onClick={() =>
-                        setSummary((p) => ({
+                        setSummaryAndSave((p) => ({
                           ...p,
                           tablets: p.tablets === t ? null : t,
                         }))
@@ -1091,7 +1141,7 @@ export default function SchlucktestPage() {
                       key={t}
                       type="button"
                       onClick={() =>
-                        setSummary((p) => ({
+                        setSummaryAndSave((p) => ({
                           ...p,
                           tablets: p.tablets === t ? null : t,
                         }))
@@ -1112,22 +1162,17 @@ export default function SchlucktestPage() {
         </div>
       </section>
 
-      {error && (
-        <p className="text-sm text-tertiary bg-tertiary-fixed/40 rounded-xl px-4 py-3 flex items-center gap-2">
-          <span className="material-symbols-outlined text-lg">error</span>
-          {error}
-        </p>
-      )}
-
       <ExaminationNav
         examinationId={id}
         patientName={patientName}
         activeStep="schlucktest"
+        onBeforeNavigate={saveNow}
       />
 
       <StickyFooter
-        onSubmit={handleSave}
-        loading={saving}
+        submitLabel="Weiter"
+        onSubmit={() => navigateSafely(`/examination/${id}/export${qs}`)}
+        loading={autoSave.status === "saving"}
       />
     </div>
   );

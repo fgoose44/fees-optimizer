@@ -118,5 +118,19 @@ CHECK-Constraints auf `cannula_position_before/after` IN ('mittig','nicht_mittig
 ## DOCX-Footer: Telefonnummer nur wenn vorhanden
 `if (authorPhone) children.push(body(`Tel.: ${authorPhone}`))` — Tel.-Zeile erscheint nur wenn in profiles.phone eingetragen.
 
+## Debounce Auto-Save = 1500ms (Stand Phase 14B)
+Gewählt zur Reduktion der Supabase-Last bei langer Tipp-Sequenz.
+Nach Clara-Test mit echter Klinik-Latenz validieren.
+Falls "Speichert..."-Anzeige zu langsam erscheint: auf 800ms reduzieren.
+
+## flushSync vor saveNow() nach setState in async Funktionen
+Wenn nach `setState(...)` sofort `saveNow()` aufgerufen werden soll (z.B. nach KI-Generate),
+muss `flushSync(() => setState(...))` aus `react-dom` verwendet werden.
+Ohne `flushSync` hat React den State noch nicht re-gerendert → `saveFnRef.current` referenziert
+noch den alten `saveFn` mit altem State → falscher/veralteter Inhalt wird gespeichert.
+`flushSync` erzwingt synchronen Re-Render, sodann hat `saveFnRef.current` den neuen State.
+Gilt nur für den Fall: `setState` + sofortiges `saveNow()` in derselben async Funktion.
+Normaler debounce-Pfad (scheduleAutoSave) ist nicht betroffen, da der Timer nach Re-Render feuert.
+
 ## MCP-Setup: Stitch + Claude Desktop
 MCP-Server in `~/Library/Application Support/Claude/claude_desktop_config.json` unter `mcpServers` eintragen (`command`, `args`, ggf. `env`). npx-basierte MCPs brauchen Node.js im PATH — bei nvm: sicherstellen dass `~/.zshrc` den nvm-Pfad setzt und Claude Desktop nach Shell-Login startet. Stitch MCP: Design-System vor Screen-Generierung anlegen (`create_design_system`), damit Farben mit `tailwind.config.ts` übereinstimmen.

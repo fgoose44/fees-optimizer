@@ -6,6 +6,8 @@ import { createClient } from "@/lib/supabase/client";
 import ExaminationNav from "@/components/ExaminationNav";
 import PatientBanner from "@/components/PatientBanner";
 import StickyFooter from "@/components/StickyFooter";
+import SaveIndicator from "@/components/SaveIndicator";
+import { useAutoSave } from "@/hooks/useAutoSave";
 import { suggestBodsI } from "@/lib/bods";
 import type { NativbefundData, StructureFinding, SideFinding } from "@/lib/types";
 
@@ -190,9 +192,8 @@ export default function BefundPage() {
   const [hasTracheostomy, setHasTracheostomy] = useState(false);
   const [bodsOverride, setBodsOverride] = useState(false);
   const [expandedNotes, setExpandedNotes] = useState<StructureKey[]>([]);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [loadingData, setLoadingData] = useState(true);
+  const [completionStatus, setCompletionStatus] = useState<string | null>(null);
 
   // Bestehende Daten aus DB laden
   useEffect(() => {
@@ -202,12 +203,13 @@ export default function BefundPage() {
       // patient_nr + has_tracheostomy für Header und bedingte Blöcke
       const { data: examRow } = await supabase
         .from("examinations")
-        .select("patient_nr, has_tracheostomy")
+        .select("patient_nr, has_tracheostomy, status")
         .eq("id", id)
         .single();
       if (examRow) {
         setPatientNr(examRow.patient_nr ?? null);
         setHasTracheostomy(examRow.has_tracheostomy ?? false);
+        setCompletionStatus(examRow.status ?? null);
       }
 
       const { data: nativ } = await supabase
@@ -282,14 +284,101 @@ export default function BefundPage() {
     }
   }, [suggestedBods, bodsOverride]);
 
+  // ---- Auto-Save ----
+
+  const saveFn = useCallback(async (signal: AbortSignal) => {
+    if (signal.aborted) return;
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (signal.aborted || !user) return;
+    // Snapshot des aktuellen data-States — via Closure immer aktuell (saveFnRef im Hook)
+    const d = data;
+    const row = {
+      examination_id: id,
+      user_id: user.id,
+      mucosa: d.mucosa.selected,
+      mucosa_notes: d.mucosa.notes,
+      velum: d.velum.selected,
+      velum_side: d.velum.side,
+      velum_notes: d.velum.notes,
+      tongue_base: d.tongue_base.selected,
+      tongue_base_notes: d.tongue_base.notes,
+      epiglottis: d.epiglottis.selected,
+      epiglottis_notes: d.epiglottis.notes,
+      pharynx: d.pharynx.selected,
+      pharynx_side: d.pharynx.side,
+      pharynx_notes: d.pharynx.notes,
+      larynx: d.larynx.selected,
+      larynx_side: d.larynx.side,
+      larynx_notes: d.larynx.notes,
+      valleculae: d.valleculae.selected,
+      valleculae_side: d.valleculae.side,
+      valleculae_notes: d.valleculae.notes,
+      sinus_piriformes: d.sinus_piriformes.selected,
+      sinus_piriformes_side: d.sinus_piriformes.side,
+      sinus_piriformes_notes: d.sinus_piriformes.notes,
+      trachea_mucosa: d.trachea_mucosa,
+      trachea_structures: d.trachea_structures,
+      trachea_structures_notes: d.trachea_structures_notes,
+      tk_position: d.tk_position,
+      cannula_changed: d.cannula_changed,
+      cannula_position_before: d.cannula_position_before || null,
+      cannula_note_before: d.cannula_note_before || null,
+      cannula_position_after: d.cannula_position_after || null,
+      cannula_note_after: d.cannula_note_after || null,
+      cough_reflex: d.cough_reflex,
+      swallow_reflex: d.swallow_reflex,
+      vp_closure: d.vp_closure,
+      vocal_fold_mobility: d.vocal_fold_mobility,
+      vocal_fold_weakness_side: d.vocal_fold_weakness_side,
+      glissando: d.glissando,
+      glissando_weakness_side: d.glissando_weakness_side,
+      glottis_closure: d.glottis_closure,
+      voluntary_cough: d.voluntary_cough,
+      langmore_score: d.langmore_score,
+      bods_saliva: d.bods_saliva,
+      updated_at: new Date().toISOString(),
+    };
+    const { error: dbError } = await supabase
+      .from("native_findings")
+      .upsert(row, { onConflict: "examination_id" });
+    if (signal.aborted) return;
+    if (dbError) throw new Error(dbError.message);
+  }, [data, id]);
+
+  const autoSave = useAutoSave(saveFn);
+  const { scheduleAutoSave, saveNow } = autoSave;
+
+  /** Wrapper: setzt State UND plant Auto-Save. Nur für User-Änderungen verwenden. */
+  const setDataAndSave = useCallback((updater: NativbefundData | ((prev: NativbefundData) => NativbefundData)) => {
+    setData(updater);
+    scheduleAutoSave();
+  }, [scheduleAutoSave]);
+
+  /** Navigiert sicher: speichert zuerst, fragt bei Fehler per Confirm-Dialog. */
+  const navigateSafely = useCallback(async (href: string) => {
+    const success = await saveNow();
+    if (!success) {
+      const proceed = window.confirm(
+        "Speichern fehlgeschlagen. Trotzdem weiter und Änderungen verlieren?"
+      );
+      if (!proceed) return;
+    }
+    router.refresh();
+    router.push(href);
+  }, [saveNow, router]);
+
+  // ---- Struktur-Helfer ----
+
   const updateStructure = useCallback(
     (key: StructureKey, patch: Partial<StructureFinding>) => {
       setData((prev) => ({
         ...prev,
         [key]: { ...prev[key], ...patch },
       }));
+      scheduleAutoSave();
     },
-    []
+    [scheduleAutoSave]
   );
 
   function toggleChip(key: StructureKey, option: string) {
@@ -304,74 +393,6 @@ export default function BefundPage() {
     updateStructure(key, { side: data[key].side === side ? "" : side });
   }
 
-  async function handleSave() {
-    setSaving(true);
-    setError(null);
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setError("Nicht angemeldet."); setSaving(false); return; }
-
-    const row = {
-      examination_id: id,
-      user_id: user.id,
-      mucosa: data.mucosa.selected,
-      mucosa_notes: data.mucosa.notes,
-      velum: data.velum.selected,
-      velum_side: data.velum.side,
-      velum_notes: data.velum.notes,
-      tongue_base: data.tongue_base.selected,
-      tongue_base_notes: data.tongue_base.notes,
-      epiglottis: data.epiglottis.selected,
-      epiglottis_notes: data.epiglottis.notes,
-      pharynx: data.pharynx.selected,
-      pharynx_side: data.pharynx.side,
-      pharynx_notes: data.pharynx.notes,
-      larynx: data.larynx.selected,
-      larynx_side: data.larynx.side,
-      larynx_notes: data.larynx.notes,
-      valleculae: data.valleculae.selected,
-      valleculae_side: data.valleculae.side,
-      valleculae_notes: data.valleculae.notes,
-      sinus_piriformes: data.sinus_piriformes.selected,
-      sinus_piriformes_side: data.sinus_piriformes.side,
-      sinus_piriformes_notes: data.sinus_piriformes.notes,
-      trachea_mucosa: data.trachea_mucosa,
-      trachea_structures: data.trachea_structures,
-      trachea_structures_notes: data.trachea_structures_notes,
-      tk_position: data.tk_position,
-      cannula_changed: data.cannula_changed,
-      cannula_position_before: data.cannula_position_before || null,
-      cannula_note_before: data.cannula_note_before || null,
-      cannula_position_after: data.cannula_position_after || null,
-      cannula_note_after: data.cannula_note_after || null,
-      cough_reflex: data.cough_reflex,
-      swallow_reflex: data.swallow_reflex,
-      vp_closure: data.vp_closure,
-      vocal_fold_mobility: data.vocal_fold_mobility,
-      vocal_fold_weakness_side: data.vocal_fold_weakness_side,
-      glissando: data.glissando,
-      glissando_weakness_side: data.glissando_weakness_side,
-      glottis_closure: data.glottis_closure,
-      voluntary_cough: data.voluntary_cough,
-      langmore_score: data.langmore_score,
-      bods_saliva: data.bods_saliva,
-      updated_at: new Date().toISOString(),
-    };
-
-    const { error: dbError } = await supabase
-      .from("native_findings")
-      .upsert(row, { onConflict: "examination_id" });
-
-    if (dbError) {
-      setError("Fehler beim Speichern: " + dbError.message);
-      setSaving(false);
-      return;
-    }
-
-    const qs = patientName ? `?patientName=${encodeURIComponent(patientName)}` : "";
-    router.refresh();
-    router.push(`/examination/${id}/schlucktest${qs}`);
-  }
 
   if (loadingData) {
     return (
@@ -396,14 +417,27 @@ export default function BefundPage() {
       />
 
       {/* Seiten-Header */}
-      <header className="space-y-1">
-        <h2 className="text-[20px] font-headline font-extrabold text-primary tracking-tight">
-          Nativbefund
-        </h2>
-        <p className="text-on-surface-variant text-[14px] font-medium">
-          Anatomische Strukturen und Reflexe · {filledCount}/{STRUCTURES.length} dokumentiert
-        </p>
+      <header>
+        <div className="flex items-start justify-between gap-2">
+          <div className="space-y-1">
+            <h2 className="text-[20px] font-headline font-extrabold text-primary tracking-tight">
+              Nativbefund
+            </h2>
+            <p className="text-on-surface-variant text-[14px] font-medium">
+              Anatomische Strukturen und Reflexe · {filledCount}/{STRUCTURES.length} dokumentiert
+            </p>
+          </div>
+          <SaveIndicator status={autoSave.status} errorMessage={autoSave.errorMessage} />
+        </div>
       </header>
+
+      {/* Completed-Hinweis */}
+      {completionStatus === "completed" && (
+        <div className="bg-primary-fixed/30 rounded-xl px-4 py-2.5 flex items-center gap-2 text-xs text-on-surface-variant">
+          <span className="material-symbols-outlined text-sm text-primary">check_circle</span>
+          Dieser Befund wurde bereits abgeschlossen. Änderungen werden weiterhin gespeichert.
+        </div>
+      )}
 
       {/* ---- Nativbefund transstomatal (nur bei TK) ---- */}
       {hasTracheostomy && (
@@ -430,7 +464,7 @@ export default function BefundPage() {
                     key={opt}
                     type="button"
                     onClick={() =>
-                      setData((p) => ({
+                      setDataAndSave((p) => ({
                         ...p,
                         trachea_mucosa: active
                           ? p.trachea_mucosa.filter((o) => o !== opt)
@@ -465,7 +499,7 @@ export default function BefundPage() {
                     key={opt}
                     type="button"
                     onClick={() =>
-                      setData((p) => ({
+                      setDataAndSave((p) => ({
                         ...p,
                         trachea_structures: active
                           ? p.trachea_structures.filter((o) => o !== opt)
@@ -489,7 +523,7 @@ export default function BefundPage() {
               type="text"
               value={data.trachea_structures_notes}
               onChange={(e) =>
-                setData((p) => ({ ...p, trachea_structures_notes: e.target.value }))
+                setDataAndSave((p) => ({ ...p, trachea_structures_notes: e.target.value }))
               }
               placeholder="Weitere Angaben zu Strukturveränderungen …"
               className="w-full bg-surface-container-highest border-b-2 border-outline-variant/50 focus:border-primary focus:outline-none px-3 py-2 text-sm rounded-t-lg placeholder:text-outline/60 transition-colors"
@@ -512,7 +546,7 @@ export default function BefundPage() {
                   key={value}
                   type="button"
                   onClick={() =>
-                    setData((p) => ({
+                    setDataAndSave((p) => ({
                       ...p,
                       tk_position: p.tk_position === value ? "" : value,
                     }))
@@ -541,7 +575,7 @@ export default function BefundPage() {
             <button
               type="button"
               onClick={() =>
-                setData((p) => ({
+                setDataAndSave((p) => ({
                   ...p,
                   cannula_changed: !p.cannula_changed,
                   // reset sub-fields when unchecking
@@ -578,7 +612,7 @@ export default function BefundPage() {
                         key={value}
                         type="button"
                         onClick={() =>
-                          setData((p) => ({
+                          setDataAndSave((p) => ({
                             ...p,
                             cannula_position_before: p.cannula_position_before === value ? "" : value,
                           }))
@@ -598,7 +632,7 @@ export default function BefundPage() {
                   <input
                     type="text"
                     value={data.cannula_note_before}
-                    onChange={(e) => setData((p) => ({ ...p, cannula_note_before: e.target.value }))}
+                    onChange={(e) => setDataAndSave((p) => ({ ...p, cannula_note_before: e.target.value }))}
                     placeholder="Notiz zur Lage vor Wechsel …"
                     className="w-full bg-surface-container-highest border-b-2 border-outline-variant/50 focus:border-primary focus:outline-none px-3 py-2 text-sm rounded-t-lg placeholder:text-outline/60 transition-colors"
                   />
@@ -618,7 +652,7 @@ export default function BefundPage() {
                         key={value}
                         type="button"
                         onClick={() =>
-                          setData((p) => ({
+                          setDataAndSave((p) => ({
                             ...p,
                             cannula_position_after: p.cannula_position_after === value ? "" : value,
                           }))
@@ -638,7 +672,7 @@ export default function BefundPage() {
                   <input
                     type="text"
                     value={data.cannula_note_after}
-                    onChange={(e) => setData((p) => ({ ...p, cannula_note_after: e.target.value }))}
+                    onChange={(e) => setDataAndSave((p) => ({ ...p, cannula_note_after: e.target.value }))}
                     placeholder="Notiz zur Lage nach Wechsel …"
                     className="w-full bg-surface-container-highest border-b-2 border-outline-variant/50 focus:border-primary focus:outline-none px-3 py-2 text-sm rounded-t-lg placeholder:text-outline/60 transition-colors"
                   />
@@ -755,7 +789,7 @@ export default function BefundPage() {
               <button
                 key={opt}
                 type="button"
-                onClick={() => setData((p) => ({ ...p, cough_reflex: p.cough_reflex === opt ? "" : opt }))}
+                onClick={() => setDataAndSave((p) => ({ ...p, cough_reflex: p.cough_reflex === opt ? "" : opt }))}
                 className={`w-full py-2.5 rounded-lg text-[11px] font-bold min-h-[40px] transition-all active:scale-95 ${
                   data.cough_reflex === opt
                     ? opt === "auslösbar"
@@ -777,7 +811,7 @@ export default function BefundPage() {
               <button
                 key={opt}
                 type="button"
-                onClick={() => setData((p) => ({ ...p, swallow_reflex: p.swallow_reflex === opt ? "" : opt }))}
+                onClick={() => setDataAndSave((p) => ({ ...p, swallow_reflex: p.swallow_reflex === opt ? "" : opt }))}
                 className={`w-full py-2.5 rounded-lg text-[11px] font-bold min-h-[40px] transition-all active:scale-95 ${
                   data.swallow_reflex === opt
                     ? opt === "möglich"
@@ -813,7 +847,7 @@ export default function BefundPage() {
                 value={data[field.key]}
                 onChange={(e) => {
                   const val = e.target.value;
-                  setData((p) => ({
+                  setDataAndSave((p) => ({
                     ...p,
                     [field.key]: val,
                     // Seitenfeld zurücksetzen wenn nicht mehr asymmetrisch
@@ -841,7 +875,7 @@ export default function BefundPage() {
                       key={side}
                       type="button"
                       onClick={() =>
-                        setData((p) => ({
+                        setDataAndSave((p) => ({
                           ...p,
                           vocal_fold_weakness_side: p.vocal_fold_weakness_side === side ? "" : side,
                         }))
@@ -866,7 +900,7 @@ export default function BefundPage() {
                       key={side}
                       type="button"
                       onClick={() =>
-                        setData((p) => ({
+                        setDataAndSave((p) => ({
                           ...p,
                           glissando_weakness_side: p.glissando_weakness_side === side ? "" : side,
                         }))
@@ -907,7 +941,7 @@ export default function BefundPage() {
             <select
               value={data.langmore_score ?? ""}
               onChange={(e) =>
-                setData((p) => ({
+                setDataAndSave((p) => ({
                   ...p,
                   langmore_score: e.target.value === "" ? null : Number(e.target.value),
                 }))
@@ -941,7 +975,7 @@ export default function BefundPage() {
             {isOverridden && suggested !== null && (
               <button
                 type="button"
-                onClick={() => setData((p) => ({ ...p, langmore_score: suggested }))}
+                onClick={() => setDataAndSave((p) => ({ ...p, langmore_score: suggested }))}
                 className="text-xs text-primary underline"
               >
                 Vorschlag wiederherstellen (Grad {suggested})
@@ -1003,7 +1037,7 @@ export default function BefundPage() {
               value={data.bods_saliva ?? suggestedBods}
               onChange={(e) => {
                 setBodsOverride(true);
-                setData((p) => ({ ...p, bods_saliva: Number(e.target.value) }));
+                setDataAndSave((p) => ({ ...p, bods_saliva: Number(e.target.value) }));
               }}
               className="w-full accent-primary"
             />
@@ -1027,7 +1061,7 @@ export default function BefundPage() {
         {bodsOverride && (
           <button
             type="button"
-            onClick={() => { setBodsOverride(false); setData((p) => ({ ...p, bods_saliva: suggestedBods })); }}
+            onClick={() => { setBodsOverride(false); setDataAndSave((p) => ({ ...p, bods_saliva: suggestedBods })); }}
             className="text-xs text-primary underline"
           >
             Vorschlag wiederherstellen ({suggestedBods})
@@ -1040,27 +1074,23 @@ export default function BefundPage() {
         )}
       </div>
 
-      {/* Fehler */}
-      {error && (
-        <p className="text-sm text-tertiary bg-tertiary-fixed/50 rounded-xl px-4 py-3 flex items-center gap-2">
-          <span className="material-symbols-outlined text-lg">error</span>
-          {error}
-        </p>
-      )}
-
       {/* ExaminationNav (Mobile) */}
       <ExaminationNav
         examinationId={id}
         patientName={patientName}
         activeStep="befund"
+        onBeforeNavigate={saveNow}
       />
 
       {/* Sticky Footer */}
       <StickyFooter
         backHref={`/dashboard`}
-        submitLabel="Speichern & Weiter"
-        loading={saving}
-        onSubmit={handleSave}
+        submitLabel="Weiter"
+        loading={autoSave.status === "saving"}
+        onSubmit={() => {
+          const qs = patientName ? `?patientName=${encodeURIComponent(patientName)}` : "";
+          navigateSafely(`/examination/${id}/schlucktest${qs}`);
+        }}
       />
     </div>
   );

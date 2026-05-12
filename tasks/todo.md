@@ -218,7 +218,7 @@ _Zuletzt aktualisiert: 2026-05-07 — Phase 13 vollständig implementiert ✅_
 
 ---
 
-## Phase 14 — Auto-Save Foundation (Session A) ✅ (2026-05-07)
+## Phase 14 — Auto-Save (Session A + B) ✅ (2026-05-11)
 
 ---
 
@@ -517,16 +517,277 @@ Bereits eingetragen im Backlog (oben) ✅
 
 ### Session A — erledigt ✅
 
-### Phase 14 Session B — Hook-Integration in Tabs 🔜
+### Phase 14 Session B — Hook-Integration in Tabs ✅
 
-- [ ] B1: `hooks/useAutoSave.ts` in `befund/page.tsx` integrieren — saveFn ohne Navigation, `onBeforeNavigate` verdrahten
-- [ ] B2: `hooks/useAutoSave.ts` in `schlucktest/page.tsx` integrieren — dual-state (data + summary), zwei Hooks oder ein kombinierter saveFn
-- [ ] B3: `hooks/useAutoSave.ts` in `export/page.tsx` integrieren — onBlur-Race-Conditions beheben
-- [ ] B4: `<SaveIndicator>` in Header der drei Tab-Layouts einbauen
-- [ ] B5: StickyFooter-Button prüfen — Navigation nach Save noch nötig oder reicht Auto-Save?
-- [ ] B6: A5-B Smoke-Test — Tab schließen mit dirty State → beforeunload-Dialog
+- [x] B1: `hooks/useAutoSave.ts` in `befund/page.tsx` integrieren — saveFn, navigateSafely, SaveIndicator, completionStatus-Banner
+- [x] B2: `hooks/useAutoSave.ts` in `schlucktest/page.tsx` integrieren — dual-state (selected + consistencies + summary), navigateSafely, SaveIndicator in beiden Views
+- [x] B3: `hooks/useAutoSave.ts` in `export/page.tsx` integrieren — onBlur entfernt, flushSync für KI-Generate, setAndSave wrapper
+- [x] B4: `<SaveIndicator>` in Header aller drei Tabs eingebaut
+- [x] B5: StickyFooter-Button: "Weiter" + navigateSafely (save-guard mit confirm-dialog bei Fehler)
+- [ ] B6: Manuelle Smoke-Tests im Browser (B4-A bis B4-H aus Plan) — vor Commit durchführen
 8. A8 — bereits erledigt ✅
 
 ---
 
-_Zuletzt aktualisiert: 2026-05-07 — Phase 14 Session A geplant_
+_Zuletzt aktualisiert: 2026-05-11 — Phase 14 Session B geplant_
+
+---
+
+## Phase 14 Session B — Auto-Save in den drei Tabs ✅ (2026-05-11)
+
+---
+
+### Gemeinsames Muster (alle drei Tabs)
+
+```
+saveFn(signal):
+  if (signal.aborted) return;
+  [build row from current state]
+  const { error } = await supabase.from(...).upsert/update(...)
+  if (signal.aborted) return;
+  if (error) throw new Error(error.message);
+
+const autoSave = useAutoSave(saveFn);  // debounce 1500ms, retry 1s/3s/8s
+
+// User-Änderung (Change-Handler):
+setData(updated);
+scheduleAutoSave();
+
+// Nav-Guard:
+<ExaminationNav onBeforeNavigate={autoSave.saveNow} ... />
+
+// SaveIndicator in Header:
+<div className="flex items-center justify-between">
+  <div>  {/* Titel + Subtitle */}  </div>
+  <SaveIndicator status={autoSave.status} errorMessage={autoSave.errorMessage} />
+</div>
+```
+
+**State-Wrapper-Pattern:** Statt überall `setData(...); scheduleAutoSave()` zu wiederholen,
+definieren wir je Tab eine Wrapper-Funktion:
+```typescript
+const setDataAndSave = useCallback((updater: SetStateAction<T>) => {
+  setData(updater);
+  scheduleAutoSave();
+}, [scheduleAutoSave]);
+```
+Load-Effekte rufen weiterhin `setData()` direkt auf (kein Auto-Save beim Mount).
+
+**Removed State Variables:** `saving`, `error`/`saveError` entfallen — werden durch
+`autoSave.status` / `autoSave.errorMessage` + SaveIndicator ersetzt.
+
+**completionStatus-Banner:** Jeder Tab lädt `status` aus `examinations` beim Mount.
+Wenn `status === 'completed'`:
+```jsx
+<div className="bg-primary-fixed/30 rounded-xl px-4 py-2.5 flex items-center gap-2 text-xs text-on-surface-variant">
+  <span className="material-symbols-outlined text-sm">check_circle</span>
+  Dieser Befund wurde bereits abgeschlossen. Änderungen werden weiterhin gespeichert.
+</div>
+```
+Status bleibt 'completed' — kein Reset auf 'draft'.
+
+---
+
+### TASK B1 — /befund (`befund/page.tsx`)
+
+**Datenfluss:**
+```
+Mount → loadFromDB() → setData(loaded) [kein scheduleAutoSave]
+User tippt/klickt → setDataAndSave(updated) → debounce 1500ms → saveFn → UPSERT native_findings
+ExaminationNav-Klick → saveNow() → sofort UPSERT → navigieren
+StickyFooter "Weiter" → await saveNow() → router.refresh() → router.push(schlucktest)
+```
+
+**saveFn:**
+```typescript
+async function saveFnBefund(signal: AbortSignal) {
+  if (signal.aborted) return;
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (signal.aborted || !user) return;
+  const row = { examination_id: id, user_id: user.id, ...buildRowFromData(data), updated_at: new Date().toISOString() };
+  const { error } = await supabase.from("native_findings").upsert(row, { onConflict: "examination_id" });
+  if (signal.aborted) return;
+  if (error) throw new Error(error.message);
+}
+```
+`data` wird per Closure referenziert — Hook liest immer aktuelle Version via `saveFnRef.current`.
+
+**Change-Handler:**
+- `updateStructure(key, patch)` → ergänzt `scheduleAutoSave()`
+- Alle anderen `setData(...)` im JSX (trachea, TK, Reflexe, Phonation, Langmore-Slider, BODS-Slider) → ersetzen durch `setDataAndSave(...)`
+- Langmore-`useEffect` (auto-suggest) + BODS-`useEffect` (auto-suggest) → bleiben `setData()` direkt (kein scheduleAutoSave — folgt dem vorherigen User-Debounce)
+- `loadFromDB` → bleibt `setData()` direkt
+
+**Weitere Änderungen:**
+- `examinations`-SELECT in loadFromDB: `status` hinzufügen → `setCompletionStatus(examRow.status ?? null)`
+- `useState saving` + `useState error` entfernen
+- StickyFooter: label `"Speichern & Weiter"` → `"Weiter"`, disabled: `autoSave.status === "saving" || loadingData`
+- StickyFooter onClick: `await autoSave.saveNow(); router.refresh(); router.push(...)`
+- Alter `error`-Block unter dem Formular entfernen
+- Header: `<div className="flex items-center justify-between">` mit SaveIndicator rechts
+- CompletionStatus-Banner: nach Header, vor TK-Block
+- `onBeforeNavigate={autoSave.saveNow}` an ExaminationNav
+
+**Kritischer Punkt — BODS-Override:**
+`setBodsOverride(true)` (beim manuellen Slider-Move) soll NICHT auto-save auslösen.
+BODS-Slider-onChange setzt `data.bods_saliva` via `setDataAndSave(...)` → das ist korrekt.
+`setBodsOverride` selbst ist kein DB-Feld → kein scheduleAutoSave nötig. ✓
+
+- [x] B1-A bis B1-G: vollständig implementiert + Build-Check ✓
+
+---
+
+### TASK B2 — /schlucktest (`schlucktest/page.tsx`)
+
+**Datenfluss:**
+```
+Mount → loadExisting() → setConsistencies/setSummary/setSelected (kein scheduleAutoSave)
+User ändert Konsistenz-Daten → updateCurrentAndSave(patch) → debounce 1500ms → saveFn
+  → UPSERT swallow_tests (alle 7 Rows) + UPDATE examinations (Summary)
+User ändert Summary → setSummaryAndSave(...) → debounce 1500ms → saveFn
+User wählt/abwählt Konsistenz → toggleSelected → scheduleAutoSave()
+ExaminationNav-Klick → saveNow() → beide DB-Calls → navigieren
+StickyFooter "Weiter" → await saveNow() → router.refresh() → router.push(export)
+```
+
+**saveFn (2 sequenzielle Calls):**
+```typescript
+async function saveFnSchlucktest(signal: AbortSignal) {
+  if (signal.aborted) return;
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (signal.aborted || !user) return;
+
+  // Alle 7 Konsistenz-Rows
+  const rows = CONSISTENCIES.map(({ key }) => ({
+    examination_id: id, user_id: user.id, consistency: key,
+    not_tested: !selected.includes(key),
+    ...buildConsistencyRow(key, consistencies[key], selected.includes(key)),
+    updated_at: new Date().toISOString(),
+  }));
+
+  const { error: swErr } = await supabase
+    .from("swallow_tests")
+    .upsert(rows, { onConflict: "examination_id,consistency" });
+  if (signal.aborted) return;
+  if (swErr) throw new Error(swErr.message);
+
+  const { error: exErr } = await supabase
+    .from("examinations")
+    .update({ ...summaryFields(summary) })
+    .eq("id", id);
+  if (signal.aborted) return;
+  if (exErr) throw new Error(exErr.message);
+  // Partial-Commit (swallow_tests ok, examinations fehlgeschlagen):
+  // → Hook retried → beide Calls erneut (UPSERT idempotent) → konsistenter End-State
+}
+```
+
+**Wichtige Entscheidung — Partial-Commit:**
+Wenn `examinations`-Update fehlschlägt nach erfolgreichem `swallow_tests`-Upsert:
+Hook startet Retry → bei Retry werden BEIDE Calls neu gemacht.
+Da UPSERT für swallow_tests idempotent ist, ist das sichere Verhalten. ✓
+
+**Change-Handler:**
+- `updateCurrent(patch)` → Wrapper `updateCurrentAndSave(patch)` der `updateCurrent` + `scheduleAutoSave()` aufruft
+- `toggleArray(field, value)` → ruft `updateCurrentAndSave` (da `updateCurrent` intern) → `scheduleAutoSave()` wird ergänzt in `updateCurrent` direkt:
+  - Eleganter: `updateCurrent` selbst ruft `scheduleAutoSave()`, dann brauchen `toggleArray` etc. nichts zu ändern
+- `toggleSummaryAssessment` → ergänzt `scheduleAutoSave()`
+- `setSummary` in Einzelfeldern → via `setSummaryAndSave(...)`
+- `toggleSelected(key)` → ergänzt `scheduleAutoSave()`
+- `setBodsOverride(true)` → kein scheduleAutoSave (nicht DB-Feld)
+- `loadExisting` → alle setConsistencies/setSummary/setSelected direkt (kein scheduleAutoSave)
+
+**examinations-SELECT in loadExisting:** `status` ergänzen
+
+**Weitere Änderungen:**
+- `saving`/`error` State entfernen
+- SaveIndicator in beiden Views (selection + testing) in header
+- CompletionStatus-Banner: in beiden Views nach header
+- StickyFooter "Weiter" (war "Speichern & weiter"): saveNow + navigate
+- `onBeforeNavigate={autoSave.saveNow}` an ExaminationNav
+- `startTesting()`-Button bleibt unverändert (triggert keine DB-Aktion)
+
+- [x] B2-A bis B2-G: vollständig implementiert + Build-Check ✓
+
+---
+
+### TASK B3 — /export (`export/page.tsx`)
+
+**Datenfluss:**
+```
+Mount → loadData() → setState(loaded) [kein scheduleAutoSave]
+User tippt in Textarea → set("beurteilung", v); scheduleAutoSave() → debounce 1500ms
+  → saveFn → UPDATE examinations (5 Felder)
+User klickt Checkbox → toggleTherapyAndSave() → debounce 1500ms → saveFn
+KI generiert → setState(ki-output) → scheduleAutoSave() [KI-Output sofort sichern]
+"Zwischenspeichern"-Button → autoSave.saveNow()
+DOCX-Download → await autoSave.saveNow() → dann fetch docx
+ExaminationNav-Klick → saveNow() → navigieren
+```
+
+**saveFn:**
+```typescript
+async function saveFnExport(signal: AbortSignal) {
+  if (signal.aborted) return;
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("examinations")
+    .update({
+      assessment_text: state.beurteilung,
+      pathophysiology_text: state.pathophysiologie,
+      therapy_recommendations: state.therapySelected,
+      therapy_notes: state.therapyNotes,
+      tracheostomy_recommendation: state.tracheostomyRec,
+    })
+    .eq("id", id);
+  if (signal.aborted) return;
+  if (error) throw new Error(error.message);
+}
+```
+
+**Change-Handler:**
+- Alle 4 Textareas: `onChange={(e) => { set("field", e.target.value); scheduleAutoSave(); }}`
+- **`onBlur={handleSave}` bei allen Textareas ENTFERNEN** — Auto-Save übernimmt
+- `toggleTherapy(item)` → ergänzt `scheduleAutoSave()` am Ende
+- TK-Suggestion-Chips (tracheostomyRec): `set(...)` + `scheduleAutoSave()`
+- BODS-Input-onChange: `set("bodsI/II", ...)` + `scheduleAutoSave()`
+- KI-Generate-Erfolg: nach setState(ki-output) → `scheduleAutoSave()` (KI-Text sofort sichern)
+
+**onBlur entfernen:** Das löst die Race-Condition (Diagnose P2). ✓
+
+**Weitere Änderungen:**
+- `examinations`-SELECT in loadData: `status` ergänzen
+- `saving`, `setSaving`, `saveError`, `setSaveError` State entfernen
+- "Zwischenspeichern"-Button: `onClick={autoSave.saveNow}`, disabled: `autoSave.status === "saving"`
+  - Label bleibt "Zwischenspeichern" (User-Vertrauen) aber zeigt keinen Loading-Text mehr
+  - SaveIndicator zeigt den Status
+- `handleSave()` Funktion entfernen (durch saveFn ersetzt)
+- Vor DOCX-Download: `await autoSave.saveNow()` statt `await handleSave()`
+- Header: SaveIndicator rechts
+- CompletionStatus-Banner nach Header
+- ExaminationNav: `onBeforeNavigate={autoSave.saveNow}`
+
+**Besonderheit: `patientName`-State** — wird nie gespeichert, kein scheduleAutoSave. ✓
+
+- [x] B3-A bis B3-I: vollständig implementiert + Build-Check ✓
+  - Besonderheit: `flushSync` aus `react-dom` vor `saveNow()` im KI-Generate-Pfad
+    (erzwingt Sync-Re-Render damit saveFnRef.current den neuen State captured)
+
+---
+
+### TASK B4 — Smoke-Tests (nach B1–B3)
+
+- [x] B4-H: TS-Build grün (alle drei Tabs, zero errors)
+- [ ] B4-A–G: Manuelle Browser-Smoke-Tests — von User durchzuführen
+
+---
+
+### Implementierungs-Reihenfolge Session B
+
+1. B1 (befund) — einfachster Tab, 1 DB-Call
+2. B2 (schlucktest) — komplexester Tab, 2 DB-Calls
+3. B3 (export) — onBlur-Removal + race-condition-fix
+4. B4 (Smoke-Tests)
+5. Commit + Push
